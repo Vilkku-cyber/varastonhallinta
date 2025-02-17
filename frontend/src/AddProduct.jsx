@@ -1,6 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { database, ref, push } from "./firebaseConfig"; // Firebase-yhteys
 
 function AddProduct() {
   const [name, setName] = useState("");
@@ -10,17 +10,21 @@ function AddProduct() {
   const [details, setDetails] = useState("");
   const navigate = useNavigate();
 
+  // 🔹 Lisää tuote Firebaseen
   const addProduct = () => {
-    axios.post("http://localhost:5000/api/inventory/add", {
+    if (!name.trim() || quantity <= 0) return;
+
+    const inventoryRef = ref(database, "inventory");
+    push(inventoryRef, {
       name,
-      quantity,
-      status: "available",
+      available: quantity,
+      reserved: 0, // Oletuksena keikalla ei ole mitään
       dimensions,
       weight,
       details,
-    })
-      .then(() => navigate("/inventory"))
-      .catch(error => console.error("Virhe lisättäessä tuotetta:", error));
+    }).then(() => {
+      navigate("/inventory"); // Palaa varastonäkymään
+    });
   };
 
   return (
@@ -31,7 +35,7 @@ function AddProduct() {
       <input type="text" value={name} onChange={e => setName(e.target.value)} />
 
       <label>Varastossa oleva määrä:</label>
-      <input type="number" value={quantity} onChange={e => setQuantity(Number(e.target.value))} />
+      <input type="number" value={quantity} onChange={e => setQuantity(Number(e.target.value))} min="1" />
 
       <label>Mitat:</label>
       <input type="text" value={dimensions} onChange={e => setDimensions(e.target.value)} />

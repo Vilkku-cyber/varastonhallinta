@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { database, ref, get, update, remove } from "./firebaseConfig"; // Firebase-yhteys
 
 function ProductDetails() {
   const { id } = useParams();
@@ -10,36 +10,50 @@ function ProductDetails() {
   const [weight, setWeight] = useState("");
   const [details, setDetails] = useState("");
 
+  // 🔹 Haetaan tuotetiedot Firebase-tietokannasta
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/product/${id}`)
-      .then(response => {
-        setProduct(response.data);
-        setDimensions(response.data.dimensions);
-        setWeight(response.data.weight);
-        setDetails(response.data.details);
-      })
-      .catch(error => console.error("Virhe haettaessa tuotetietoja:", error));
-  }, [id]);
+    const productRef = ref(database, `inventory/${id}`);
 
+    get(productRef)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setProduct(data);
+          setDimensions(data.dimensions || "");
+          setWeight(data.weight || "");
+          setDetails(data.details || "");
+        } else {
+          console.error("Tuotetta ei löytynyt!");
+          navigate("/inventory");
+        }
+      })
+      .catch((error) => console.error("Virhe haettaessa tuotetietoja:", error));
+  }, [id, navigate]);
+
+  // 🔹 Päivitä tuotetiedot Firebaseen
   const saveChanges = () => {
-    axios.post("http://localhost:5000/api/product/update", {
-      id,
+    const productRef = ref(database, `inventory/${id}`);
+
+    update(productRef, {
       dimensions,
       weight,
-      details
+      details,
     })
       .then(() => alert("Tuotetiedot päivitetty!"))
-      .catch(error => console.error("Virhe päivitettäessä tuotetietoja:", error));
+      .catch((error) => console.error("Virhe päivitettäessä tuotetietoja:", error));
   };
 
+  // 🔹 Poista tuote Firebasesta
   const deleteProduct = () => {
     if (window.confirm("Haluatko varmasti poistaa tämän tuotteen?")) {
-      axios.delete(`http://localhost:5000/api/product/${id}`)
+      const productRef = ref(database, `inventory/${id}`);
+      
+      remove(productRef)
         .then(() => {
           alert("Tuote poistettu!");
           navigate("/inventory"); // Palataan varastosivulle poiston jälkeen
         })
-        .catch(error => console.error("Virhe poistettaessa tuotetta:", error));
+        .catch((error) => console.error("Virhe poistettaessa tuotetta:", error));
     }
   };
 
@@ -54,13 +68,13 @@ function ProductDetails() {
       <h2>Muokkaa tuotetietoja</h2>
 
       <label>Mitat:</label>
-      <input type="text" value={dimensions} onChange={e => setDimensions(e.target.value)} />
+      <input type="text" value={dimensions} onChange={(e) => setDimensions(e.target.value)} />
 
       <label>Paino:</label>
-      <input type="text" value={weight} onChange={e => setWeight(e.target.value)} />
+      <input type="text" value={weight} onChange={(e) => setWeight(e.target.value)} />
 
       <label>Lisätiedot:</label>
-      <textarea value={details} onChange={e => setDetails(e.target.value)} />
+      <textarea value={details} onChange={(e) => setDetails(e.target.value)} />
 
       <br />
       <button onClick={() => navigate("/inventory")}>Palaa</button>

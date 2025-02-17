@@ -324,7 +324,6 @@ app.post('/api/trip/return/:id', (req, res) => {
 const PORT = 5000;
 const HOST = '0.0.0.0'; // 🔥 Tämä sallii yhteydet kaikilta IP-osoitteilta (mukaan lukien Tailscale)
 
-app.listen(PORT, HOST, () => {
-    console.log(`Server running on http://${HOST}:${PORT}`);
+app.listen(5000, '0.0.0.0', () => {
+    console.log('Server running on port 5000');
 });
-

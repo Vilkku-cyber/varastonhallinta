@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { database, ref, push, onValue } from "./firebaseConfig";
 import { useNavigate } from "react-router-dom";
 
 function CreateTrip() {
@@ -9,22 +9,28 @@ function CreateTrip() {
   const [inventory, setInventory] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
 
-  // Hae varaston tuotteet
+  // 🔹 Haetaan varaston tuotteet Firebase-tietokannasta
   useEffect(() => {
-    axios.get("http://localhost:5000/api/inventory")
-      .then(response => {
-        console.log("Varastodata:", response.data); // 🆕 Debuggaus
-        setInventory(response.data);
-      })
-      .catch(error => console.error("Virhe haettaessa varastotietoja:", error));
+    const inventoryRef = ref(database, "inventory");
+
+    onValue(inventoryRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const inventoryList = Object.entries(data).map(([id, value]) => ({
+          id,
+          ...value,
+        }));
+        setInventory(inventoryList);
+      }
+    });
   }, []);
 
-  // Lisää uusi tyhjä tuotteen valinta
+  // 🔹 Lisää uusi tyhjä tuotteen valinta
   const addItem = () => {
     setSelectedItems([...selectedItems, { id: "", quantity: 1 }]);
   };
 
-  // Päivitä valittu tuote/määrä
+  // 🔹 Päivitä valittu tuote/määrä
   const updateItem = (index, field, value) => {
     const updatedItems = [...selectedItems];
 
@@ -32,8 +38,8 @@ function CreateTrip() {
       // Nollaa määrä jos tuote vaihtuu
       updatedItems[index] = { id: value, quantity: 1 };
     } else {
-      // Tarkista, että määrä ei ylitä varastosaldoa
-      const selectedProduct = inventory.find(prod => prod.id === Number(updatedItems[index].id));
+      // Tarkista, ettei määrä ylitä varastosaldoa
+      const selectedProduct = inventory.find(prod => prod.id === updatedItems[index].id);
       const maxQuantity = selectedProduct ? selectedProduct.available : 1;
       updatedItems[index].quantity = Math.min(Number(value), maxQuantity);
     }
@@ -41,12 +47,15 @@ function CreateTrip() {
     setSelectedItems(updatedItems);
   };
 
-  // Tallenna keikka
+  // 🔹 Tallenna keikka Firebaseen
   const saveTrip = () => {
     const filteredItems = selectedItems.filter(item => item.id);
-    axios.post("http://localhost:5000/api/trips", { name, date, items: filteredItems })
-      .then(() => navigate("/"))
-      .catch(error => console.error("Virhe tallennettaessa keikkaa:", error));
+    if (!name.trim() || !date.trim() || filteredItems.length === 0) return;
+
+    const tripsRef = ref(database, "keikat");
+    push(tripsRef, { name, date, items: filteredItems }).then(() => {
+      navigate("/"); // Palaa etusivulle tallennuksen jälkeen
+    });
   };
 
   return (
@@ -78,7 +87,7 @@ function CreateTrip() {
             type="number" 
             value={item.quantity} 
             min="1"
-            max={inventory.find(prod => prod.id === Number(item.id))?.available || 1} // Estä ylisuuret määrät
+            max={inventory.find(prod => prod.id === item.id)?.available || 1} // Estä ylisuuret määrät
             onChange={e => updateItem(index, "quantity", e.target.value)} 
           />
         </div>

@@ -1,11 +1,13 @@
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./Home";
-import Inventory from "./inventory";
+import Inventory from "./Inventory";
 import AddProduct from "./AddProduct";
 import ProductDetails from "./ProductDetails";
 import EditTrip from "./EditTrip";
 import PastTrips from "./PastTrips";
-import CreateTrip from "./CreateTrip"; // 🆕 Lisää tämä!
+import CreateTrip from "./CreateTrip";
+import { database } from "./firebaseConfig";  // Firebase-yhteys
 
 function App() {
   return (
@@ -17,7 +19,7 @@ function App() {
         <Route path="/product/:id" element={<ProductDetails />} />
         <Route path="/edit-trip/:id" element={<EditTrip />} />
         <Route path="/past-trips" element={<PastTrips />} />
-        <Route path="/create-trip" element={<CreateTrip />} /> {/* 🆕 Lisää tämä! */}
+        <Route path="/create-trip" element={<CreateTrip />} />
       </Routes>
     </Router>
   );

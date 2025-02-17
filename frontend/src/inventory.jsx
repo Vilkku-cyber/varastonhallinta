@@ -1,15 +1,27 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { database, ref, onValue } from "./firebaseConfig"; // Firebase-yhteys
 
 function Inventory() {
   const [inventory, setInventory] = useState([]);
   const navigate = useNavigate();
 
+  // 🔹 Haetaan varastotiedot Firebase-tietokannasta
   useEffect(() => {
-    axios.get("http://localhost:5000/api/inventory")
-      .then(response => setInventory(response.data))
-      .catch(error => console.error("Virhe haettaessa varastotietoja:", error));
+    const inventoryRef = ref(database, "inventory");
+
+    onValue(inventoryRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const inventoryList = Object.entries(data).map(([id, value]) => ({
+          id,
+          ...value,
+        }));
+        setInventory(inventoryList);
+      } else {
+        setInventory([]);
+      }
+    });
   }, []);
 
   return (
@@ -19,8 +31,8 @@ function Inventory() {
         🏠 Koti
       </button>
       <button onClick={() => navigate("/add-product")} style={{ marginBottom: "20px" }}>
-  + Lisää tuote
-</button>
+        + Lisää tuote
+      </button>
 
       <table border="1" cellPadding="5">
         <thead>
@@ -31,7 +43,7 @@ function Inventory() {
           </tr>
         </thead>
         <tbody>
-          {inventory.map(item => (
+          {inventory.map((item) => (
             <tr key={item.id}>
               <td>
                 <a href={`/product/${item.id}`} style={{ textDecoration: "none" }}>
@@ -39,7 +51,7 @@ function Inventory() {
                 </a>
               </td>
               <td>{item.available}</td>
-              <td style={{ color: "red" }}>{item.reserved}</td>
+              <td style={{ color: "red" }}>{item.reserved || 0}</td>
             </tr>
           ))}
         </tbody>
