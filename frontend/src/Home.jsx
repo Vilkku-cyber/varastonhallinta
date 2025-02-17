@@ -28,7 +28,9 @@ function Home() {
       if (data) {
         const keikkaLista = Object.entries(data).map(([id, value]) => ({
           id,
-          ...value,
+          name: value.name || "Nimetön keikka", // 🔹 Korjattu: varmistetaan, että nimi haetaan oikein
+          date: value.date || "Ei määritelty", // 🔹 Korjattu: varmistetaan, että päivämäärä haetaan oikein
+          items: value.items || [],
         }));
         setKeikat(keikkaLista);
       } else {
@@ -52,13 +54,13 @@ function Home() {
                 onClick={() => navigate(`/edit-trip/${keikka.id}`)}
                 style={{ cursor: "pointer", color: "blue" }}
               >
-                {keikka.nimi} ({keikka.aika})
+                {keikka.name} ({keikka.date}) {/* 🔹 Korjattu: keikan nimi ja päivämäärä haetaan oikein */}
               </strong>
               {/* 🔹 Näytetään keikan tuotteet ja haetaan nimet varastosta */}
               {keikka.items && Object.keys(keikka.items).length > 0 ? (
                 <ul>
                   {Object.entries(keikka.items).map(([itemId, itemData]) => {
-                    const productName = inventory[itemId]?.name || "Tuntematon tuote";
+                    const productName = inventory[itemData.id]?.name || "Tuntematon tuote"; // 🔹 Korjattu tuotteen nimi
                     return (
                       <li key={itemId}>
                         {itemData.quantity}x {productName}
