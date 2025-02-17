@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { database, ref, onValue } from "./firebaseConfig"; // Firebase-yhteys
@@ -7,7 +8,6 @@ function Inventory() {
   const [reservedCounts, setReservedCounts] = useState({}); // 🔹 Keikoilla olevat määrät
   const navigate = useNavigate();
 
-  // 🔹 Haetaan varastotiedot Firebase-tietokannasta
   useEffect(() => {
     const inventoryRef = ref(database, "inventory");
     onValue(inventoryRef, (snapshot) => {
@@ -23,14 +23,11 @@ function Inventory() {
       }
     });
 
-    // 🔹 Haetaan keikoilla olevat tuotteet
     const tripsRef = ref(database, "keikat");
     onValue(tripsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const tempReservedCounts = {};
-
-        // Käydään kaikki keikat läpi ja lasketaan tuotteiden määrät
         Object.values(data).forEach((trip) => {
           if (trip.items) {
             Object.values(trip.items).forEach((item) => {
@@ -41,7 +38,6 @@ function Inventory() {
             });
           }
         });
-
         setReservedCounts(tempReservedCounts);
       } else {
         setReservedCounts({});
@@ -49,41 +45,45 @@ function Inventory() {
     });
   }, []);
 
+  const categorizedInventory = inventory.reduce((acc, item) => {
+    const category = item.category || "Muu";
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(item);
+    return acc;
+  }, {});
+
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
       <h1>Varasto</h1>
-      <button onClick={() => navigate("/")} style={{ marginBottom: "10px" }}>
-        🏠 Koti
-      </button>
-      <button onClick={() => navigate("/add-product")} style={{ marginBottom: "20px" }}>
-        + Lisää tuote
-      </button>
+      <button onClick={() => navigate("/")} style={{ marginBottom: "10px" }}>🏠 Koti</button>
+      <button onClick={() => navigate("/add-product")} style={{ marginBottom: "20px" }}>+ Lisää tuote</button>
 
-      <table border="1" cellPadding="5">
-        <thead>
-          <tr>
-            <th>Tuote</th>
-            <th>Varastossa</th>
-            <th>Keikalla</th>
-          </tr>
-        </thead>
-        <tbody>
-          {inventory.map((item) => {
-            const reserved = reservedCounts[item.id] || 0;
-            return (
-              <tr key={item.id}>
-                <td>
-                  <a href={`/product/${item.id}`} style={{ textDecoration: "none" }}>
-                    {item.name}
-                  </a>
-                </td>
-                <td>{item.available - reserved}</td> {/* 🔹 Vähennetään keikalla olevat tuotteet */}
-                <td style={{ color: "red" }}>{reserved}</td>
+      {Object.keys(categorizedInventory).map((category) => (
+        <div key={category}>
+          <h2>{category}</h2>
+          <table border="1" cellPadding="5">
+            <thead>
+              <tr>
+                <th>Tuote</th>
+                <th>Varastossa</th>
+                <th>Keikalla</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {categorizedInventory[category].map((item) => {
+                const reserved = reservedCounts[item.id] || 0;
+                return (
+                  <tr key={item.id}>
+                    <td><a href={`/product/${item.id}`} style={{ textDecoration: "none" }}>{item.name}</a></td>
+                    <td>{item.available - reserved}</td>
+                    <td style={{ color: "red" }}>{reserved}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ))}
     </div>
   );
 }

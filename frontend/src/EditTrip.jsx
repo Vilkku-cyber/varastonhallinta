@@ -12,7 +12,6 @@ function EditTrip() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [showProductList, setShowProductList] = useState(false);
 
-  // 🔹 Haetaan varaston tuotteet Firebasesta
   useEffect(() => {
     const inventoryRef = ref(database, "inventory");
     onValue(inventoryRef, (snapshot) => {
@@ -23,10 +22,8 @@ function EditTrip() {
     });
   }, []);
 
-  // 🔹 Haetaan keikan tiedot Firebasesta
   useEffect(() => {
     const tripRef = ref(database, `keikat/${id}`);
-
     get(tripRef)
       .then((snapshot) => {
         if (snapshot.exists()) {
@@ -51,15 +48,32 @@ function EditTrip() {
       .catch((error) => console.error("Virhe haettaessa keikan tietoja:", error));
   }, [id, navigate, inventory]);
 
-  // 🔹 Palautetaan keikka (EI muuta varastoa)
+  const saveTrip = () => {
+    const tripRef = ref(database, `keikat/${id}`);
+    const updatedItems = selectedItems.reduce((acc, item) => {
+      acc[item.id] = { id: item.id, quantity: item.quantity };
+      return acc;
+    }, {});
+
+    update(tripRef, {
+      name,
+      date,
+      items: updatedItems,
+    })
+      .then(() => {
+        alert("Keikka päivitetty!");
+        navigate("/");
+      })
+      .catch((error) => console.error("Virhe tallennettaessa keikan tietoja:", error));
+  };
+
   const returnTrip = () => {
     if (!window.confirm("Haluatko varmasti palauttaa keikan? Keikka arkistoidaan.")) return;
 
-    // Siirretään keikka arkistoon ilman varaston muutoksia
     const archivedTripRef = ref(database, `archived-trips/${id}`);
     update(archivedTripRef, {
-      name: name,
-      date: date,
+      name,
+      date,
       items: selectedItems,
       returned: true,
     })
@@ -74,7 +88,6 @@ function EditTrip() {
       .catch((error) => console.error("Virhe arkistoinnissa:", error));
   };
 
-  // 🔹 Poistetaan keikka ilman arkistointia
   const deleteTrip = () => {
     if (!window.confirm("Haluatko varmasti poistaa tämän keikan? Tätä ei voi perua!")) return;
 
@@ -86,25 +99,27 @@ function EditTrip() {
       .catch((error) => console.error("Virhe keikan poistossa:", error));
   };
 
+  const removeItem = (index) => {
+    const updatedItems = [...selectedItems];
+    updatedItems.splice(index, 1);
+    setSelectedItems(updatedItems);
+  };
+
+  const addItemToTrip = (itemId) => {
+    const itemName = inventory[itemId]?.name || "Tuntematon tuote";
+    setSelectedItems([...selectedItems, { id: itemId, quantity: 1, name: itemName }]);
+    setShowProductList(false);
+  };
+
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
       <h1>Muokkaa keikkaa</h1>
 
       <label>Keikan nimi:</label>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        style={{ display: "block", marginBottom: "10px" }}
-      />
+      <input type="text" value={name} onChange={(e) => setName(e.target.value)} style={{ display: "block", marginBottom: "10px" }} />
 
       <label>Päivämäärä/aika:</label>
-      <input
-        type="text"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        style={{ display: "block", marginBottom: "10px" }}
-      />
+      <input type="text" value={date} onChange={(e) => setDate(e.target.value)} style={{ display: "block", marginBottom: "10px" }} />
 
       <h2>Lisätyt tuotteet</h2>
       {selectedItems.length === 0 && <p>Ei tuotteita lisätty</p>}
@@ -122,17 +137,30 @@ function EditTrip() {
             }}
             style={{ width: "50px", marginLeft: "10px" }}
           />
+          <button onClick={() => removeItem(index)} style={{ marginLeft: "10px", color: "red" }}>🗑️ Poista</button>
         </div>
       ))}
 
       <br />
+      <button onClick={() => setShowProductList(true)} style={{ backgroundColor: "blue", color: "white" }}>+ Lisää tuotteita</button>
+
+      {showProductList && (
+        <div style={{ border: "1px solid gray", padding: "10px", marginTop: "10px" }}>
+          <h3>Valitse tuote lisättäväksi</h3>
+          {Object.entries(inventory).map(([id, item]) => (
+            <button key={id} onClick={() => addItemToTrip(id)} style={{ display: "block", marginBottom: "5px" }}>
+              {item.name}
+            </button>
+          ))}
+          <button onClick={() => setShowProductList(false)} style={{ marginTop: "10px" }}>Sulje</button>
+        </div>
+      )}
+
+      <br />
       <button onClick={() => navigate("/")}>Palaa</button>
-      <button onClick={returnTrip} style={{ marginLeft: "10px", backgroundColor: "orange", color: "white" }}>
-        Palautettu
-      </button>
-      <button onClick={deleteTrip} style={{ marginLeft: "10px", backgroundColor: "red", color: "white" }}>
-        Poista keikka
-      </button>
+      <button onClick={saveTrip} style={{ marginLeft: "10px", backgroundColor: "green", color: "white" }}>Tallenna keikka</button>
+      <button onClick={returnTrip} style={{ marginLeft: "10px", backgroundColor: "orange", color: "white" }}>Palautettu</button>
+      <button onClick={deleteTrip} style={{ marginLeft: "10px", backgroundColor: "red", color: "white" }}>Poista keikka</button>
     </div>
   );
 }
