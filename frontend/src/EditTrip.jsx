@@ -5,10 +5,23 @@ import { database, ref, get, update, remove, onValue } from "./firebaseConfig"; 
 function EditTrip() {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
-  const [inventory, setInventory] = useState([]);
+  const [inventory, setInventory] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
+  const [showProductList, setShowProductList] = useState(false);
+
+  // 🔹 Haetaan varaston tuotteet Firebasesta
+  useEffect(() => {
+    const inventoryRef = ref(database, "inventory");
+    onValue(inventoryRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setInventory(data);
+      }
+    });
+  }, []);
 
   // 🔹 Haetaan keikan tiedot Firebasesta
   useEffect(() => {
@@ -18,97 +31,90 @@ function EditTrip() {
       .then((snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          setName(data.nimi || "");
-          setDate(data.aika || "");
+          console.log("Keikan data ladattu:", data);
+
+          setName(data.name || "");
+          setDate(data.date || "");
+
           if (data.items) {
-            setSelectedItems(Object.entries(data.items).map(([itemId, itemData]) => ({
-              id: itemId,
-              quantity: itemData.quantity,
-            })));
+            setSelectedItems(
+              Object.entries(data.items).map(([itemId, itemData]) => ({
+                id: itemData.id,
+                quantity: itemData.quantity,
+                name: inventory[itemData.id]?.name || "Tuntematon tuote",
+              }))
+            );
           }
         } else {
           console.error("Keikkaa ei löytynyt!");
           navigate("/");
         }
       })
-      .catch((error) => console.error("Virhe haettaessa keikan tietoja:", error));
+      .catch((error) => {
+        console.error("Virhe haettaessa keikan tietoja:", error);
+      });
+  }, [id, navigate, inventory]);
 
-    // 🔹 Haetaan varaston tuotteet Firebasesta
-    const inventoryRef = ref(database, "inventory");
-    onValue(inventoryRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const inventoryList = Object.entries(data).map(([id, value]) => ({
-          id,
-          ...value,
-        }));
-        setInventory(inventoryList);
+  // 🔹 Palautetaan keikan tuotteet varastoon
+  const returnTrip = () => {
+    if (!window.confirm("Haluatko varmasti palauttaa keikan ja palauttaa tuotteet varastoon?")) return;
+
+    // Päivitetään varaston määrät
+    const inventoryUpdates = {};
+    selectedItems.forEach((item) => {
+      if (inventory[item.id]) {
+        const newQuantity = inventory[item.id].available + item.quantity;
+        inventoryUpdates[`inventory/${item.id}/available`] = newQuantity;
       }
     });
-  }, [id, navigate]);
 
-  // 🔹 Lisää uusi tyhjä tuotteen valinta
-  const addItem = () => {
-    setSelectedItems([...selectedItems, { id: "", quantity: 1 }]);
+    // Siirretään keikka arkistoon
+    const archivedTripRef = ref(database, `archived-trips/${id}`);
+    update(archivedTripRef, {
+      name: name,
+      date: date,
+      items: selectedItems,
+      returned: true,
+    });
+
+    // Päivitetään varaston määrät Firebaseen
+    update(ref(database), inventoryUpdates)
+      .then(() => {
+        console.log("Varaston määrät päivitetty.");
+        // Poistetaan keikka aktiivisista keikoista
+        remove(ref(database, `keikat/${id}`))
+          .then(() => {
+            alert("Keikka siirretty arkistoon ja tuotteet palautettu varastoon.");
+            navigate("/");
+          })
+          .catch((error) => console.error("Virhe keikan poistossa:", error));
+      })
+      .catch((error) => console.error("Virhe varaston päivittämisessä:", error));
   };
 
-  // 🔹 Päivitä valittu tuote/määrä
-  const updateItem = (index, field, value) => {
+  // 🔹 Lisää tuote valittujen listalle
+  const addItem = (productId) => {
+    if (!productId) return;
+    if (selectedItems.some((item) => item.id === productId)) {
+      alert("Tämä tuote on jo lisätty keikalle!");
+      return;
+    }
+    setSelectedItems([
+      ...selectedItems,
+      {
+        id: productId,
+        quantity: 1,
+        name: inventory[productId]?.name || "Tuntematon tuote",
+      },
+    ]);
+    setShowProductList(false);
+  };
+
+  // 🔹 Päivitä valitun tuotteen määrä
+  const updateQuantity = (index, value) => {
     const updatedItems = [...selectedItems];
-
-    if (field === "id") {
-      updatedItems[index] = { id: value, quantity: 1 };
-    } else {
-      const selectedProduct = inventory.find((prod) => prod.id === updatedItems[index].id);
-      const maxQuantity = selectedProduct ? selectedProduct.available : 1;
-      updatedItems[index].quantity = Math.min(Number(value), maxQuantity);
-    }
-
+    updatedItems[index].quantity = Math.max(1, Number(value));
     setSelectedItems(updatedItems);
-  };
-
-  // 🔹 Tallenna keikka Firebaseen
-  const saveTrip = () => {
-    if (!name.trim() || !date.trim()) return;
-
-    const tripRef = ref(database, `keikat/${id}`);
-    update(tripRef, {
-      nimi: name,
-      aika: date,
-      items: selectedItems.reduce((acc, item) => {
-        acc[item.id] = { quantity: item.quantity };
-        return acc;
-      }, {}),
-    })
-      .then(() => navigate("/"))
-      .catch((error) => console.error("Virhe tallennettaessa keikkaa:", error));
-  };
-
-  // 🔹 Poista keikka Firebasesta
-  const deleteTrip = () => {
-    if (window.confirm("Haluatko varmasti poistaa tämän keikan?")) {
-      const tripRef = ref(database, `keikat/${id}`);
-
-      remove(tripRef)
-        .then(() => {
-          alert("Keikka poistettu!");
-          navigate("/");
-        })
-        .catch((error) => console.error("Virhe poistettaessa keikkaa:", error));
-    }
-  };
-
-  // 🔹 Merkitse keikka palautetuksi
-  const markAsReturned = () => {
-    if (window.confirm("Haluatko varmasti merkitä keikan palautetuksi?")) {
-      const tripRef = ref(database, `keikat/${id}`);
-      update(tripRef, { palautettu: true })
-        .then(() => {
-          alert("Keikka merkitty palautetuksi!");
-          navigate("/");
-        })
-        .catch((error) => console.error("Virhe merkittäessä keikkaa palautetuksi:", error));
-    }
   };
 
   return (
@@ -116,41 +122,57 @@ function EditTrip() {
       <h1>Muokkaa keikkaa</h1>
 
       <label>Keikan nimi:</label>
-      <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        style={{ display: "block", marginBottom: "10px" }}
+      />
 
-      <label>Aika:</label>
-      <input type="text" value={date} onChange={(e) => setDate(e.target.value)} />
+      <label>Päivämäärä/aika:</label>
+      <input
+        type="text"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        style={{ display: "block", marginBottom: "10px" }}
+      />
 
-      <h2>Lisää tavarat</h2>
+      <h2>Lisätyt tuotteet</h2>
+      {selectedItems.length === 0 && <p>Ei tuotteita lisätty</p>}
       {selectedItems.map((item, index) => (
-        <div key={index}>
-          <select value={item.id} onChange={(e) => updateItem(index, "id", e.target.value)}>
-            <option value="">Valitse tuote</option>
-            {inventory.map((product) => (
-              <option key={product.id} value={product.id}>
-                {product.name} ({product.available} kpl varastossa)
-              </option>
-            ))}
-          </select>
+        <div key={index} style={{ marginBottom: "10px", display: "flex", alignItems: "center" }}>
+          <strong>{item.name}</strong>
           <input
             type="number"
             value={item.quantity}
             min="1"
-            max={inventory.find((prod) => prod.id === item.id)?.available || 1}
-            onChange={(e) => updateItem(index, "quantity", e.target.value)}
+            onChange={(e) => updateQuantity(index, e.target.value)}
+            style={{ width: "50px", marginLeft: "10px" }}
           />
         </div>
       ))}
-      <button onClick={addItem}>+ Lisää tuote</button>
+
+      {showProductList ? (
+        <div>
+          <h3>Valitse tuote</h3>
+          {Object.entries(inventory).map(([invId, product]) => (
+            <button
+              key={invId}
+              onClick={() => addItem(invId)}
+              style={{ display: "block", marginBottom: "5px" }}
+            >
+              {product.name} ({product.available} kpl)
+            </button>
+          ))}
+        </div>
+      ) : (
+        <button onClick={() => setShowProductList(true)}>+ Lisää tuote</button>
+      )}
 
       <br />
       <button onClick={() => navigate("/")}>Palaa</button>
-      <button onClick={saveTrip}>Tallenna</button>
-      <button onClick={markAsReturned} style={{ marginLeft: "10px", backgroundColor: "orange", color: "white" }}>
+      <button onClick={returnTrip} style={{ marginLeft: "10px", backgroundColor: "orange", color: "white" }}>
         Palautettu
-      </button>
-      <button onClick={deleteTrip} style={{ marginLeft: "10px", backgroundColor: "red", color: "white" }}>
-        Poista keikka
       </button>
     </div>
   );
