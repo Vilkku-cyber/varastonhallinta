@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  server: {
-    host: true,
-    port: 5173 // Voit vaihtaa portin tarvittaessa
+  build: {
+    rollupOptions: {
+      external: ['react-datepicker']
+    }
   }
 });
