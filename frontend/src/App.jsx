@@ -1,14 +1,31 @@
-import React from "react";
 
-console.log("🔥 Firebase API Key:", process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
-console.log("🔥 Firebase Database URL:", process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL);
+
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./Home";
+import Inventory from "./Inventory";
+import AddProduct from "./AddProduct";
+import ProductDetails from "./ProductDetails";
+import EditTrip from "./EditTrip";
+import PastTrips from "./PastTrips";
+import CreateTrip from "./CreateTrip";
+import { database } from "./firebaseConfig";  // Firebase-yhteys
+import TestDatePicker from "./TestDatePicker";
 
 function App() {
   return (
-    <div>
-      <h1>Varastonhallinta</h1>
-      <p>Katso konsoli nähdäksesi Firebase-muuttujat.</p>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/test" element={<TestDatePicker />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/add-product" element={<AddProduct />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/edit-trip/:id" element={<EditTrip />} />
+        <Route path="/past-trips" element={<PastTrips />} />
+        <Route path="/create-trip" element={<CreateTrip />} />
+      </Routes>
+    </Router>
   );
 }
 
