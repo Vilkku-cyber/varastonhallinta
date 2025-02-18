@@ -5,6 +5,7 @@ import { database, ref, push } from "./firebaseConfig"; // Firebase-yhteys
 function AddProduct() {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [category, setCategory] = useState("Muu"); // 🔹 Oletuskategoria "Muu"
   const [dimensions, setDimensions] = useState("");
   const [weight, setWeight] = useState("");
   const [details, setDetails] = useState("");
@@ -19,6 +20,7 @@ function AddProduct() {
       name,
       available: quantity,
       reserved: 0, // Oletuksena keikalla ei ole mitään
+      category, // 🔹 Tallennetaan kategoria
       dimensions,
       weight,
       details,
@@ -36,6 +38,13 @@ function AddProduct() {
 
       <label>Varastossa oleva määrä:</label>
       <input type="number" value={quantity} onChange={e => setQuantity(Number(e.target.value))} min="1" />
+
+      <label>Kategoria:</label>
+      <select value={category} onChange={e => setCategory(e.target.value)}>
+        <option value="LED">LED</option>
+        <option value="TV">TV</option>
+        <option value="Muu">Muu</option>
+      </select>
 
       <label>Mitat:</label>
       <input type="text" value={dimensions} onChange={e => setDimensions(e.target.value)} />

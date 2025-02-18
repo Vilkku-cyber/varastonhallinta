@@ -8,12 +8,14 @@ import EditTrip from "./EditTrip";
 import PastTrips from "./PastTrips";
 import CreateTrip from "./CreateTrip";
 import { database } from "./firebaseConfig";  // Firebase-yhteys
+import TestDatePicker from "./TestDatePicker";
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/test" element={<TestDatePicker />} />
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/add-product" element={<AddProduct />} />
         <Route path="/product/:id" element={<ProductDetails />} />

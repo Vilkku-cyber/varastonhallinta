@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { database, ref, get, update, remove, onValue } from "./firebaseConfig"; // Firebase-yhteys
+import { database, ref, get, update, remove, onValue } from "./firebaseConfig";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 function EditTrip() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
-  const [date, setDate] = useState("");
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [status, setStatus] = useState("pakkaamatta");
+
   const [inventory, setInventory] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
   const [showProductList, setShowProductList] = useState(false);
@@ -29,14 +34,21 @@ function EditTrip() {
         if (snapshot.exists()) {
           const data = snapshot.val();
           setName(data.name || "");
-          setDate(data.date || "");
+          // Jos tallennettu string on ISO8601, muutetaan se takaisin JS-päivämääräksi
+          setStartDate(data.startDate ? new Date(data.startDate) : null);
+          setEndDate(data.endDate ? new Date(data.endDate) : null);
+          if (data.status) {
+            setStatus(data.status);
+          }
 
           if (data.items) {
+            // items -objekti tallentaa jokaiselle tuotteelle { id, quantity }
+            // Ota nimen selvittämiseen apua inventory-objektista, jos haluat näyttää nimikkeet suoraan
             setSelectedItems(
-              Object.entries(data.items).map(([itemId, itemData]) => ({
-                id: itemData.id,
-                quantity: itemData.quantity,
-                name: inventory[itemData.id]?.name || "Tuntematon tuote",
+              Object.entries(data.items).map(([itemKey, itemValue]) => ({
+                id: itemValue.id,
+                quantity: itemValue.quantity,
+                name: inventory[itemValue.id]?.name || "Tuntematon tuote",
               }))
             );
           }
@@ -57,7 +69,9 @@ function EditTrip() {
 
     update(tripRef, {
       name,
-      date,
+      startDate: startDate ? startDate.toISOString() : "",
+      endDate: endDate ? endDate.toISOString() : "",
+      status,
       items: updatedItems,
     })
       .then(() => {
@@ -73,7 +87,9 @@ function EditTrip() {
     const archivedTripRef = ref(database, `archived-trips/${id}`);
     update(archivedTripRef, {
       name,
-      date,
+      startDate: startDate ? startDate.toISOString() : "",
+      endDate: endDate ? endDate.toISOString() : "",
+      status,
       items: selectedItems,
       returned: true,
     })
@@ -90,7 +106,6 @@ function EditTrip() {
 
   const deleteTrip = () => {
     if (!window.confirm("Haluatko varmasti poistaa tämän keikan? Tätä ei voi perua!")) return;
-
     remove(ref(database, `keikat/${id}`))
       .then(() => {
         alert("Keikka poistettu pysyvästi.");
@@ -116,15 +131,50 @@ function EditTrip() {
       <h1>Muokkaa keikkaa</h1>
 
       <label>Keikan nimi:</label>
-      <input type="text" value={name} onChange={(e) => setName(e.target.value)} style={{ display: "block", marginBottom: "10px" }} />
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        style={{ display: "block", marginBottom: "10px" }}
+      />
 
-      <label>Päivämäärä/aika:</label>
-      <input type="text" value={date} onChange={(e) => setDate(e.target.value)} style={{ display: "block", marginBottom: "10px" }} />
+      <label>Alkamispäivä:</label>
+      <DatePicker
+        selected={startDate}
+        onChange={(date) => setStartDate(date)}
+        dateFormat="dd.MM.yyyy"
+        placeholderText="Valitse alkamispäivä"
+      />
+      <br /><br />
+
+      <label>Päättymispäivä:</label>
+      <DatePicker
+        selected={endDate}
+        onChange={(date) => setEndDate(date)}
+        dateFormat="dd.MM.yyyy"
+        placeholderText="Valitse päättymispäivä"
+      />
+      <br /><br />
+
+      <label>Status:</label><br />
+      <select
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+      >
+        <option value="pakkaamatta">pakkaamatta</option>
+        <option value="pakattu">pakattu</option>
+        <option value="keikalla">keikalla</option>
+        <option value="purkamatta">purkamatta</option>
+      </select>
+      <br /><br />
 
       <h2>Lisätyt tuotteet</h2>
       {selectedItems.length === 0 && <p>Ei tuotteita lisätty</p>}
       {selectedItems.map((item, index) => (
-        <div key={index} style={{ marginBottom: "10px", display: "flex", alignItems: "center" }}>
+        <div
+          key={index}
+          style={{ marginBottom: "10px", display: "flex", alignItems: "center" }}
+        >
           <strong>{item.name}</strong>
           <input
             type="number"
@@ -137,30 +187,61 @@ function EditTrip() {
             }}
             style={{ width: "50px", marginLeft: "10px" }}
           />
-          <button onClick={() => removeItem(index)} style={{ marginLeft: "10px", color: "red" }}>🗑️ Poista</button>
+          <button
+            onClick={() => removeItem(index)}
+            style={{ marginLeft: "10px", color: "red" }}
+          >
+            🗑️ Poista
+          </button>
         </div>
       ))}
 
       <br />
-      <button onClick={() => setShowProductList(true)} style={{ backgroundColor: "blue", color: "white" }}>+ Lisää tuotteita</button>
+      <button
+        onClick={() => setShowProductList(true)}
+        style={{ backgroundColor: "blue", color: "white" }}
+      >
+        + Lisää tuotteita
+      </button>
 
       {showProductList && (
         <div style={{ border: "1px solid gray", padding: "10px", marginTop: "10px" }}>
           <h3>Valitse tuote lisättäväksi</h3>
-          {Object.entries(inventory).map(([id, item]) => (
-            <button key={id} onClick={() => addItemToTrip(id)} style={{ display: "block", marginBottom: "5px" }}>
+          {Object.entries(inventory).map(([prodId, item]) => (
+            <button
+              key={prodId}
+              onClick={() => addItemToTrip(prodId)}
+              style={{ display: "block", marginBottom: "5px" }}
+            >
               {item.name}
             </button>
           ))}
-          <button onClick={() => setShowProductList(false)} style={{ marginTop: "10px" }}>Sulje</button>
+          <button onClick={() => setShowProductList(false)} style={{ marginTop: "10px" }}>
+            Sulje
+          </button>
         </div>
       )}
 
       <br />
       <button onClick={() => navigate("/")}>Palaa</button>
-      <button onClick={saveTrip} style={{ marginLeft: "10px", backgroundColor: "green", color: "white" }}>Tallenna keikka</button>
-      <button onClick={returnTrip} style={{ marginLeft: "10px", backgroundColor: "orange", color: "white" }}>Palautettu</button>
-      <button onClick={deleteTrip} style={{ marginLeft: "10px", backgroundColor: "red", color: "white" }}>Poista keikka</button>
+      <button
+        onClick={saveTrip}
+        style={{ marginLeft: "10px", backgroundColor: "green", color: "white" }}
+      >
+        Tallenna keikka
+      </button>
+      <button
+        onClick={returnTrip}
+        style={{ marginLeft: "10px", backgroundColor: "orange", color: "white" }}
+      >
+        Palautettu
+      </button>
+      <button
+        onClick={deleteTrip}
+        style={{ marginLeft: "10px", backgroundColor: "red", color: "white" }}
+      >
+        Poista keikka
+      </button>
     </div>
   );
 }

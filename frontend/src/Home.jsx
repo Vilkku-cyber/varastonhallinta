@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { database, ref, onValue } from "./firebaseConfig"; // Firebase-yhteys
+import { database, ref, onValue } from "./firebaseConfig";
 
 function Home() {
   const navigate = useNavigate();
   const [keikat, setKeikat] = useState([]);
-  const [inventory, setInventory] = useState({}); // 🔹 Haetaan varaston tuotteet
+  const [inventory, setInventory] = useState({});
 
-  // 🔹 Haetaan varaston tuotteet Firebasesta
   useEffect(() => {
     const inventoryRef = ref(database, "inventory");
-
     onValue(inventoryRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -19,17 +17,17 @@ function Home() {
     });
   }, []);
 
-  // 🔹 Haetaan keikat Firebasesta
   useEffect(() => {
     const keikatRef = ref(database, "keikat");
-
     onValue(keikatRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const keikkaLista = Object.entries(data).map(([id, value]) => ({
           id,
-          name: value.name || "Nimetön keikka", // 🔹 Korjattu: varmistetaan, että nimi haetaan oikein
-          date: value.date || "Ei määritelty", // 🔹 Korjattu: varmistetaan, että päivämäärä haetaan oikein
+          name: value.name || "Nimetön keikka",
+          startDate: value.startDate ? new Date(value.startDate) : null,
+          endDate: value.endDate ? new Date(value.endDate) : null,
+          status: value.status || "pakkaamatta",
           items: value.items || [],
         }));
         setKeikat(keikkaLista);
@@ -38,6 +36,22 @@ function Home() {
       }
     });
   }, []);
+
+  // Statusvärien määrittely
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "pakkaamatta":
+        return "blue";
+      case "pakattu":
+        return "green";
+      case "keikalla":
+        return "yellow";
+      case "purkamatta":
+        return "red";
+      default:
+        return "black";
+    }
+  };
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
@@ -48,31 +62,44 @@ function Home() {
         <p>Ei aktiivisia keikkoja</p>
       ) : (
         <ul>
-          {keikat.map((keikka) => (
-            <li key={keikka.id}>
-              <strong
-                onClick={() => navigate(`/edit-trip/${keikka.id}`)}
-                style={{ cursor: "pointer", color: "blue" }}
-              >
-                {keikka.name} ({keikka.date}) {/* 🔹 Korjattu: keikan nimi ja päivämäärä haetaan oikein */}
-              </strong>
-              {/* 🔹 Näytetään keikan tuotteet ja haetaan nimet varastosta */}
-              {keikka.items && Object.keys(keikka.items).length > 0 ? (
-                <ul>
-                  {Object.entries(keikka.items).map(([itemId, itemData]) => {
-                    const productName = inventory[itemData.id]?.name || "Tuntematon tuote"; // 🔹 Korjattu tuotteen nimi
-                    return (
-                      <li key={itemId}>
-                        {itemData.quantity}x {productName}
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <p>Ei tuotteita lisätty</p>
-              )}
-            </li>
-          ))}
+          {keikat.map((keikka) => {
+            const startDateString = keikka.startDate
+              ? keikka.startDate.toLocaleDateString("fi-FI")
+              : "Ei aloituspäivää";
+            const endDateString = keikka.endDate
+              ? keikka.endDate.toLocaleDateString("fi-FI")
+              : "Ei päättymispäivää";
+
+            return (
+              <li key={keikka.id} style={{ marginBottom: "10px" }}>
+                <strong
+                  onClick={() => navigate(`/edit-trip/${keikka.id}`)}
+                  style={{ cursor: "pointer", color: "blue" }}
+                >
+                  {keikka.name}
+                </strong>
+                <div>Päivämäärät: {startDateString} - {endDateString}</div>
+                <div style={{ color: getStatusColor(keikka.status), fontWeight: "bold" }}>
+                  Status: {keikka.status}
+                </div>
+
+                {keikka.items && Object.keys(keikka.items).length > 0 ? (
+                  <ul>
+                    {Object.entries(keikka.items).map(([itemId, itemData]) => {
+                      const productName = inventory[itemData.id]?.name || "Tuntematon tuote";
+                      return (
+                        <li key={itemId}>
+                          {itemData.quantity}x {productName}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p>Ei tuotteita lisätty</p>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
 
