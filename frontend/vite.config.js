@@ -2,11 +2,9 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   define: {
-    'process.env': process.env, // Tämä varmistaa, että ympäristömuuttujat toimivat Vite-sovelluksessa
+    'process.env': process.env,
   },
-  build: {
-    rollupOptions: {
-      external: ['react-datepicker'],
-    },
+  optimizeDeps: {
+    include: ['react-datepicker'],
   },
 });
