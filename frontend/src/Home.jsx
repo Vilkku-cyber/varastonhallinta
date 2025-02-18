@@ -22,14 +22,17 @@ function Home() {
     onValue(keikatRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const keikkaLista = Object.entries(data).map(([id, value]) => ({
-          id,
-          name: value.name || "Nimetön keikka",
-          startDate: value.startDate ? new Date(value.startDate) : null,
-          endDate: value.endDate ? new Date(value.endDate) : null,
-          status: value.status || "pakkaamatta",
-          items: value.items || [],
-        }));
+        const keikkaLista = Object.entries(data)
+          .map(([id, value]) => ({
+            id,
+            name: value.name || "Nimetön keikka",
+            startDate: value.startDate ? new Date(value.startDate) : null,
+            endDate: value.endDate ? new Date(value.endDate) : null,
+            status: value.status || "pakkaamatta",
+            items: value.items || [],
+          }))
+          .sort((a, b) => (a.startDate && b.startDate ? a.startDate - b.startDate : 0));
+
         setKeikat(keikkaLista);
       } else {
         setKeikat([]);
@@ -37,7 +40,6 @@ function Home() {
     });
   }, []);
 
-  // Statusvärien määrittely
   const getStatusColor = (status) => {
     switch (status) {
       case "pakkaamatta":

@@ -7,4 +7,7 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react-datepicker'],
   },
+  server: {
+    historyApiFallback: true, // Tämä varmistaa, että reititys toimii lokaalisti
+  },
 });
