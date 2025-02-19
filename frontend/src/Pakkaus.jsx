@@ -247,7 +247,7 @@ const PackingView = () => {
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <button onClick={() => navigate("/Home")} style={{ marginBottom: "10px" }}>🏠 Koti</button>
+      <button onClick={() => navigate("/")} style={{ marginBottom: "10px" }}>🏠 Koti</button>
       {!selectedTrip ? (
         <div>
           <h2>Valitse keikka pakattavaksi</h2>
