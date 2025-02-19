@@ -72,7 +72,7 @@ function ProductDetails() {
     })
       .then(() => {
         alert("Tuotetiedot päivitetty!");
-        navigate("/");
+        navigate("/inventory"); // 🔹 Ohjataan takaisin varastonäkymään
       })
       .catch((error) => console.error("Virhe tallennettaessa tuotetietoja:", error));
   };

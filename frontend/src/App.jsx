@@ -8,6 +8,7 @@ import EditTrip from "./EditTrip";
 import PastTrips from "./PastTrips";
 import CreateTrip from "./CreateTrip";
 import TestDatePicker from "./TestDatePicker";
+import PackingView from "./Pakkaus"; // Lisää tämä!
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <Route path="/edit-trip/:id" element={<EditTrip />} />
       <Route path="/past-trips" element={<PastTrips />} />
       <Route path="/create-trip" element={<CreateTrip />} />
+      <Route path="/pakkaus" element={<PackingView />} /> {/* Tämä korjattu */}
     </Routes>
   );
 }

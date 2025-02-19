@@ -113,6 +113,8 @@ function Home() {
       >
         Menneet keikat
       </button>
+      <button onClick={() => navigate("/pakkaus")}>Pakkaus</button>
+
     </div>
   );
 }
