@@ -1,0 +1,134 @@
+html, body {
+    height: 100%; /* Täyttää koko sivun korkeuden */
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Estää vierityksen koko sivulla */
+  }
+  
+  .container { /* Oletetaan, että tämä on pääelementti joka sisältää kaikki osat */
+    height: 100%; /* Täyttää koko sivun korkeuden */
+    overflow: hidden; /* Estää vierityksen tässä elementissä */
+    padding: 20px;
+  }
+  
+  .keikkaList { /* Lisää tämä luokka keikkalistasi <ul>:lle */
+    max-height: calc(100vh - 270px); /* 100px voisi olla navigointipalkin ja otsikon korkeus */
+    overflow-y: auto; /* Mahdollistaa pystysuoran vierityksen */
+    margin-bottom: 50px; /* Lisää 20px marginaalia listan alareunaan */
+    scrollbar-width: none; /* Firefoxille, piilottaa vierityspalkin */
+  }
+  
+  .container {
+    background-image: url('/images/bg.png');
+    background-size: cover;
+    background-position: center;
+    color: white; /* Varmista, että teksti erottuu taustasta */
+    padding: 20px;
+  }
+  
+  .header {
+    color: #333;
+  }
+  
+  .text, .status {
+    color: #003366; /* Tummansininen, joka sopii hyvin yhteen taustan kanssa */
+  }
+  
+  .keikka {
+    background-color: rgba(255, 255, 255, 0.9); /* Varmista, että tausta on edelleen läpikuultava */
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    max-width: 600px; /* Aseta sopiva maksimileveys */
+  }
+  
+  @media (max-width: 640px) {
+    .keikka {
+      max-width: 100%; /* Laatikot venyvät täysleveydelle pienemmillä näytöillä */
+      padding: 10px;
+      margin: 10px 0;
+    }
+  }
+  
+  .keikkaHeader {
+    cursor: pointer;
+    color: blue;
+  }
+  
+  .status {
+    font-weight: bold;
+  }
+  
+  .button {
+    margin-left: 10px;
+    background-color: #888;
+    color: white;
+  }
+  
+  /* Statusvärit */
+  .statusBlue { color: blue; }
+  .statusGreen { color: green; }
+  .statusYellow {
+    color: yellow;
+    background-color: rgba(0, 0, 0, 0.5); /* Läpikuultava musta pohjaväri */
+    padding: 3px 6px; /* Lisää pieni tyyny tekstin ympärille */
+    border-radius: 4px; /* Pyöristetyt kulmat */
+  }
+  
+  .statusRed { color: red; }
+  .statusBlack { color: black; }
+  
+  /* New CSS classes */
+  .itemsList {
+    list-style-type: none; /* Poistaa listanumerot */
+    padding: 0;
+  }
+  
+  .item {
+    background-color: rgba(229, 229, 229, 0.9); /* Taustaväri tuotelistalle, lisää läpinäkyvyyttä */
+    margin-bottom: 5px; /* Väliä listan kohteiden välille */
+    padding: 5px 10px; /* Sisätila ympäri listakohteen */
+    border-radius: 5px; /* Pyöristetyt reunat listakohteille */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Kevyt varjostus listakohteille */
+  }
+  
+  .itemQuantity {
+    font-weight: bold; /* Lihavoi määrän tuodaaksesi sen paremmin esille */
+    margin-right: 5px; /* Lisää väliä määrän ja tuotenimen välille */
+    color: #004488;  
+  }
+  
+  .itemName {
+    color: #004488; /* Väri tuotenimelle, sopii yhteen tumman taustan kanssa */
+  }
+  
+  .dates {
+    color: #FFF; /* Vaalea teksti tummaa taustaa vasten */
+    background-color: rgba(0, 0, 0, 0.5); /* Läpikuultava musta tausta tekstin takana */
+    padding: 3px 6px; /* Lisää paddingia tekstin ympärille */
+    border-radius: 5px; /* Pyöristetyt kulmat taustalle */
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8); /* Musta tekstivarjo parempaan luettavuuteen */
+    font-weight: bold; /* Lihavoitu fontti */
+    margin: 5px 0; /* Väliä ennen ja jälkeen päivämäärän */
+  }
+  
+  .navigation {
+    width: 100%;
+    padding: 10px 0;
+  }
+  
+  .navigation .button {
+    margin: 0 10px; /* Väliä painikkeiden välille */
+  }
+  
+  .button {
+    background-color: #007BFF; /* Käytä selkeää sinistä pohjaväriä */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px; /* Pyöristetyt kulmat */
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s; /* Animaatioita hover-tilanteeseen */
+  }

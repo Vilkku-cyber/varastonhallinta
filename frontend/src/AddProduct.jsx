@@ -1,17 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { database, ref, push } from "./firebaseConfig"; // Firebase-yhteys
+import { database, ref, push, onValue } from "./firebaseConfig"; // Firebase-yhteys
 
 function AddProduct() {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [category, setCategory] = useState("Muu"); // 🔹 Oletuskategoria "Muu"
+  const [category, setCategory] = useState(""); // Alustetaan ilman oletusarvoa
   const [dimensions, setDimensions] = useState("");
   const [weight, setWeight] = useState("");
   const [details, setDetails] = useState("");
+  const [categories, setCategories] = useState([]); // State for categories
   const navigate = useNavigate();
 
-  // 🔹 Lisää tuote Firebaseen
+  useEffect(() => {
+    const inventoryRef = ref(database, "inventory");
+    onValue(inventoryRef, (snapshot) => {
+      const uniqueCategories = new Set();
+      snapshot.forEach(childSnapshot => {
+        const category = childSnapshot.val().category;
+        if (category) {
+          uniqueCategories.add(category);
+        }
+      });
+      setCategories(Array.from(uniqueCategories));
+    });
+  }, []);
+
   const addProduct = () => {
     if (!name.trim() || quantity <= 0) return;
 
@@ -20,7 +34,7 @@ function AddProduct() {
       name,
       available: quantity,
       reserved: 0, // Oletuksena keikalla ei ole mitään
-      category, // 🔹 Tallennetaan kategoria
+      category, // Tallennetaan kategoria
       dimensions,
       weight,
       details,
@@ -41,9 +55,9 @@ function AddProduct() {
 
       <label>Kategoria:</label>
       <select value={category} onChange={e => setCategory(e.target.value)}>
-        <option value="LED">LED</option>
-        <option value="TV">TV</option>
-        <option value="Muu">Muu</option>
+        {categories.map((cat, index) => (
+          <option key={index} value={cat}>{cat}</option>
+        ))}
       </select>
 
       <label>Mitat:</label>

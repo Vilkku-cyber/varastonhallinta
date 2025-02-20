@@ -12,22 +12,24 @@ function CreateTrip() {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [status, setStatus] = useState("pakkaamatta");
-  const [inventory, setInventory] = useState([]);
+  const [categorizedInventory, setCategorizedInventory] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
 
-  // Haetaan varaston tuotteet
+  // Haetaan varaston tuotteet ja kategorisoidaan ne
   useEffect(() => {
     const inventoryRef = ref(database, "inventory");
     onValue(inventoryRef, (snapshot) => {
       const data = snapshot.val();
-      if (data) {
-        // Muunnetaan data taulukoksi, jossa jokaiselle tuotteelle { id, ...value }
-        const inventoryList = Object.entries(data).map(([id, value]) => ({
-          id,
-          ...value,
-        }));
-        setInventory(inventoryList);
-      }
+      const categorized = Object.entries(data).reduce((acc, [id, item]) => {
+        const category = item.category || "Muu"; // Olettaen että jokaisella tuotteella on 'category'
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push({ id, ...item });
+        return acc;
+      }, {});
+
+      setCategorizedInventory(categorized);
     });
   }, []);
 
@@ -39,16 +41,45 @@ function CreateTrip() {
   // Päivitetään valitun tuotteen ID tai määrä
   const updateItem = (index, field, value) => {
     const updatedItems = [...selectedItems];
-    // Jos vaihdetaan tuote
+
+    // Jos tuotteen ID:tä päivitetään
     if (field === "id") {
       updatedItems[index] = { id: value, quantity: 1 };
-    } else {
-      // Estetään määrän ylitys
-      const selectedProduct = inventory.find((prod) => prod.id === updatedItems[index].id);
+
+      const selectedProduct = Object.values(categorizedInventory).flat().find((prod) => prod.id === value);
+      if (selectedProduct && selectedProduct.category === "LED") {
+        // Tarkista, ovatko lisätuotteet jo listalla
+        const dataItemIndex = updatedItems.findIndex(item => item.id === "-OJXJ6E56XO1N5XUquNG");
+        const powerItemIndex = updatedItems.findIndex(item => item.id === "-OJXJSDQchN5n01ZW5RL");
+
+        // Jos ei ole listalla, lisää ne ja pyöristä määrät ylöspäin seuraavaan tasakymmeneen
+        const initialQuantity = 1 + 5;
+        const roundedQuantity = Math.ceil(initialQuantity / 10) * 10;
+        if (dataItemIndex === -1) {
+          updatedItems.push({ id: "-OJXJ6E56XO1N5XUquNG", quantity: roundedQuantity });
+        }
+        if (powerItemIndex === -1) {
+          updatedItems.push({ id: "-OJXJSDQchN5n01ZW5RL", quantity: roundedQuantity });
+        }
+      }
+      setSelectedItems(updatedItems);
+    } else { // Jos tuotteen määrää päivitetään
+      const selectedProduct = Object.values(categorizedInventory).flat().find((prod) => prod.id === updatedItems[index].id);
       const maxQuantity = selectedProduct ? selectedProduct.available : 1;
       updatedItems[index].quantity = Math.min(Number(value), maxQuantity);
+
+      // Jos tuote on LED-kategoria, päivitä lisätuotteiden määrät pyöristäen ylöspäin seuraavaan tasakymmeneen
+      if (selectedProduct && selectedProduct.category === "LED") {
+        const initialQuantity = Number(value) + 5;
+        const roundedQuantity = Math.ceil(initialQuantity / 10) * 10;
+        updatedItems.forEach(item => {
+          if (item.id === "-OJXJ6E56XO1N5XUquNG" || item.id === "-OJXJSDQchN5n01ZW5RL") {
+            item.quantity = roundedQuantity;
+          }
+        });
+      }
+      setSelectedItems(updatedItems);
     }
-    setSelectedItems(updatedItems);
   };
 
   // Tallennus Firebaseen
@@ -56,30 +87,25 @@ function CreateTrip() {
     // Suodatetaan ne itemit, joilla on valittu tuote
     const filteredItems = selectedItems.filter((item) => item.id);
 
-    // Varmistetaan, että kentät on täytetty
-    if (
-      !name.trim() ||
-      !(startDate instanceof Date) ||
-      !(endDate instanceof Date) ||
-      filteredItems.length === 0
-    ) {
-      alert("Täytä kaikki kentät ennen tallennusta!");
-      return;
-    }
+    const itemsObject = filteredItems.reduce((obj, item) => {
+      obj[item.id] = { quantity: item.quantity }; // Käytä tuotteen ID:tä avaimena
+      return obj;
+    }, {});
 
     const newTrip = {
       name,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       status,
-      items: filteredItems,
+      items: itemsObject, // Tallenna tuotteet objektina
     };
+
     console.log("Tallennetaan keikka:", newTrip);
 
     const tripsRef = ref(database, "keikat");
     push(tripsRef, newTrip).then(() => {
       navigate("/");
-    });
+    }).catch(error => console.error("Error saving trip:", error));
   };
 
   return (
@@ -140,21 +166,21 @@ function CreateTrip() {
             onChange={(e) => updateItem(index, "id", e.target.value)}
           >
             <option value="">Valitse tuote</option>
-            {inventory.length > 0 ? (
-              inventory.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name} ({product.available} kpl varastossa)
-                </option>
-              ))
-            ) : (
-              <option disabled>Ei tuotteita varastossa</option>
-            )}
+            {Object.entries(categorizedInventory).map(([category, items]) => (
+              <optgroup key={category} label={category}>
+                {items.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name} ({product.available} kpl varastossa)
+                  </option>
+                ))}
+              </optgroup>
+            ))}
           </select>
           <input
             type="number"
             value={item.quantity}
             min="1"
-            max={inventory.find((prod) => prod.id === item.id)?.available || 1}
+            max={Object.values(categorizedInventory).flat().find((prod) => prod.id === item.id)?.available || 1}
             onChange={(e) => updateItem(index, "quantity", e.target.value)}
           />
         </div>

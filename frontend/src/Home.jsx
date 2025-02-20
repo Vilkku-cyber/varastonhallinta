@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { database, ref, onValue } from "./firebaseConfig";
+import styles from "./Home.module.css"; // Import the CSS module
 
 function Home() {
   const navigate = useNavigate();
@@ -40,30 +41,37 @@ function Home() {
     });
   }, []);
 
-  const getStatusColor = (status) => {
+  const getStatusColorClass = (status) => {
     switch (status) {
       case "pakkaamatta":
-        return "blue";
+        return styles.statusBlue;
       case "pakattu":
-        return "green";
+        return styles.statusGreen;
       case "keikalla":
-        return "yellow";
+        return styles.statusYellow;
       case "purkamatta":
-        return "red";
+        return styles.statusRed;
       default:
-        return "black";
+        return styles.statusBlack;
     }
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1>Varastonhallinnan etusivu</h1>
+    <div className={styles.container}>
+      <h1 className={styles.header}>Varastonhallinnan etusivu</h1>
+
+      <div className={styles.navigation}>
+        <button className={styles.button} onClick={() => navigate("/inventory")}>Selaa varastoa</button>
+        <button className={styles.button} onClick={() => navigate("/create-trip")}>+ Uusi keikka</button>
+        <button className={styles.button} onClick={() => navigate("/past-trips")}>Menneet keikat</button>
+        <button className={styles.button} onClick={() => navigate("/pakkaus")}>Pakkaus</button>
+      </div>
 
       <h2>Aktiiviset keikat</h2>
       {keikat.length === 0 ? (
         <p>Ei aktiivisia keikkoja</p>
       ) : (
-        <ul>
+        <ul className={styles.keikkaList}>
           {keikat.map((keikka) => {
             const startDateString = keikka.startDate
               ? keikka.startDate.toLocaleDateString("fi-FI")
@@ -73,25 +81,25 @@ function Home() {
               : "Ei päättymispäivää";
 
             return (
-              <li key={keikka.id} style={{ marginBottom: "10px" }}>
+              <li key={keikka.id} className={styles.keikka}>
                 <strong
                   onClick={() => navigate(`/edit-trip/${keikka.id}`)}
-                  style={{ cursor: "pointer", color: "blue" }}
+                  className={styles.keikkaHeader}
                 >
                   {keikka.name}
                 </strong>
-                <div>Päivämäärät: {startDateString} - {endDateString}</div>
-                <div style={{ color: getStatusColor(keikka.status), fontWeight: "bold" }}>
+                <div className={styles.dates}>Päivämäärät: {startDateString} - {endDateString}</div>
+                <div className={`${styles.status} ${getStatusColorClass(keikka.status)}`}>
                   Status: {keikka.status}
                 </div>
 
                 {keikka.items && Object.keys(keikka.items).length > 0 ? (
-                  <ul>
+                  <ul className={styles.itemsList}>
                     {Object.entries(keikka.items).map(([itemId, itemData]) => {
                       const productName = inventory[itemData.id]?.name || "Tuntematon tuote";
                       return (
-                        <li key={itemId}>
-                          {itemData.quantity}x {productName}
+                        <li key={itemId} className={styles.item}>
+                          <span className={styles.itemQuantity}>{itemData.quantity}x</span> <span className={styles.itemName}>{productName}</span>
                         </li>
                       );
                     })}
@@ -105,16 +113,7 @@ function Home() {
         </ul>
       )}
 
-      <button onClick={() => navigate("/inventory")}>Selaa varastoa</button>
-      <button onClick={() => navigate("/create-trip")}>+ Uusi keikka</button>
-      <button
-        onClick={() => navigate("/past-trips")}
-        style={{ marginLeft: "10px", backgroundColor: "#888", color: "white" }}
-      >
-        Menneet keikat
-      </button>
-      <button onClick={() => navigate("/pakkaus")}>Pakkaus</button>
-
+     
     </div>
   );
 }

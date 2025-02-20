@@ -52,13 +52,17 @@ function Inventory() {
     return acc;
   }, {});
 
-  return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1>Varasto</h1>
-      <button onClick={() => navigate("/")} style={{ marginBottom: "10px" }}>🏠 Koti</button>
-      <button onClick={() => navigate("/add-product")} style={{ marginBottom: "20px" }}>+ Lisää tuote</button>
+ // ...existing code...
 
-      {Object.keys(categorizedInventory).map((category) => (
+return (
+  <div style={{ padding: "20px", fontFamily: "Arial" }}>
+    <h1>Varasto</h1>
+    <button onClick={() => navigate("/")} style={{ marginBottom: "10px" }}>🏠 Koti</button>
+    <button onClick={() => navigate("/add-product")} style={{ marginBottom: "20px" }}>+ Lisää tuote</button>
+
+    {Object.keys(categorizedInventory)
+      .sort((a, b) => (a === "Muu" ? 1 : b === "Muu" ? -1 : 0))
+      .map((category) => (
         <div key={category}>
           <h2>{category}</h2>
           <table border="1" cellPadding="5">
@@ -84,8 +88,10 @@ function Inventory() {
           </table>
         </div>
       ))}
-    </div>
-  );
+  </div>
+);
+
+
 }
 
 export default Inventory;

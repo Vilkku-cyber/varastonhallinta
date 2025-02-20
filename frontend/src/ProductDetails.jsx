@@ -126,6 +126,7 @@ function ProductDetails() {
       <select value={category} onChange={(e) => setCategory(e.target.value)}>
         <option value="LED">LED</option>
         <option value="TV">TV</option>
+        <option value="TIETOKONE">TIETOKONE</option>
         <option value="Muu">Muu</option>
       </select>
 
@@ -171,6 +172,44 @@ function ProductDetails() {
           </table>
 
           <h3>Lisää TV-yksilö</h3>
+          <input type="text" placeholder="Sarjanumero" value={newSerial} onChange={(e) => setNewSerial(e.target.value)} />
+          <input type="text" placeholder="Vaurio" value={newDamage} onChange={(e) => setNewDamage(e.target.value)} />
+          <button onClick={addUnit}>Lisää</button>
+        </div>
+      )}
+
+      {category === "TIETOKONE" && (
+        <div>
+          <h2>TIETOKONE:n yksilöt</h2>
+          <table border="1" cellPadding="5">
+            <thead>
+              <tr><th>Sarjanumero</th><th>Vaurio</th><th>Toiminnot</th></tr>
+            </thead>
+            <tbody>
+              {Object.entries(units).map(([serial, info]) => (
+                <tr key={serial}>
+                  <td>{serial}</td>
+                  <td>
+                    {editSerial === serial ? (
+                      <input type="text" value={editDamage} onChange={(e) => setEditDamage(e.target.value)} />
+                    ) : (
+                      info.damage
+                    )}
+                  </td>
+                  <td>
+                    {editSerial === serial ? (
+                      <button onClick={saveUnitEdit}>💾</button>
+                    ) : (
+                      <button onClick={() => editUnit(serial)}>✏️</button>
+                    )}
+                    <button onClick={() => deleteUnit(serial)}>🗑️</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <h3>Lisää TIETOKONE-yksilö</h3>
           <input type="text" placeholder="Sarjanumero" value={newSerial} onChange={(e) => setNewSerial(e.target.value)} />
           <input type="text" placeholder="Vaurio" value={newDamage} onChange={(e) => setNewDamage(e.target.value)} />
           <button onClick={addUnit}>Lisää</button>
