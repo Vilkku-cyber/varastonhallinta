@@ -5,7 +5,7 @@ export default defineConfig({
     'process.env': process.env,
   },
   optimizeDeps: {
-    include: ['react-datepicker'],
+    include: ['react-datepicker', 'react-modal'], // Lisätty react-modal tähän
   },
   server: {
     historyApiFallback: true, // Tämä varmistaa, että reititys toimii lokaalisti

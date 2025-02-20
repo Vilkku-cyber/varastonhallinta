@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { database, ref, onValue } from "./firebaseConfig"; // Firebase-yhteys
+import Modal from "react-modal";
+import ProductDetails from "./ProductDetails"; // Import the ProductDetails component
 import styles from "./inventory.module.css"; // Import the CSS module
+
+Modal.setAppElement("#root"); // Set the root element for accessibility
 
 function Inventory() {
   const [inventory, setInventory] = useState([]);
   const [reservedCounts, setReservedCounts] = useState({}); // 🔹 Keikoilla olevat määrät
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,6 +58,16 @@ function Inventory() {
     return acc;
   }, {});
 
+  const openModal = (product) => {
+    setSelectedProduct(product);
+    setModalIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false);
+    setSelectedProduct(null);
+  };
+
   return (
     <div className={styles.container}>
       <h1 className={styles.header}>Varasto</h1>
@@ -65,7 +81,7 @@ function Inventory() {
           .map((category) => (
             <div key={category} className={styles.card}>
               <h2>{category}</h2>
-              <table className={styles.tableCustom}>
+              <table className={styles.tableContainer}>
                 <thead>
                   <tr>
                     <th>Tuote</th>
@@ -78,9 +94,17 @@ function Inventory() {
                     const reserved = reservedCounts[item.id] || 0;
                     return (
                       <tr key={item.id}>
-                        <td><a href={`/product/${item.id}`} className={styles.productLink}>{item.name}</a></td>
+                        <td>
+                          <a
+                            href="#"
+                            onClick={() => openModal(item)}
+                            style={{ textDecoration: "none" }}
+                          >
+                            {item.name}
+                          </a>
+                        </td>
                         <td>{item.available - reserved}</td>
-                        <td className={styles.reserved}>{reserved}</td>
+                        <td style={{ color: "red" }}>{reserved}</td>
                       </tr>
                     );
                   })}
@@ -89,6 +113,17 @@ function Inventory() {
             </div>
           ))}
       </div>
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        contentLabel="Product Details"
+        className={styles.modal}
+        overlayClassName={styles.overlay}
+      >
+        {selectedProduct && (
+          <ProductDetails product={selectedProduct} reservedCounts={reservedCounts} closeModal={closeModal} />
+        )}
+      </Modal>
     </div>
   );
 }

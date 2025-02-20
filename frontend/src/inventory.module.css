@@ -19,14 +19,15 @@ html, body {
 
 .header {
   color: white;
-  text-align: center;
+  margin-left: 125px; 
   margin-bottom: 20px;
 }
 
 .navigation {
   display: flex;
-  justify-content: center;
+  justify-content: left; 
   margin-bottom: 20px;
+  margin-left: 50px; 
 }
 
 .buttonBlue {
@@ -50,7 +51,6 @@ html, body {
   overflow-y: auto;
   flex-grow: 1; /* Allows the container to grow and take available space */
   padding: 20px;
-  background-color: rgba(0, 0, 0, 0.5);
   border-radius: 10px;
   max-width: 700px; 
   justify-content: center;
@@ -71,30 +71,46 @@ html, body {
   margin-bottom: 20px;
 }
 
-.tableCustom {
-  width: 100%;
-  border-collapse: collapse;
-}
 
-.tableCustom th, .tableCustom td {
+
+.tableContainer th, .tableContainer td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #9b9b9b;
+  background-color: #ffffff;
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 4px 8px rgba(202, 202, 202, 0.881);
 }
 
-.tableCustom th {
-  background-color: #f8f9fa;
-}
 
-.productLink {
-  text-decoration: none;
-  color: #007bff;
-}
-
-.productLink:hover {
-  text-decoration: underline;
-}
 
 .reserved {
-  color: red;
+  font-weight: bold;
+  color: red; /* Punainen väri korostaa keikalla olevia tuotteita */
+}
+
+
+
+.modal {
+  position: absolute;
+  top: 50%;
+  left: 75%;
+  right: auto;
+  bottom: auto;
+  
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
 }
