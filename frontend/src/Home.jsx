@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { database, ref, onValue } from "./firebaseConfig";
-import styles from "./Home.module.css"; // Import the CSS module
+import styles from './main.module.css';
+
 
 function Home() {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ function Home() {
       {keikat.length === 0 ? (
         <p>Ei aktiivisia keikkoja</p>
       ) : (
-        <ul className={styles.keikkaList}>
+        <ul className={styles.List}>
           {keikat.map((keikka) => {
             const startDateString = keikka.startDate
               ? keikka.startDate.toLocaleDateString("fi-FI")

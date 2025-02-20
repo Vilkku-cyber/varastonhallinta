@@ -8,7 +8,8 @@ import EditTrip from "./EditTrip";
 import PastTrips from "./PastTrips";
 import CreateTrip from "./CreateTrip";
 import TestDatePicker from "./TestDatePicker";
-import PackingView from "./Pakkaus"; // Lisää tämä!
+import PackingView from "./Pakkaus"; 
+
 
 function App() {
   return (

@@ -1,0 +1,100 @@
+html, body {
+  height: 100%; /* Täyttää koko sivun korkeuden */
+  margin: 0;
+  padding: 0;
+  overflow-y: hidden; /* Estää vierityksen koko sivulla */
+  font-family: 'Roboto', sans-serif; /* Modern font */
+}
+
+.container {
+  background-image: url('/images/bg.png');
+  background-size: cover;
+  background-position: center;
+  color: rgb(0, 0, 0); /* Varmista, että teksti erottuu taustasta */
+  padding: 20px;
+  height: 100vh; /* Täyttää koko sivun korkeuden */
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.navigation {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.buttonBlue {
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 0 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.buttonBlue:hover {
+  background-color: #0056b3;
+}
+
+.scrollableContainer {
+  overflow-y: auto;
+  flex-grow: 1; /* Allows the container to grow and take available space */
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  max-width: 700px; 
+  justify-content: center;
+  margin-bottom: 50px; /* Lisää 20px marginaalia listan alareunaan */
+  scrollbar-width: none; /* Firefoxille, piilottaa vierityspalkin */
+  -ms-overflow-style: none; /* Internet Explorer ja Edge */
+}
+
+.card {
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px;
+}
+
+.categoryContainer {
+  margin-bottom: 20px;
+}
+
+.tableCustom {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableCustom th, .tableCustom td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.tableCustom th {
+  background-color: #f8f9fa;
+}
+
+.productLink {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.productLink:hover {
+  text-decoration: underline;
+}
+
+.reserved {
+  color: red;
+}

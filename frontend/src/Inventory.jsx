@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { database, ref, onValue } from "./firebaseConfig"; // Firebase-yhteys
+import styles from "./inventory.module.css"; // Import the CSS module
 
 function Inventory() {
   const [inventory, setInventory] = useState([]);
@@ -52,46 +52,45 @@ function Inventory() {
     return acc;
   }, {});
 
- // ...existing code...
-
-return (
-  <div style={{ padding: "20px", fontFamily: "Arial" }}>
-    <h1>Varasto</h1>
-    <button onClick={() => navigate("/")} style={{ marginBottom: "10px" }}>🏠 Koti</button>
-    <button onClick={() => navigate("/add-product")} style={{ marginBottom: "20px" }}>+ Lisää tuote</button>
-
-    {Object.keys(categorizedInventory)
-      .sort((a, b) => (a === "Muu" ? 1 : b === "Muu" ? -1 : 0))
-      .map((category) => (
-        <div key={category}>
-          <h2>{category}</h2>
-          <table border="1" cellPadding="5">
-            <thead>
-              <tr>
-                <th>Tuote</th>
-                <th>Varastossa</th>
-                <th>Keikalla</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categorizedInventory[category].map((item) => {
-                const reserved = reservedCounts[item.id] || 0;
-                return (
-                  <tr key={item.id}>
-                    <td><a href={`/product/${item.id}`} style={{ textDecoration: "none" }}>{item.name}</a></td>
-                    <td>{item.available - reserved}</td>
-                    <td style={{ color: "red" }}>{reserved}</td>
+  return (
+    <div className={styles.container}>
+      <h1 className={styles.header}>Varasto</h1>
+      <div className={styles.navigation}>
+        <button className={styles.buttonBlue} onClick={() => navigate("/")}>🏠 Koti</button>
+        <button className={styles.buttonBlue} onClick={() => navigate("/add-product")}>+ Lisää tuote</button>
+      </div>
+      <div className={styles.scrollableContainer}>
+        {Object.keys(categorizedInventory)
+          .sort((a, b) => (a === "Muu" ? 1 : b === "Muu" ? -1 : 0))
+          .map((category) => (
+            <div key={category} className={styles.card}>
+              <h2>{category}</h2>
+              <table className={styles.tableCustom}>
+                <thead>
+                  <tr>
+                    <th>Tuote</th>
+                    <th>Varastossa</th>
+                    <th>Keikalla</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ))}
-  </div>
-);
-
-
+                </thead>
+                <tbody>
+                  {categorizedInventory[category].map((item) => {
+                    const reserved = reservedCounts[item.id] || 0;
+                    return (
+                      <tr key={item.id}>
+                        <td><a href={`/product/${item.id}`} className={styles.productLink}>{item.name}</a></td>
+                        <td>{item.available - reserved}</td>
+                        <td className={styles.reserved}>{reserved}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ))}
+      </div>
+    </div>
+  );
 }
 
 export default Inventory;
