@@ -1,8 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
 html, body {
   height: 100%; /* Täyttää koko sivun korkeuden */
   margin: 0;
   padding: 0;
   overflow: hidden; /* Estää vierityksen koko sivulla */
+  font-family: 'Anton', sans-serif; /* Apply Anton font */
 }
 
 .container { /* Oletetaan, että tämä on pääelementti joka sisältää kaikki osat */

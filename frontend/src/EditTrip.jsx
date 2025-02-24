@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { database, ref, get, update, remove, onValue } from "./firebaseConfig";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import styles from "./CreateTripModal.module.css"; // Reuse the styles from CreateTripModal
 
-function EditTrip() {
-  const { id } = useParams();
+function EditTrip({ onRequestClose, tripId }) {
   const navigate = useNavigate();
+
+  // Use tripId directly from props
+  const id = tripId;
 
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState(null);
@@ -16,6 +19,7 @@ function EditTrip() {
   const [inventory, setInventory] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
   const [showProductList, setShowProductList] = useState(false);
+  const [isInventoryLoaded, setIsInventoryLoaded] = useState(false);
 
   useEffect(() => {
     const inventoryRef = ref(database, "inventory");
@@ -23,18 +27,24 @@ function EditTrip() {
       const data = snapshot.val();
       if (data) {
         setInventory(data);
+        setIsInventoryLoaded(true);
+        console.log("Inventory loaded:", data);
       }
     });
   }, []);
 
   useEffect(() => {
+    if (!isInventoryLoaded || !id) return;
+
+    console.log(`Fetching trip with ID: ${id}`); // Log the ID being used
+
     const tripRef = ref(database, `keikat/${id}`);
     get(tripRef)
       .then((snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
+          console.log("Trip data retrieved:", data); // Log the data retrieved
           setName(data.name || "");
-          // Jos tallennettu string on ISO8601, muutetaan se takaisin JS-päivämääräksi
           setStartDate(data.startDate ? new Date(data.startDate) : null);
           setEndDate(data.endDate ? new Date(data.endDate) : null);
           if (data.status) {
@@ -42,8 +52,6 @@ function EditTrip() {
           }
 
           if (data.items) {
-            // items -objekti tallentaa jokaiselle tuotteelle { id, quantity }
-            // Ota nimen selvittämiseen apua inventory-objektista, jos haluat näyttää nimikkeet suoraan
             setSelectedItems(
               Object.entries(data.items).map(([itemKey, itemValue]) => ({
                 id: itemValue.id,
@@ -58,7 +66,7 @@ function EditTrip() {
         }
       })
       .catch((error) => console.error("Virhe haettaessa keikan tietoja:", error));
-  }, [id, navigate, inventory]);
+  }, [id, navigate, isInventoryLoaded]);
 
   const saveTrip = () => {
     const tripRef = ref(database, `keikat/${id}`);
@@ -76,7 +84,7 @@ function EditTrip() {
     })
       .then(() => {
         alert("Keikka päivitetty!");
-        navigate("/");
+        onRequestClose(); // Close the modal after saving the trip
       })
       .catch((error) => console.error("Virhe tallennettaessa keikan tietoja:", error));
   };
@@ -97,7 +105,7 @@ function EditTrip() {
         remove(ref(database, `keikat/${id}`))
           .then(() => {
             alert("Keikka arkistoitu.");
-            navigate("/");
+            onRequestClose(); // Close the modal after archiving the trip
           })
           .catch((error) => console.error("Virhe keikan poistossa:", error));
       })
@@ -109,7 +117,7 @@ function EditTrip() {
     remove(ref(database, `keikat/${id}`))
       .then(() => {
         alert("Keikka poistettu pysyvästi.");
-        navigate("/");
+        onRequestClose(); // Close the modal after deleting the trip
       })
       .catch((error) => console.error("Virhe keikan poistossa:", error));
   };
@@ -127,37 +135,41 @@ function EditTrip() {
   };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+    <div className={styles.modalContent}>
       <h1>Muokkaa keikkaa</h1>
 
-      <label>Keikan nimi:</label>
+      <label htmlFor="tripName">Keikan nimi:</label>
       <input
         type="text"
+        id="tripName"
         value={name}
         onChange={(e) => setName(e.target.value)}
         style={{ display: "block", marginBottom: "10px" }}
       />
 
-      <label>Alkamispäivä:</label>
+      <label htmlFor="startDate">Alkamispäivä:</label>
       <DatePicker
         selected={startDate}
         onChange={(date) => setStartDate(date)}
         dateFormat="dd.MM.yyyy"
         placeholderText="Valitse alkamispäivä"
+        id="startDate"
       />
       <br /><br />
 
-      <label>Päättymispäivä:</label>
+      <label htmlFor="endDate">Päättymispäivä:</label>
       <DatePicker
         selected={endDate}
         onChange={(date) => setEndDate(date)}
         dateFormat="dd.MM.yyyy"
         placeholderText="Valitse päättymispäivä"
+        id="endDate"
       />
       <br /><br />
 
-      <label>Status:</label><br />
+      <label htmlFor="status">Status:</label><br />
       <select
+        id="status"
         value={status}
         onChange={(e) => setStatus(e.target.value)}
       >
@@ -223,7 +235,7 @@ function EditTrip() {
       )}
 
       <br />
-      <button onClick={() => navigate("/")}>Palaa</button>
+      <button onClick={onRequestClose}>Palaa</button>
       <button
         onClick={saveTrip}
         style={{ marginLeft: "10px", backgroundColor: "green", color: "white" }}

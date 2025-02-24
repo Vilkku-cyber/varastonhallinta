@@ -3,12 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { database, ref, onValue } from "./firebaseConfig";
 import styles from './main.module.css';
 import CreateTripModal from "./CreateTripModal";
+import EditTripModal from "./EditTripModal"; // Import EditTripModal
 
 function Home() {
   const navigate = useNavigate();
   const [keikat, setKeikat] = useState([]);
   const [inventory, setInventory] = useState({});
   const [isCreateTripModalOpen, setIsCreateTripModalOpen] = useState(false);
+  const [isEditTripModalOpen, setIsEditTripModalOpen] = useState(false); // State for EditTripModal
+  const [selectedTripId, setSelectedTripId] = useState(null); // State for selected trip ID
 
   useEffect(() => {
     const inventoryRef = ref(database, "inventory");
@@ -42,6 +45,12 @@ function Home() {
       }
     });
   }, []);
+
+  const handleSelectTrip = (id) => {
+    console.log("Selected Trip ID:", id);
+    setSelectedTripId(id);
+    setIsEditTripModalOpen(true);
+  };
 
   const getStatusColorClass = (status) => {
     switch (status) {
@@ -85,7 +94,7 @@ function Home() {
             return (
               <li key={keikka.id} className={styles.keikka}>
                 <strong
-                  onClick={() => navigate(`/edit-trip/${keikka.id}`)}
+                  onClick={() => handleSelectTrip(keikka.id)}
                   className={styles.keikkaHeader}
                 >
                   {keikka.name}
@@ -118,6 +127,12 @@ function Home() {
       <CreateTripModal
         isOpen={isCreateTripModalOpen}
         onRequestClose={() => setIsCreateTripModalOpen(false)}
+      />
+
+      <EditTripModal
+        isOpen={isEditTripModalOpen}
+        onRequestClose={() => setIsEditTripModalOpen(false)}
+        tripId={selectedTripId} // Pass the selected trip ID to the modal
       />
     </div>
   );
