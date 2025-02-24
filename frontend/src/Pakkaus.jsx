@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { database, ref, onValue, update } from "/src/firebaseConfig.js";
 import { useNavigate } from "react-router-dom";
+import './Pakkaus.css';
+
 
 const PackingView = () => {
   const navigate = useNavigate(); // Initialize the navigate function
@@ -150,7 +152,7 @@ const PackingView = () => {
         const existingItem = prev.find(item => item.id === foundTV.id);
         if (existingItem) {
           return prev.map(item =>
-            item.id === foundTV.id ? { ...item, quantity: item.quantity + 1 } : item
+            item.id === foundTV.id ? { ...item, quantity: 1 } : item
           );
         } else {
           return [...prev, { id: foundTV.id, name: foundTV.name, quantity: 1 }];
@@ -245,90 +247,101 @@ const PackingView = () => {
     }
   };
 
-  return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <button onClick={() => navigate("/")} style={{ marginBottom: "10px" }}>🏠 Koti</button>
-      {!selectedTrip ? (
-        <div>
-          <h2>Valitse keikka pakattavaksi</h2>
-          <select onChange={handleSelectTrip} defaultValue="">
-            <option value="" disabled>Valitse keikka</option>
-            {trips.map((trip) => (
-              <option key={trip.id} value={trip.id}>{trip.name}</option>
-            ))}
-          </select>
-        </div>
-      ) : (
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "20px" }}>
+  
+
+return (
+  <div className="container">
+    <button onClick={() => navigate("/")} className="home-button">🏠 Koti</button>
+    {!selectedTrip ? (
+      <div className="select-trip">
+        <h2>Valitse keikka pakattavaksi</h2>
+        <select onChange={handleSelectTrip} defaultValue="">
+          <option value="" disabled>Valitse keikka</option>
+          {trips.map((trip) => (
+            <option key={trip.id} value={trip.id}>{trip.name}</option>
+          ))}
+        </select>
+      </div>
+    ) : (
+      <div className="trip-details-container">
+        <div className="trip-details">
           <div>
             <h3>{selectedTrip.name}</h3>
-            <button onClick={() => setSelectedTrip(null)}>← Takaisin</button>
-            <button onClick={savePackingProgress}>Tallenna pakkaustilanne</button>
+            <button onClick={() => setSelectedTrip(null)} className="back-button">← Takaisin</button>
+            <button onClick={savePackingProgress} className="save-button">Tallenna pakkaustilanne</button>
             <p>{saveStatus}</p>
             {tripItems.length > 0 ? (
               <div>
                 {tripItems.map((item) => (
-                  <div key={item.id}>
+                  <div key={item.id} className="trip-item">
                     <p>{item.quantity}x {item.name} {calculateStatus(item)}</p>
-                    <button onClick={() => handlePackItem(item)}>Merkitse kaikki pakatuiksi</button>
+                    <button onClick={() => handlePackItem(item)} className="pack-button">Merkitse kaikki pakatuiksi</button>
                   </div>
                 ))}
               </div>
             ) : (
               <p>Ei tuotteita lisätty</p>
             )}
-            <input
+            
+          </div>
+        </div>
+
+        <div className="packed-items">
+          <h3>Pakatut tuotteet</h3>
+          {Object.keys(packedTVs).length > 0 && (
+            Object.entries(packedTVs).map(([tvName, serials]) => (
+              <div key={tvName}>
+                <h4>{serials.size}x {tvName}</h4>
+                {[...serials].map((sn, index) => (
+                  <div key={index} className="packed-item">
+                    <p>{sn}</p>
+                    <button onClick={() => removeSerialNumber(tvName, sn)} className="remove-button">Poista</button>
+                  </div>
+                ))}
+              </div>
+            ))
+          )}
+          {packedManualItems.length > 0 && (
+            <div>
+              {packedManualItems.map((item) => (
+                <div key={item.id} className="packed-item">
+                  <p>{item.quantity}x {item.name}</p>
+                  <button onClick={() => updatePackedQuantity(item.id, -1)} className="quantity-button">-</button>
+                  <span>{item.quantity}</span>
+                  <button onClick={() => updatePackedQuantity(item.id, 1)} className="quantity-button">+</button>
+                  <button onClick={() => removePackedItem(item.name)} className="remove-button">Poista</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {Object.keys(packedTVs).length === 0 && packedManualItems.length === 0 && <p>Ei vielä pakattuja tuotteita</p>}
+          <div>
+            <h4>Lisää tuote pakattuihin</h4>
+            <select onChange={(e) => setSelectedItem(e.target.value)} defaultValue="" className="item-select">
+              <option value="" disabled>Valitse tuote</option>
+              {tripItems.map((item) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
+            </select>
+            <button onClick={handleAddPackedItem} className="add-item-button">Lisää pakattuihin</button>
+            
+          </div>
+          <div> <input
               type="text"
               value={serialNumber}
               onChange={(e) => setSerialNumber(e.target.value)}
               placeholder="Syötä sarjanumero"
+              className="serial-input"
             />
-            <button onClick={handleAddSerialNumber}>Lisää TV</button>
-          </div>
-          <div>
-            <h3>Pakatut tuotteet</h3>
-            {Object.keys(packedTVs).length > 0 && (
-              Object.entries(packedTVs).map(([tvName, serials]) => (
-                <div key={tvName}>
-                  <h4>{serials.size}x {tvName}</h4>
-                  {[...serials].map((sn, index) => (
-                    <div key={index} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <p>{sn}</p>
-                      <button onClick={() => removeSerialNumber(tvName, sn)}>Poista</button>
-                    </div>
-                  ))}
-                </div>
-              ))
-            )}
-            {packedManualItems.length > 0 && (
-              <div>
-                {packedManualItems.map((item) => (
-                  <div key={item.id} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <p>{item.quantity}x {item.name}</p>
-                    <button onClick={() => updatePackedQuantity(item.id, -1)}>-</button>
-                    <span>{item.quantity}</span>
-                    <button onClick={() => updatePackedQuantity(item.id, 1)}>+</button>
-                    <button onClick={() => removePackedItem(item.name)}>Poista</button>
-                  </div>
-                ))}
-              </div>
-            )}
-            {Object.keys(packedTVs).length === 0 && packedManualItems.length === 0 && <p>Ei vielä pakattuja tuotteita</p>}
-            <div>
-              <h4>Lisää tuote pakattuihin</h4>
-              <select onChange={(e) => setSelectedItem(e.target.value)} defaultValue="">
-                <option value="" disabled>Valitse tuote</option>
-                {tripItems.map((item) => (
-                  <option key={item.id} value={item.id}>{item.name}</option>
-                ))}
-              </select>
-              <button onClick={handleAddPackedItem}>Lisää pakattuihin</button>
+            <button onClick={handleAddSerialNumber} className="add-tv-button">Lisää TV</button>
             </div>
-          </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
+
+
 };
 
 export default PackingView;

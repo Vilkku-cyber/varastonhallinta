@@ -5,7 +5,7 @@ import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-function CreateTrip() {
+function CreateTrip({ onRequestClose }) {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
@@ -82,13 +82,20 @@ function CreateTrip() {
     }
   };
 
-  // Tallennus Firebaseen
   const saveTrip = () => {
-    // Suodatetaan ne itemit, joilla on valittu tuote
-    const filteredItems = selectedItems.filter((item) => item.id);
-
+    // Suodatetaan ne itemit, joilla on valittu tuote ja joiden tiedot ovat kunnossa
+    const filteredItems = selectedItems.filter(item => item.id && item.quantity > 0);
+  
+    // Tarkistetaan, että tarvittavat tiedot on annettu
+    if (!name.trim() || !startDate || !endDate || filteredItems.length === 0) {
+      alert("Täytä kaikki kentät ennen tallennusta!");
+      return;
+    }
+  
+    // Muodostetaan items-objekti, jossa jokainen tuote sisältää id:n ja määrän
     const itemsObject = filteredItems.reduce((obj, item) => {
-      obj[item.id] = { quantity: item.quantity }; // Käytä tuotteen ID:tä avaimena
+      // Tässä lisätään tuotteelle sen id
+      obj[item.id] = { id: item.id, quantity: item.quantity };
       return obj;
     }, {});
 
@@ -104,7 +111,7 @@ function CreateTrip() {
 
     const tripsRef = ref(database, "keikat");
     push(tripsRef, newTrip).then(() => {
-      navigate("/");
+      onRequestClose(); // Close the modal after saving the trip
     }).catch(error => console.error("Error saving trip:", error));
   };
 
@@ -189,7 +196,7 @@ function CreateTrip() {
       <br />
       <br />
 
-      <button onClick={() => navigate("/")}>Palaa</button>
+      <button onClick={onRequestClose}>Palaa</button>
       <button
         onClick={saveTrip}
         style={{ marginLeft: "10px" }}

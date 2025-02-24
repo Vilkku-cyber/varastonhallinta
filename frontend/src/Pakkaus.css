@@ -1,0 +1,66 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: url('images/packing.png') no-repeat center center fixed;
+  background-size: cover;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.8); /* Transparent white overlay */
+  border-radius: 10px;
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+.home-button,
+.back-button,
+.save-button,
+.pack-button,
+.add-tv-button,
+.remove-button,
+.quantity-button,
+.add-item-button {
+    margin: 5px;
+    margin-bottom: 10px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
+}
+
+.home-button:hover,
+.back-button:hover,
+.save-button:hover,
+.pack-button:hover,
+.add-tv-button:hover,
+.remove-button:hover,
+.quantity-button:hover,
+.add-item-button:hover {
+  background-color: #0056b3;
+}
+
+.trip-details-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.trip-details,
+.packed-items {
+  width: 48%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.serial-input,
+.item-select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}

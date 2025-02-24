@@ -1,0 +1,24 @@
+.modal {
+  position: absolute;
+  top: 55%;
+  left: 75%;
+  right: auto;
+  bottom: auto;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  max-height: 60vh; /* Limit the height of the modal */
+  overflow-y: auto; /* Enable vertical scrolling */
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+}

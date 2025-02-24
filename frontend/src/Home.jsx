@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { database, ref, onValue } from "./firebaseConfig";
 import styles from './main.module.css';
-
+import CreateTripModal from "./CreateTripModal";
 
 function Home() {
   const navigate = useNavigate();
   const [keikat, setKeikat] = useState([]);
   const [inventory, setInventory] = useState({});
+  const [isCreateTripModalOpen, setIsCreateTripModalOpen] = useState(false);
 
   useEffect(() => {
     const inventoryRef = ref(database, "inventory");
@@ -63,7 +64,7 @@ function Home() {
 
       <div className={styles.navigation}>
         <button className={styles.button} onClick={() => navigate("/inventory")}>Selaa varastoa</button>
-        <button className={styles.button} onClick={() => navigate("/create-trip")}>+ Uusi keikka</button>
+        <button className={styles.button} onClick={() => setIsCreateTripModalOpen(true)}>+ Uusi keikka</button>
         <button className={styles.button} onClick={() => navigate("/past-trips")}>Menneet keikat</button>
         <button className={styles.button} onClick={() => navigate("/pakkaus")}>Pakkaus</button>
       </div>
@@ -114,7 +115,10 @@ function Home() {
         </ul>
       )}
 
-     
+      <CreateTripModal
+        isOpen={isCreateTripModalOpen}
+        onRequestClose={() => setIsCreateTripModalOpen(false)}
+      />
     </div>
   );
 }
