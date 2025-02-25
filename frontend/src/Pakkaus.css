@@ -64,3 +64,16 @@ body {
   border-radius: 5px;
   font-size: 16px;
 }
+
+.serial-and-remove {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
+  .serial-number {
+    flex-grow: 1;
+    margin-right: 10px; /* Lisää tilaa sarjanumeron ja poista-napin välille */
+  }
+  
