@@ -83,6 +83,14 @@ html, body {
   box-shadow: 0 4px 8px rgba(202, 202, 202, 0.881);
 }
 
+@media (max-width: 640px) {
+  .keikka {
+    max-width: 100%; /* Laatikot venyvät täysleveydelle pienemmillä näytöillä */
+    padding: 10px;
+    margin: 10px 0;
+  }
+}
+
 
 
 .reserved {
