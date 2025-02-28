@@ -53,7 +53,7 @@
   .formGroup {
     display: block; /* Vaihda flexistä blockiin, joka pakottaa elementit omille riveille */
     width: 100%; /* Varmista, että tämä ottaa koko leveyden */
-    margin-bottom: 10px; /* Lisää hieman tilaa elementtien väliin */
+    margin-bottom: 2px; /* Lisää hieman tilaa elementtien väliin */
 }
 
 .formGroup label {
@@ -72,7 +72,7 @@
   .buttonContainer {
     display: flex;
     justify-content: space-evenly; /* 🔹 Distribute buttons evenly */
-    margin-top: 20px;
+    margin-top: 10px;
     gap: 10px; /* 🔹 Add space between buttons */
   }
   
@@ -107,3 +107,7 @@
     font-weight: bold;
   }
 
+  .header  {
+    color: black;
+  }
+  

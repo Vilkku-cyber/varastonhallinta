@@ -100,7 +100,7 @@ function ProductDetails({ product, reservedCounts, closeModal, saveProduct, isOp
           <option value="Muu">Muu</option>
         </select>
 
-        <h2>Tekniset tiedot</h2>
+        <h2 className={styles.header}>Tekniset tiedot</h2>
         <div className={styles.formGroup}>
           <label>Mitat:</label>
           <input type="text" value={dimensions} onChange={(e) => setDimensions(e.target.value)} />
@@ -116,7 +116,7 @@ function ProductDetails({ product, reservedCounts, closeModal, saveProduct, isOp
 
         {category === "TV" && (
           <div>
-            <h2>TV:n yksilöt</h2>
+            <h2 className={styles.header}>TV:n yksilöt</h2>
             <table border="1" cellPadding="5">
               <thead>
                 <tr><th>Sarjanumero</th><th>Vaurio</th><th>Toiminnot</th></tr>
@@ -145,7 +145,7 @@ function ProductDetails({ product, reservedCounts, closeModal, saveProduct, isOp
               </tbody>
             </table>
 
-            <h3>Lisää TV-yksilö</h3>
+            <h3 className={styles.header}>Lisää TV-yksilö</h3>
             <input type="text" placeholder="Sarjanumero" value={newSerial} onChange={(e) => setNewSerial(e.target.value)} />
             <input type="text" placeholder="Vaurio" value={newDamage} onChange={(e) => setNewDamage(e.target.value)} />
             <button className={styles.saveButton} onClick={addUnit}>Lisää</button>
@@ -154,7 +154,7 @@ function ProductDetails({ product, reservedCounts, closeModal, saveProduct, isOp
 
         {category === "TIETOKONE" && (
           <div>
-            <h2>TIETOKONE:n yksilöt</h2>
+            <h2 className={styles.header}>Yksilöt</h2>
             <table border="1" cellPadding="5">
               <thead>
                 <tr><th>Sarjanumero</th><th>Vaurio</th><th>Toiminnot</th></tr>
@@ -183,7 +183,7 @@ function ProductDetails({ product, reservedCounts, closeModal, saveProduct, isOp
               </tbody>
             </table>
 
-            <h3>Lisää TIETOKONE-yksilö</h3>
+            <h3 className={styles.header}>Lisää TIETOKONE-yksilö</h3>
             <input type="text" placeholder="Sarjanumero" value={newSerial} onChange={(e) => setNewSerial(e.target.value)} />
             <input type="text" placeholder="Vaurio" value={newDamage} onChange={(e) => setNewDamage(e.target.value)} />
             
