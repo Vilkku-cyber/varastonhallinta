@@ -103,7 +103,7 @@ function Inventory() {
           .sort((a, b) => (a === "Muu" ? 1 : b === "Muu" ? -1 : 0))
           .map((category) => (
             <div key={category} className={styles.card}>
-              <h2>{category}</h2>
+              <h2  style={{ color: "black" }}>{category}</h2>
               <table className={styles.tableContainer}>
                 <thead>
                   <tr>
