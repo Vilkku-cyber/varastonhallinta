@@ -1,17 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { database, ref, onValue } from "./firebaseConfig"; // Firebase-yhteys
 import Modal from "react-modal";
-import ProductDetails from "./ProductDetails"; // Import the ProductDetails component
+import ProductModal from "./ProductModal"; // Import the ProductModal component
+import AddProductModal from "./AddProductModal"; // Import the AddProductModal component
 import styles from "./inventory.module.css"; // Import the CSS module
 
-Modal.setAppElement("#root"); // Set the root element for accessibility
+// Debounce utility function
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
+};
 
 function Inventory() {
   const [inventory, setInventory] = useState([]);
   const [reservedCounts, setReservedCounts] = useState({}); // 🔹 Keikoilla olevat määrät
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [addProductModalIsOpen, setAddProductModalIsOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,14 +69,26 @@ function Inventory() {
     return acc;
   }, {});
 
-  const openModal = (product) => {
+  const openModal = useCallback(debounce((product) => {
     setSelectedProduct(product);
     setModalIsOpen(true);
-  };
+  }, 300), []);
+
+  const openAddProductModal = useCallback(debounce(() => {
+    setAddProductModalIsOpen(true);
+  }, 300), []);
 
   const closeModal = () => {
     setModalIsOpen(false);
     setSelectedProduct(null);
+  };
+
+  const closeAddProductModal = () => {
+    setAddProductModalIsOpen(false);
+  };
+
+  const saveProduct = (product) => {
+    // Implement the saveProduct function
   };
 
   return (
@@ -73,7 +96,7 @@ function Inventory() {
       <h1 className={styles.header}>Varasto</h1>
       <div className={styles.navigation}>
         <button className={styles.buttonBlue} onClick={() => navigate("/")}>🏠 Koti</button>
-        <button className={styles.buttonBlue} onClick={() => navigate("/add-product")}>+ Lisää tuote</button>
+        <button className={styles.buttonBlue} onClick={openAddProductModal}>+ Lisää tuote</button>
       </div>
       <div className={styles.scrollableContainer}>
         {Object.keys(categorizedInventory)
@@ -116,14 +139,24 @@ function Inventory() {
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={closeModal}
-        contentLabel="Product Details"
+        contentLabel="Product Modal"
         className={styles.modal}
         overlayClassName={styles.overlay}
       >
         {selectedProduct && (
-          <ProductDetails product={selectedProduct} reservedCounts={reservedCounts} closeModal={closeModal} />
+          <ProductModal
+            isOpen={modalIsOpen}
+            onClose={closeModal} // Ensure onClose is passed correctly
+            product={selectedProduct}
+            reservedCounts={reservedCounts}
+            saveProduct={saveProduct} // Pass saveProduct function
+          />
         )}
       </Modal>
+      <AddProductModal
+        isOpen={addProductModalIsOpen}
+        onClose={closeAddProductModal}
+      />
     </div>
   );
 }

@@ -2,22 +2,31 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
     display: flex;
     justify-content: center;
     align-items: center;
   }
   
   .modalContent {
+    position: absolute;
+    top: 55%;
+    left: 75%;
+    right: auto;
+    bottom: auto;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
     background: white;
     padding: 20px;
     border-radius: 10px;
-    max-width: 500px;
-    width: 100%;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    position: relative;
+    max-height: 75vh; /* Limit the height of the modal */
+    overflow-y: auto; /* Enable vertical scrolling */
+    max-width: 400px; /* Pienempi modaali */
+    width: 90%; /* Skaalautuu mobiilissa */
+   
   }
   
   .closeButton {
@@ -29,3 +38,72 @@
     right: 10px;
     cursor: pointer;
   }
+
+  input, select, textarea {
+    width: 90%; /* 🔹 Tekstikentät eivät vie koko modalin leveyttä */
+    max-width: 400px; /* 🔹 Rajoittaa maksimi leveyden */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    color: black !important;  /* 🔹 Pakotetaan tekstin väriksi musta */
+    background-color: white !important; /* 🔹 Varmistetaan, että tausta on valkoinen */
+  }
+  
+  .formGroup {
+    display: block; /* Vaihda flexistä blockiin, joka pakottaa elementit omille riveille */
+    width: 100%; /* Varmista, että tämä ottaa koko leveyden */
+    margin-bottom: 10px; /* Lisää hieman tilaa elementtien väliin */
+}
+
+.formGroup label {
+    flex: 1; /* Adjust this if the label is taking too much space */
+    text-align: left;
+    min-width: 100px;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+    flex: 2; /* Adjust or remove flex if it causes the inputs to misalign */
+    width: 100%;
+}
+  
+  .buttonContainer {
+    display: flex;
+    justify-content: space-evenly; /* 🔹 Distribute buttons evenly */
+    margin-top: 20px;
+    gap: 10px; /* 🔹 Add space between buttons */
+  }
+  
+  .cancelButton, .saveButton {
+    flex: none; /* 🔹 Prevent buttons from stretching */
+    max-width: 130px !important; /* 🔹 Set the maximum size of the button */
+    text-align: center;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: auto !important;
+  }
+  
+  .cancelButton {
+    background: #ccc;
+    color: black;
+  }
+  
+  .saveButton {
+    background: #007BFF;
+    color: white;
+  }
+  
+  .saveButton:hover {
+    background: #0056b3;
+  }
+
+  .loadingText {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+  }
+

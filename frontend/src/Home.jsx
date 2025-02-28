@@ -74,7 +74,7 @@ function Home() {
       <div className={styles.navigation}>
         <button className={styles.button} onClick={() => navigate("/inventory")}>Selaa varastoa</button>
         <button className={styles.button} onClick={() => setIsCreateTripModalOpen(true)}>+ Uusi keikka</button>
-        <button className={styles.button} onClick={() => navigate("/past-trips")}>Menneet keikat</button>
+        <button className={styles.button} onClick={() => navigate("/past-trips")}>Arkisto</button>
         <button className={styles.button} onClick={() => navigate("/pakkaus")}>Pakkaus</button>
       </div>
 

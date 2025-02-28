@@ -70,9 +70,22 @@ html, body {
 }
 
 .button {
-  margin-left: 10px;
-  background-color: #888;
+  flex: 1; /* Jakaa tilan tasaisesti */
+  min-width: 120px; /* Pienin leveys */
+  max-width: 200px; /* Estää liian leveät napit */
+  padding: 10px 15px;
+  text-align: center;
+  font-size: 16px;
+  border: none;
+  background-color: #007BFF; /* Sininen tausta */
   color: white;
+  border-radius: 5px; /* Pyöristetyt kulmat */
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.button:hover {
+  background-color: #0056b3; /* Tummentaa väriä hover-tilassa */
 }
 
 /* Statusvärit */
@@ -123,22 +136,14 @@ html, body {
 }
 
 .navigation {
-  width: 100%;
+  display: flex; /* Asettaa painikkeet vierekkäin */
+  justify-content: flex-start; /* Siirtää painikkeet vasemmalle */
+  align-items: center; /* Varmistaa, että painikkeet ovat samalla tasolla */
+  gap: 10px; /* Lisää väliä painikkeiden väliin */
+  flex-wrap: wrap; /* Estää ylivuodon pienillä näytöillä */
+  width: 100%; /* Varmistaa, että navigaatio venyy tarvittaessa */
+  max-width: 600px; /* Rajoittaa navigaation maksimileveyden */
+  margin-left: 20px; /* Lisää 20 pikseliä tyhjää tilaa vasemmalle */
   padding: 10px 0;
-}
-
-.navigation .button {
-  margin: 5px; /* Väliä painikkeiden välille */
-}
-
-.button {
-  background-color: #007BFF; /* Käytä selkeää sinistä pohjaväriä */
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 5px; /* Pyöristetyt kulmat */
-  cursor: pointer;
-  transition: background-color 0.3s, box-shadow 0.3s; /* Animaatioita hover-tilanteeseen */
 }
 

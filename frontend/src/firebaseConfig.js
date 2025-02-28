@@ -1,5 +1,11 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, push, onValue, get, update, remove } from "firebase/database";
+import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
+
+console.log("Firebase API Key:", import.meta.env.VITE_FIREBASE_API_KEY);
+console.log("Firebase Auth Domain:", import.meta.env.VITE_FIREBASE_AUTH_DOMAIN);
+console.log("Firebase Project ID:", import.meta.env.VITE_FIREBASE_PROJECT_ID);
+
 
 // 🔹 Sinun Firebase-konfiguraatiosi:
 const firebaseConfig = {
@@ -14,7 +20,8 @@ const firebaseConfig = {
 
 // 🔹 Alustetaan Firebase
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const database = getDatabase(app);
 
 // 🔹 Exportataan tarvittavat funktiot ja muuttujat
-export { database, ref, push, onValue, get, update, remove };
+export { auth, database, ref, push, onValue, get, update, remove, signInWithEmailAndPassword, signOut };
