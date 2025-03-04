@@ -4,6 +4,7 @@ import { auth } from "./firebaseConfig";
 import Home from "./Home";
 import Inventory from "./Inventory";
 import AddProduct from "./AddProduct";
+import QRCodeReader from "./QRCodeReader"; // Add this line
 /*import ProductDetails from "./ProductDetails";*/
 import EditTrip from "./EditTrip";
 import PastTrips from "./PastTrips";
@@ -30,6 +31,7 @@ function App() {
         <Route path="/test" element={<TestDatePicker />} />
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/add-product" element={<AddProduct />} />
+        <Route path="/qr-reader" element={<QRCodeReader />} />
         {/*<Route path="/product/:id" element={<ProductDetails />} />*/}
         <Route path="/edit-trip/:id" element={<EditTrip />} />
         <Route path="/past-trips" element={<PastTrips />} />

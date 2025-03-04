@@ -5,6 +5,7 @@ import styles from './main.module.css';
 import CreateTripModal from "./CreateTripModal";
 import EditTripModal from "./EditTripModal"; // Import EditTripModal
 
+
 function Home() {
   const navigate = useNavigate();
   const [keikat, setKeikat] = useState([]);
@@ -72,10 +73,13 @@ function Home() {
       <h1 className={styles.header}>Varastonhallinnan etusivu</h1>
 
       <div className={styles.navigation}>
+        
         <button className={styles.button} onClick={() => navigate("/inventory")}>Selaa varastoa</button>
         <button className={styles.button} onClick={() => setIsCreateTripModalOpen(true)}>+ Uusi keikka</button>
         <button className={styles.button} onClick={() => navigate("/past-trips")}>Arkisto</button>
         <button className={styles.button} onClick={() => navigate("/pakkaus")}>Pakkaus</button>
+        <button onClick={() => navigate('/qr-reader')}>Scan QR Code</button>
+
       </div>
 
       <h2>Aktiiviset keikat</h2>
