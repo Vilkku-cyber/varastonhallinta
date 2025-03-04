@@ -79,7 +79,7 @@ function QRCodeReader() {
       <video ref={videoRef} style={{ width: '100%', display: isScanning ? 'block' : 'none' }}></video>
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
       {productInfo && (
-        <div style={{ padding: '20px' }}>
+        <div style={{ padding: '20px', backgroundColor: 'white' }}> {/* Add white background */}
           <h3>Tuotetiedot</h3>
           <p>Nimi: {productInfo.name}</p>
           <p>Kategoria: {productInfo.category}</p>
