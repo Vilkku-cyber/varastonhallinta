@@ -8,6 +8,7 @@ function QRCodeReader() {
   const [qrCodeText, setQrCodeText] = useState('');
   const [serialNumber, setSerialNumber] = useState('');
   const [productInfo, setProductInfo] = useState(null);
+  const [inputValue, setInputValue] = useState('');
 
   const startVideo = () => {
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
@@ -37,6 +38,7 @@ function QRCodeReader() {
         });
         if (code) {
           setQrCodeText(code.data);
+          setInputValue(code.data); // Aseta suoraan kentän arvoksi
           videoRef.current.srcObject.getTracks().forEach(track => track.stop());
           return;
         }
@@ -89,10 +91,15 @@ function QRCodeReader() {
     <div style={{ padding: '20px' }}>
       <h1>Scan QR Code or Enter Serial Number</h1>
       <button onClick={startVideo}>Start Scanning</button>
-      <video ref={videoRef} style={{ display: 'none' }}></video>
+      <video ref={videoRef} style={{ width: '100%' }}></video> {/* Show the video element */}
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
       {qrCodeText && <div>QR Code Content: {qrCodeText}</div>}
       <input type="text" placeholder="Syötä sarjanumero" value={serialNumber} onChange={e => setSerialNumber(e.target.value)} />
+      <input
+        type="text"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+      />
       <button onClick={handleSearch}>Hae tuotetiedot</button>
       {productInfo && (
         <div style={{ padding: '20px' }}>
