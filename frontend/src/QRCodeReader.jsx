@@ -5,12 +5,11 @@ import jsQR from 'jsqr';
 function QRCodeReader() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [qrCodeText, setQrCodeText] = useState('');
-  const [serialNumber, setSerialNumber] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
   const [productInfo, setProductInfo] = useState(null);
-  const [inputValue, setInputValue] = useState('');
 
-  const startVideo = () => {
+  const startScan = () => {
+    setIsScanning(true);
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
       .then((stream) => {
         videoRef.current.srcObject = stream;
@@ -19,6 +18,7 @@ function QRCodeReader() {
       })
       .catch((err) => {
         console.error("Error accessing the camera:", err);
+        setIsScanning(false);
       });
   };
 
@@ -33,13 +33,12 @@ function QRCodeReader() {
         canvas.width = video.videoWidth;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: "dontInvert",
-        });
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
         if (code) {
-          setQrCodeText(code.data);
-          setInputValue(code.data); // Aseta suoraan kentän arvoksi
+          fetchProductDetails(code.data);
           videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+          setIsScanning(false);
           return;
         }
       }
@@ -54,27 +53,18 @@ function QRCodeReader() {
     get(inventoryRef).then((snapshot) => {
       if (snapshot.exists()) {
         const products = snapshot.val();
-        let found = false;
-        // Käy läpi kaikki tuotteet
         Object.keys(products).forEach((key) => {
           const product = products[key];
           const units = product.units || {};
-          // Tarkista, löytyykö annettu sarjanumero units-alikansiosta
           if (units[serial]) {
-            found = true;
             setProductInfo({
               ...product,
-              unitDetails: units[serial], // Sisältää vauriotiedot ja mahdolliset muut yksikkötiedot
+              unitDetails: units[serial], // Sisältää vauriotiedot ja muut yksikkötiedot
               serialNumber: serial
             });
           }
         });
-        if (!found) {
-          setProductInfo(null);
-          alert('Tuotetta ei löydy annetulla sarjanumerolla.');
-        }
       } else {
-        setProductInfo(null);
         alert('Tietokanta on tyhjä.');
       }
     }).catch(error => {
@@ -83,24 +73,11 @@ function QRCodeReader() {
     });
   };
 
-  const handleSearch = () => {
-    fetchProductDetails(serialNumber);
-  };
-
   return (
     <div style={{ padding: '20px' }}>
-      <h1>Scan QR Code or Enter Serial Number</h1>
-      <button onClick={startVideo}>Start Scanning</button>
-      <video ref={videoRef} style={{ width: '100%' }}></video> {/* Show the video element */}
+      <button onClick={startScan} disabled={isScanning}>Aloita skannaus</button>
+      <video ref={videoRef} style={{ width: '100%', display: isScanning ? 'block' : 'none' }}></video>
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
-      {qrCodeText && <div>QR Code Content: {qrCodeText}</div>}
-      <input type="text" placeholder="Syötä sarjanumero" value={serialNumber} onChange={e => setSerialNumber(e.target.value)} />
-      <input
-        type="text"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-      />
-      <button onClick={handleSearch}>Hae tuotetiedot</button>
       {productInfo && (
         <div style={{ padding: '20px' }}>
           <h3>Tuotetiedot</h3>
@@ -111,7 +88,7 @@ function QRCodeReader() {
           <p>Mitat: {productInfo.dimensions}</p>
           <p>Lisätiedot: {productInfo.details}</p>
           <h4>Yksikön tiedot</h4>
-          <p>Sarjanumero: {serialNumber}</p>
+          <p>Sarjanumero: {productInfo.serialNumber}</p>
           <p>Vauriot: {productInfo.unitDetails.damage}</p>
         </div>
       )}
