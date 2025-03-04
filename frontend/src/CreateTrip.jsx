@@ -83,21 +83,21 @@ function CreateTrip({ onRequestClose }) {
   };
 
   const saveTrip = () => {
-    // Suodatetaan ne itemit, joilla on valittu tuote ja joiden tiedot ovat kunnossa
-    const filteredItems = selectedItems.filter(item => item.id && item.quantity > 0);
-  
-    // Tarkistetaan, että tarvittavat tiedot on annettu
-    if (!name.trim() || !startDate || !endDate || filteredItems.length === 0) {
-      alert("Täytä kaikki kentät ennen tallennusta!");
-      return;
-    }
-  
-    // Muodostetaan items-objekti, jossa jokainen tuote sisältää id:n ja määrän
-    const itemsObject = filteredItems.reduce((obj, item) => {
-      // Tässä lisätään tuotteelle sen id
-      obj[item.id] = { id: item.id, quantity: item.quantity };
-      return obj;
-    }, {});
+  // Suodatetaan ne itemit, joilla on valittu tuote ja joiden tiedot ovat kunnossa
+  const filteredItems = selectedItems.filter(item => item.id && item.quantity > 0);
+
+  // Tarkistetaan, että tarvittavat tiedot on annettu
+  if (!name.trim() || !startDate || !endDate || filteredItems.length === 0) {
+    alert("Täytä kaikki kentät ennen tallennusta!");
+    return;
+  }
+
+  // Muodostetaan items-objekti, jossa jokainen tuote sisältää id:n ja määrän
+  const itemsObject = filteredItems.reduce((obj, item) => {
+    // Tässä lisätään tuotteelle sen id
+    obj[item.id] = { id: item.id, quantity: item.quantity };
+    return obj;
+  }, {});
 
     const newTrip = {
       name,

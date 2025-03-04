@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { database, ref, get, update, onValue } from "./firebaseConfig"; // Firebase-yhteys
+import { database, ref, get, update, onValue, remove } from "./firebaseConfig"; // Firebase-yhteys
 import Modal from "react-modal"; // Import Modal
 import styles from './productModal.module.css';
 
@@ -18,6 +18,21 @@ function ProductDetails({ product, reservedCounts, closeModal, saveProduct, isOp
   const [newDamage, setNewDamage] = useState("");
   const [editSerial, setEditSerial] = useState(null);
   const [editDamage, setEditDamage] = useState("");
+  const [categories, setCategories] = useState([]); // Kategorioiden tila
+
+  useEffect(() => {
+    const inventoryRef = ref(database, "inventory");
+    onValue(inventoryRef, (snapshot) => {
+      const uniqueCategories = new Set();
+      snapshot.forEach(childSnapshot => {
+        const category = childSnapshot.val().category;
+        if (category) {
+          uniqueCategories.add(category);
+        }
+      });
+      setCategories(Array.from(uniqueCategories));
+    });
+  }, []);
 
   const saveProductDetails = () => { // Renamed function
     if (!category) {
@@ -40,6 +55,18 @@ function ProductDetails({ product, reservedCounts, closeModal, saveProduct, isOp
         onClose(); // Use onClose to close the modal
       })
       .catch((error) => console.error("Virhe tallennettaessa tuotetietoja:", error));
+  };
+
+  const deleteProduct = () => {
+    if (window.confirm("Oletko varma, että haluat poistaa tuotteen? Tätä toimintoa ei voi peruuttaa.")) {
+      const productRef = ref(database, `inventory/${product.id}`);
+      remove(productRef)
+        .then(() => {
+          alert("Tuote poistettu!");
+          onClose(); // Close the modal after deletion
+        })
+        .catch((error) => console.error("Virhe poistettaessa tuotetta:", error));
+    }
   };
 
   const addUnit = () => {
@@ -94,10 +121,9 @@ function ProductDetails({ product, reservedCounts, closeModal, saveProduct, isOp
 
         <label>Kategoria:</label>
         <select value={category} onChange={(e) => setCategory(e.target.value)}>
-          <option value="LED">LED</option>
-          <option value="TV">TV</option>
-          <option value="TIETOKONE">TIETOKONE</option>
-          <option value="Muu">Muu</option>
+          {categories.map((cat, index) => (
+            <option key={index} value={cat}>{cat}</option>
+          ))}
         </select>
 
         <h2 className={styles.header}>Tekniset tiedot</h2>
@@ -194,6 +220,7 @@ function ProductDetails({ product, reservedCounts, closeModal, saveProduct, isOp
         <div className={styles.buttonContainer}>
           <button className={styles.cancelButton} onClick={onClose}>Palaa</button>
           <button className={styles.saveButton} onClick={saveProductDetails}>Tallenna</button> {/* Updated function call */}
+          <button className={styles.deleteButton} onClick={deleteProduct}>Poista</button> {/* Add delete button */}
         </div>
       </div>
     </Modal>

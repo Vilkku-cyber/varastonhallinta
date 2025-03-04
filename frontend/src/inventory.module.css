@@ -35,6 +35,14 @@ html, body {
   padding: 10px 0;
 }
 
+.searchBar {
+  padding: 8px;
+  margin-left: 12%; /* Siirtää hakupalkin oikealle */
+  width: 400px; /* Asettaa hakupalkin leveyden */
+  border: 1px solid #ccc; /* Kevyt kehys */
+  border-radius: 4px; /* Pyöristetyt kulmat */
+}
+
 .buttonBlue {
   flex: 1; /* Jakaa tilan tasaisesti */
   min-width: 120px; /* Pienin leveys */

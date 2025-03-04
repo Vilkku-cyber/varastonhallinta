@@ -23,6 +23,7 @@ function Inventory() {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [addProductModalIsOpen, setAddProductModalIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(""); // Add state for search term
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -62,7 +63,11 @@ function Inventory() {
     });
   }, []);
 
-  const categorizedInventory = inventory.reduce((acc, item) => {
+  const filteredInventory = inventory.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const categorizedInventory = filteredInventory.reduce((acc, item) => {
     const category = item.category || "Muu";
     if (!acc[category]) acc[category] = [];
     acc[category].push(item);
@@ -98,6 +103,13 @@ function Inventory() {
         <button className={styles.buttonBlue} onClick={() => navigate("/")}>🏠 Koti</button>
         <button className={styles.buttonBlue} onClick={openAddProductModal}>+ Lisää tuote</button>
       </div>
+      <input
+        type="text"
+        placeholder="Hae tuotteita..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className={styles.searchBar} // Add a class for styling the search bar
+      />
       <div className={styles.scrollableContainer}>
         {Object.keys(categorizedInventory)
           .sort((a, b) => (a === "Muu" ? 1 : b === "Muu" ? -1 : 0))
