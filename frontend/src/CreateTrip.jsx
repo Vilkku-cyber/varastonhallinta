@@ -14,6 +14,7 @@ function CreateTrip({ onRequestClose }) {
   const [status, setStatus] = useState("pakkaamatta");
   const [categorizedInventory, setCategorizedInventory] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
+  const [contact, setContact] = useState(""); // Lisätty yhteyshenkilön kenttä
 
   // Haetaan varaston tuotteet ja kategorisoidaan ne
   useEffect(() => {
@@ -105,6 +106,7 @@ function CreateTrip({ onRequestClose }) {
       endDate: endDate.toISOString(),
       status,
       items: itemsObject, // Tallenna tuotteet objektina
+      contact: contact.trim() || null, // Include contact if provided, otherwise set to null
     };
 
     console.log("Tallennetaan keikka:", newTrip);
@@ -117,39 +119,58 @@ function CreateTrip({ onRequestClose }) {
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h1>Luo uusi keikka</h1>
+    <h1>Luo uusi keikka</h1>
 
-      <label>Keikan nimi:</label>
-      <br />
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <br />
-      <br />
+    <label>Keikan nimi:</label>
+    <br />
+    <input
+      type="text"
+      value={name}
+      onChange={(e) => setName(e.target.value)}
+    />
+    <br />
+    <br />
 
-      <label>Alkamispäivä:</label>
-      <br />
-      <DatePicker
-        selected={startDate}
-        onChange={(date) => setStartDate(date instanceof Date ? date : null)}
-        dateFormat="dd.MM.yyyy"
-        placeholderText="Valitse alkamispäivä"
-      />
-      <br />
-      <br />
+    <label>Alkamispäivä ja -aika:</label>
+    <br />
+    <DatePicker
+      selected={startDate}
+      onChange={(date) => setStartDate(date)}
+      dateFormat="dd.MM.yyyy p"
+      showTimeSelect
+      timeFormat="HH:mm"
+      timeIntervals={15}
+      timeCaption="aika"
+      placeholderText="Valitse alkamispäivä ja -aika"
+    />
+    <br />
+    <br />
 
-      <label>Päättymispäivä:</label>
-      <br />
-      <DatePicker
-        selected={endDate}
-        onChange={(date) => setEndDate(date instanceof Date ? date : null)}
-        dateFormat="dd.MM.yyyy"
-        placeholderText="Valitse päättymispäivä"
-      />
-      <br />
-      <br />
+    <label>Päättymispäivä ja -aika:</label>
+    <br />
+    <DatePicker
+      selected={endDate}
+      onChange={(date) => setEndDate(date)}
+      dateFormat="dd.MM.yyyy p"
+      showTimeSelect
+      timeFormat="HH:mm"
+      timeIntervals={15}
+      timeCaption="aika"
+      placeholderText="Valitse päättymispäivä ja -aika"
+    />
+    <br />
+    <br />
+
+    <label>Yhteyshenkilö:</label>
+    <br />
+    <input
+      type="text"
+      value={contact}
+      onChange={(e) => setContact(e.target.value)}
+      placeholder="Yhteyshenkilön nimi tai puhelinnumero"
+    />
+    <br />
+    <br />
 
       <label>Status:</label>
       <br />
@@ -165,7 +186,8 @@ function CreateTrip({ onRequestClose }) {
       <br />
       <br />
 
-      <h2>Lisää tavarat</h2>
+      <h2 style={{ color: 'black' }}>Lisää tavarat</h2>
+
       {selectedItems.map((item, index) => (
         <div key={index}>
           <select

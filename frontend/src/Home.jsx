@@ -37,6 +37,7 @@ function Home() {
             endDate: value.endDate ? new Date(value.endDate) : null,
             status: value.status || "pakkaamatta",
             items: value.items || [],
+            contact: value.contact || "",
           }))
           .sort((a, b) => (a.startDate && b.startDate ? a.startDate - b.startDate : 0));
 
@@ -89,10 +90,10 @@ function Home() {
         <ul className={styles.List}>
           {keikat.map((keikka) => {
             const startDateString = keikka.startDate
-              ? keikka.startDate.toLocaleDateString("fi-FI")
+              ? `${keikka.startDate.toLocaleDateString("fi-FI")} ${keikka.startDate.toLocaleTimeString("fi-FI", { hour: '2-digit', minute: '2-digit' })}`
               : "Ei aloituspäivää";
             const endDateString = keikka.endDate
-              ? keikka.endDate.toLocaleDateString("fi-FI")
+              ? `${keikka.endDate.toLocaleDateString("fi-FI")} ${keikka.endDate.toLocaleTimeString("fi-FI", { hour: '2-digit', minute: '2-digit' })}`
               : "Ei päättymispäivää";
 
             return (
@@ -107,6 +108,7 @@ function Home() {
                 <div className={`${styles.status} ${getStatusColorClass(keikka.status)}`}>
                   Status: {keikka.status}
                 </div>
+                <div style={{ color: 'black' }}>{keikka.contact}</div>
 
                 {keikka.items && Object.keys(keikka.items).length > 0 ? (
                   <ul className={styles.itemsList}>

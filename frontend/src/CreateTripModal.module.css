@@ -11,6 +11,7 @@
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   max-height: 60vh; /* Limit the height of the modal */
+  width: 500px;
   overflow-y: auto; /* Enable vertical scrolling */
 }
 
@@ -21,4 +22,10 @@
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.75);
+}
+
+.modalContent {
+  color: black;
+  max-width: 400px; /* Pienempi modaali */
+  width: 90%; /* Skaalautuu mobiilissa */
 }

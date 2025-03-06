@@ -15,7 +15,7 @@ function EditTrip({ onRequestClose, tripId }) {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [status, setStatus] = useState("pakkaamatta");
-
+  const [contact, setContact] = useState(""); // Lisätty yhteyshenkilön kenttä
   const [inventory, setInventory] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
   const [showProductList, setShowProductList] = useState(false);
@@ -45,6 +45,7 @@ function EditTrip({ onRequestClose, tripId }) {
           const data = snapshot.val();
           console.log("Trip data retrieved:", data); // Log the data retrieved
           setName(data.name || "");
+          setContact(data.contact || "");
           setStartDate(data.startDate ? new Date(data.startDate) : null);
           setEndDate(data.endDate ? new Date(data.endDate) : null);
           if (data.status) {
@@ -81,6 +82,7 @@ function EditTrip({ onRequestClose, tripId }) {
       endDate: endDate ? endDate.toISOString() : "",
       status,
       items: updatedItems,
+      contact
     })
       .then(() => {
         alert("Keikka päivitetty!");
@@ -167,6 +169,15 @@ function EditTrip({ onRequestClose, tripId }) {
       />
       <br /><br />
 
+      <label htmlFor="contact">Yhteyshenkilö:</label>
+      <input
+        type="text"
+        id="contact"
+        value={contact}
+        onChange={(e) => setContact(e.target.value)}
+        style={{ display: "block", marginBottom: "10px" }}
+      />
+
       <label htmlFor="status">Status:</label><br />
       <select
         id="status"
@@ -180,7 +191,8 @@ function EditTrip({ onRequestClose, tripId }) {
       </select>
       <br /><br />
 
-      <h2>Lisätyt tuotteet</h2>
+      <h2 style={{ color: 'black' }}>Lisäätyt tuotteet</h2>
+
       {selectedItems.length === 0 && <p>Ei tuotteita lisätty</p>}
       {selectedItems.map((item, index) => (
         <div
