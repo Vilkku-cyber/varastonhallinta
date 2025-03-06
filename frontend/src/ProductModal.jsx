@@ -216,7 +216,44 @@ function ProductDetails({ product, reservedCounts, closeModal, saveProduct, isOp
             <button className={styles.saveButton} onClick={addUnit}>Lisää</button>
           </div>
         )}
+ {category === "PLAYER" && (
+          <div>
+            <h2 className={styles.header}>Yksilöt</h2>
+            <table border="1" cellPadding="5">
+              <thead>
+                <tr><th>Sarjanumero</th><th>Vaurio</th><th>Toiminnot</th></tr>
+              </thead>
+              <tbody>
+                {Object.entries(units).map(([serial, info]) => (
+                  <tr key={serial}>
+                    <td>{serial}</td>
+                    <td>
+                      {editSerial === serial ? (
+                        <input type="text" value={editDamage} onChange={(e) => setEditDamage(e.target.value)} />
+                      ) : (
+                        info.damage
+                      )}
+                    </td>
+                    <td>
+                      {editSerial === serial ? (
+                        <button onClick={saveUnitEdit}>💾</button>
+                      ) : (
+                        <button onClick={() => editUnit(serial)}>✏️</button>
+                      )}
+                      <button onClick={() => deleteUnit(serial)}>🗑️</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
+            <h3 className={styles.header}>Lisää PLAYER-yksilö</h3>
+            <input type="text" placeholder="Sarjanumero" value={newSerial} onChange={(e) => setNewSerial(e.target.value)} />
+            <input type="text" placeholder="Vaurio" value={newDamage} onChange={(e) => setNewDamage(e.target.value)} />
+            
+            <button className={styles.saveButton} onClick={addUnit}>Lisää</button>
+          </div>
+        )}
         <div className={styles.buttonContainer}>
           <button className={styles.cancelButton} onClick={onClose}>Palaa</button>
           <button className={styles.saveButton} onClick={saveProductDetails}>Tallenna</button> {/* Updated function call */}
