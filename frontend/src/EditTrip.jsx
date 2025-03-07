@@ -93,26 +93,34 @@ function EditTrip({ onRequestClose, tripId }) {
 
   const returnTrip = () => {
     if (!window.confirm("Haluatko varmasti palauttaa keikan? Keikka arkistoidaan.")) return;
-
+  
+    const tripRef = ref(database, `keikat/${id}`);
     const archivedTripRef = ref(database, `archived-trips/${id}`);
-    update(archivedTripRef, {
-      name,
-      startDate: startDate ? startDate.toISOString() : "",
-      endDate: endDate ? endDate.toISOString() : "",
-      status,
-      items: selectedItems,
-      returned: true,
-    })
+  
+    get(tripRef)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const tripData = snapshot.val(); // Haetaan kaikki keikan tiedot
+  
+          // Lisätään "returned: true" arkistoon ja tallennetaan kaikki muut tiedot
+          return update(archivedTripRef, {
+            ...tripData,
+            returned: true, 
+          });
+        } else {
+          throw new Error("Keikkaa ei löytynyt!");
+        }
+      })
       .then(() => {
-        remove(ref(database, `keikat/${id}`))
-          .then(() => {
-            alert("Keikka arkistoitu.");
-            onRequestClose(); // Close the modal after archiving the trip
-          })
-          .catch((error) => console.error("Virhe keikan poistossa:", error));
+        return remove(tripRef); // Poistetaan keikka aktiivisista keikoista
+      })
+      .then(() => {
+        alert("Keikka arkistoitu.");
+        onRequestClose(); // Suljetaan modal
       })
       .catch((error) => console.error("Virhe arkistoinnissa:", error));
   };
+  
 
   const deleteTrip = () => {
     if (!window.confirm("Haluatko varmasti poistaa tämän keikan? Tätä ei voi perua!")) return;

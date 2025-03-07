@@ -1,0 +1,67 @@
+/* ArchiveView.css */
+
+/* Tausta, jonka päälle tulee läpikuultavia kortteja */
+.archive-container {
+    /* Esim. täysnäyttö, taustakuva coverina */
+    min-height: 100vh;
+    background: url("/images/your-background.jpg") no-repeat center center;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Poistaa selaimen skrollibugit */
+  }
+  
+  /* Yläpalkki (Koti-nappi + hakukenttä) */
+  .archive-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Arkistosisällön kontti */
+  .archive-content {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding: 20px;
+    max-height: calc(100vh - 60px); /* Estää turhan venymisen */
+  }
+  
+  /* Piilotetaan scrollbar (WebKit) */
+  .archive-content::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Jokainen keikka on erillinen laatikko */
+  .archive-trip {
+    background: rgba(255, 255, 255, 0.8);
+    margin-bottom: 15px;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  
+  /* Keikan otsikko, napit */
+  .archive-trip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  /* Kun avataan lisätiedot */
+  .archive-trip-details {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+  }
+  
+  /* Yksinkertainen nappi: */
+  .archive-trip-header button {
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #999;
+    background: #fafafa;
+    cursor: pointer;
+  }
