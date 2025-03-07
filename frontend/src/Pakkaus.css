@@ -1,79 +1,149 @@
-body {
-  margin: 0;
-  padding: 0;
-  background: url('/images/packing.png') no-repeat center center fixed;
-  background-size: cover;
-  font-family: Arial, sans-serif;
-}
+/* Pakkaus.css */
 
+/* Kontti asettaa kaksi paneelia vierekkäin */
 .container {
-  padding: 20px;
-  background-color: rgba(255, 255, 255, 0.8); /* Transparent white overlay */
-  border-radius: 10px;
-  max-width: 1200px;
-  margin: 20px auto;
-}
-
-.home-button,
-.back-button,
-.save-button,
-.pack-button,
-.add-tv-button,
-.remove-button,
-.quantity-button,
-.add-item-button {
-    margin: 5px;
-    margin-bottom: 10px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  background-color: #007bff;
-  color: white;
-  font-size: 16px;
-}
-
-.home-button:hover,
-.back-button:hover,
-.save-button:hover,
-.pack-button:hover,
-.add-tv-button:hover,
-.remove-button:hover,
-.quantity-button:hover,
-.add-item-button:hover {
-  background-color: #0056b3;
-}
-
-.trip-details-container {
   display: flex;
-  justify-content: space-between;
+  width: 100%;
+  height: calc(100vh - 60px); /* Esim. kokoruudun korkeus miinus yläpalkki */
+  box-sizing: border-box;
 }
 
-.trip-details,
-.packed-items {
-  width: 48%;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.serial-input,
-.item-select {
+/* Paneelien perusasetukset */
+.leftPanel,
+.rightPanel {
+  flex: 1;
   padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 16px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.8); /* Läpikuultava valkoinen */
+  border-radius: 12px; /* Pyöristetyt kulmat */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 10px; /* Pieni väli reunojen ja elementtien välillä */
+
+  /* Mahdollistaa skrollauksen, mutta piilotetaan rulla */
+  overflow-y: auto; 
+  scrollbar-width: none; /* Firefox */
 }
 
-.serial-and-remove {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  
-  .serial-number {
-    flex-grow: 1;
-    margin-right: 10px; /* Lisää tilaa sarjanumeron ja poista-napin välille */
-  }
-  
+/* Piilotetaan scroll bar (Webkit) */
+.leftPanel::-webkit-scrollbar,
+.rightPanel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tehdään pienet, kompaktit painikkeet */
+button,
+select,
+input[type="number"],
+input[type="text"] {
+  font-size: 14px;
+  padding: 4px 8px;
+  margin: 0 2px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  background: blue;
+}
+
+/* Pääotsikot */
+h3 {
+  margin-top: 0;
+}
+
+/* Pienet marginaalit vasemmalle listalle */
+.leftPanel ul,
+.rightPanel ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* Nappien rivi ylhäällä */
+.topBar {
+  background: #f4f4f4;
+  padding: 5px 10px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  gap: 5px; /* pientä väliä elementtien väliin */
+}
+
+.topBar select {
+  min-width: 150px;
+}
+
+/* Yksittäinen listan rivi. Pieni väli alle. */
+.itemRow {
+  margin-bottom: 6px;
+}
+
+/* Teksti, joka näyttää pakkaus-infoa vasemmalla. */
+.packingInfo {
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+/* Väritykset: punainen, vihreä */
+.text-red {
+  color: red;
+}
+.text-green {
+  color: green;
+}
+
+/* Leventää pudotusvalikon, mutta pienentää "Lisää"-nappia */
+.manual-add-container {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.manual-add-container select {
+  flex-grow: 1; /* Vie kaiken käytettävissä olevan tilan */
+}
+
+.manual-add-container input {
+  width: 60px;
+  text-align: center;
+}
+
+.manual-add-container button {
+  padding: 4px 6px;
+  min-width: 60px;
+}
+
+/* "+"/"-" napit ovat samalla rivillä otsikon kanssa */
+.packed-item {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+  gap: 10px;
+}
+
+.packed-item-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+.packed-item-buttons button {
+  padding: 2px 6px;
+}
+
+/* Sarjanumerolistausta varten */
+.serial-list {
+  list-style: none;
+  padding-left: 20px;
+  margin-top: 5px;
+}
+
+.serial-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+/* Lisää taustakuva */
+body {
+  background-image: url('/images/packing.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}

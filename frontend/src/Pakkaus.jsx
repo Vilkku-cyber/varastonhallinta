@@ -1,409 +1,352 @@
 import React, { useState, useEffect } from "react";
-import { database, ref, onValue, update } from "/src/firebaseConfig.js";
 import { useNavigate } from "react-router-dom";
-import './Pakkaus.css';
+import { database, ref, onValue, update } from "./firebaseConfig";
+import "./Pakkaus.css";
 
-const PackingView = () => {
-  const navigate = useNavigate(); // Initialize the navigate function
-  const [trips, setTrips] = useState([]);
-  const [selectedTrip, setSelectedTrip] = useState(null);
-  const [packedItems, setPackedItems] = useState([]);
-  const [tripItems, setTripItems] = useState([]);
+function PackingView() {
+  const navigate = useNavigate();
+
+  const [allTrips, setAllTrips] = useState([]);
+  const [selectedTripId, setSelectedTripId] = useState("");
+
+  // Kaikki pakatut tuotteet: avain = productId
+  const [packedItems, setPackedItems] = useState({});
+
+  // Viivakoodin syöttökenttä
+  const [barcodeInput, setBarcodeInput] = useState("");
+  // Manuaalinen lisäys “nimi + quantity” -kentät
+  const [manualProductName, setManualProductName] = useState("");
+  const [manualQuantity, setManualQuantity] = useState(1);
+
+  // Varasto
   const [inventory, setInventory] = useState({});
-  const [serialNumber, setSerialNumber] = useState("");
-  const [packedItemsState, setPackedItemsState] = useState({
-    manualItems: [],
-    tvs: {}
-  });
-  const [saveStatus, setSaveStatus] = useState("");
-  const [selectedItem, setSelectedItem] = useState(""); // New state for selected item
 
   useEffect(() => {
+    const tripsRef = ref(database, "keikat");
+    onValue(tripsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const tripsArray = Object.entries(data).map(([id, obj]) => ({
+          id,
+          ...obj,
+        }));
+        setAllTrips(tripsArray);
+      } else {
+        setAllTrips([]);
+      }
+    });
+
     const inventoryRef = ref(database, "inventory");
     onValue(inventoryRef, (snapshot) => {
       const data = snapshot.val();
-      const newInventory = {};
-      Object.entries(data).forEach(([id, details]) => {
-        newInventory[id] = details;
-      });
-      setInventory(newInventory);
-      console.log("Inventory fetched:", newInventory); // Log inventory data
+      setInventory(data || {});
     });
-
-    const fetchTrips = () => {
-      const tripsRef = ref(database, "keikat");
-      onValue(tripsRef, (snapshot) => {
-        const data = snapshot.val();
-        console.log("Haetut keikat Firebase-tietokannasta:", data); // DEBUG
-        if (data) {
-          const tripList = Object.entries(data).map(([id, value]) => ({
-            id,
-            name: value.name || "Nimetön keikka",
-            items: value.items || {}
-          }));
-          setTrips(tripList);
-          console.log("Muutettu keikkalista:", tripList); // DEBUG
-        } else {
-          setTrips([]); // Tyhjennä lista, jos dataa ei ole
-        }
-      });
-    };
-
-    fetchTrips();
   }, []);
 
+  // Haetaan keikan packedItems
   useEffect(() => {
-    if (!selectedTrip) return;
-
-    const packedRef = ref(database, `keikat/${selectedTrip.id}/packedItems`);
-    onValue(packedRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        setPackedItemsState({
-          manualItems: data.packedManualItems || [],
-          tvs: data.packedTVs || {}
-        });
-        console.log("Packed items fetched for trip:", data); // Log packed items data
-      } else {
-        setPackedItemsState({
-          manualItems: [],
-          tvs: {}
-        });
-      }
-    });
-  }, [selectedTrip]);
-
-  useEffect(() => {
-    updateTripItems();
-  }, [selectedTrip, packedItemsState, inventory]);
-
-  const updateTripItems = () => {
-    if (!selectedTrip) return;
-
-    const newTripItems = selectedTrip.items ? Object.entries(selectedTrip.items).map(([id, item]) => {
-      const manualItem = packedItemsState.manualItems.find(packedItem => packedItem.id === id);
-      const tvCount = packedItemsState.tvs[inventory[id]?.name]?.size || 0;
-      const packedQuantity = (manualItem?.quantity || 0) + tvCount;
-      console.log(`Recalculating - Item ID: ${id}, Manual Quantity: ${manualItem?.quantity || 0}, TV Count: ${tvCount}, Packed Quantity: ${packedQuantity}`); // Log detailed item data
-      return {
-        id: id,
-        ...item,
-        name: inventory[id]?.name || "Tuntematon tuote",
-        packedQuantity: packedQuantity
-      };
-    }) : [];
-
-    setTripItems(newTripItems);
-    console.log("Trip items recalculated:", newTripItems); // Log recalculated trip items data
-  };
-
-  const savePackingProgress = () => {
-    if (!selectedTrip) return;
-
-    console.log("Tallennus aloitetaan keikalle:", selectedTrip.id);
-    setSaveStatus("Tallennetaan...");
-
-    const tripRef = ref(database, `keikat/${selectedTrip.id}/packedItems`);
-    update(tripRef, packedItemsState)
-      .then(() => {
-        console.log("Tallennus onnistui!");
-        setSaveStatus("Tallennus onnistui!");
-      })
-      .catch((error) => {
-        console.error("Virhe tallennuksessa:", error);
-        setSaveStatus("Tallennus epäonnistui.");
-      });
-  };
-
-  const handleSelectTrip = (event) => {
-    const tripId = event.target.value;
-    const trip = trips.find(t => t.id === tripId);
-    setSelectedTrip(trip);
-    console.log("Selected trip:", trip); // Log selected trip data
-  };
-
-  const calculateStatus = (item) => {
-    const difference = item.quantity - item.packedQuantity;
-    if (difference > 0) {
-      return <span style={{ color: "red" }}>Puuttuu {difference}</span>;
-    } else if (difference < 0) {
-      return <span style={{ color: "green" }}>Liikaa {Math.abs(difference)}</span>;
-    } else {
-      return <span style={{ color: "green" }}>OK</span>;
-    }
-  };
-
-  const handlePackItem = (item) => {
-    if (!selectedTrip) return;
-
-    setPackedItems((prev) => [...prev, item]);
-    setPackedItemsState((prev) => {
-      const newState = {
-        ...prev,
-        manualItems: [...prev.manualItems, { id: item.id, name: item.name, quantity: item.quantity }]
-      };
-      console.log("Packed items state updated (handlePackItem):", newState); // Log updated state
-      return newState;
-    });
-    console.log("Item packed:", item); // Log packed item data
-    updateTripItems();
-  };
-
-  useEffect(() => {
-    // Check that this call does not cause unwanted side effects
-    if (serialNumber) {
-      console.log("Serial number updated:", serialNumber);
-      // Do not perform any status updates related to product quantities or inventory here
-    }
-  }, [serialNumber]);
-
-  const handleAddSerialNumber = async () => {
-    console.log("Attempting to add item with serial number:", serialNumber);
-    if (!serialNumber) return;
-
-    let foundTV = null;
-    Object.entries(inventory).forEach(([id, item]) => {
-        if (item.units && Object.keys(item.units).includes(serialNumber)) {
-            foundTV = { id, name: item.name };
-        }
-    });
-
-    if (foundTV) {
-        // Lisätään sarjanumero pakattuihin joka tapauksessa
-        setPackedItemsState((prev) => {
-            const updated = { ...prev.tvs };
-            if (!updated[foundTV.name]) {
-                updated[foundTV.name] = new Set();
-            }
-            updated[foundTV.name].add(serialNumber);
-            const newState = { ...prev, tvs: updated };
-            console.log("Packed items state updated (handleAddSerialNumber):", newState);
-            return newState;
-        });
-        console.log("Serial number added to packedTVs:", serialNumber);
-
-        // Päivitetään tripItems-laskenta, jotta pakattu määrä päivittyy heti UI:hin
-        updateTripItems();
-    } else {
-        console.log("Sarjanumerolla ei löytynyt vastaavaa tuotetta varastosta.");
-    }
-
-    setSerialNumber(""); // Tyhjennä kenttä
-};
-
-
-
-  const handleAddItem = (item, serialNumber) => {
-    if (serialNumber) {
-      let foundTV = null;
-      Object.entries(inventory).forEach(([id, item]) => {
-        if (item.units && Object.keys(item.units).includes(serialNumber)) {
-          foundTV = { id, name: item.name };
-        }
-      });
-
-      if (foundTV) {
-        setPackedItemsState((prev) => {
-          const updated = { ...prev.tvs };
-          if (!updated[foundTV.name]) {
-            updated[foundTV.name] = new Set();
-          }
-          updated[foundTV.name].add(serialNumber);
-          const newState = { ...prev, tvs: updated };
-          console.log("Packed items state updated (handleAddItem - serialNumber):", newState); // Log updated state
-          return newState;
-        });
-        console.log("Serial number added to packedTVs:", serialNumber); // Log serial number addition
-
-        // Ensure updateTripItems is called after updating the state
-        updateTripItems();
-      }
-    } else if (item) {
-      handlePackItem(item);
-      updateTripItems();
-    }
-  };
-
-  const updatePackedQuantity = (id, delta) => {
-    if (!id) {
-      console.error("ID is undefined, cannot update quantity");
+    if (!selectedTripId) {
+      setPackedItems({});
       return;
     }
-    setPackedItemsState((prev) => {
-      console.log("Previous state before update:", prev);  // Näyttää tilan ennen päivitystä
-      const updatedItems = prev.manualItems.map(item => {
-        if (item.id === id) {
-          const newQuantity = item.quantity + delta;
-          console.log(`New quantity for item ${id}: ${newQuantity}`);  // Näyttää uuden määrän päivityksen jälkeen
-          return { ...item, quantity: newQuantity };
-        }
-        return item;
-      });
-      const newState = { ...prev, manualItems: updatedItems };
-      console.log("Packed items state updated (updatePackedQuantity):", newState); // Log updated state
-      return newState;
+    const packedRef = ref(database, `keikat/${selectedTripId}/packedItems`);
+    onValue(packedRef, (snapshot) => {
+      const data = snapshot.val();
+      setPackedItems(data || {});
     });
+  }, [selectedTripId]);
 
-    setTripItems((prev) => prev.map(item => {
-      if (item.id === id) {
-        const newQuantity = item.packedQuantity + delta;
-        return { ...item, packedQuantity: newQuantity };
-      }
-      return item;
-    }));
-    updateTripItems();
-  };
+  const selectedTrip = allTrips.find((t) => t.id === selectedTripId);
 
-  const removePackedItem = (name) => {
-    setPackedItemsState((prev) => {
-      const newState = {
-        ...prev,
-        manualItems: prev.manualItems.filter(item => item.name !== name)
-      };
-      console.log("Packed items state updated (removePackedItem):", newState); // Log updated state
-      return newState;
-    });
-    setTripItems((prev) => prev.map(item => {
-      if (item.name === name) {
-        return { ...item, packedQuantity: 0 };
-      }
-      return item;
-    }));
-    console.log("Packed item removed:", name); // Log removed packed item
-    updateTripItems();
-  };
+  // 1) Sarjanumeron skannaus
+  const handleBarcodeSubmit = (e) => {
+    e.preventDefault();
+    if (!barcodeInput.trim()) return;
 
-  const removeSerialNumber = (tvName, serialNumber) => {
-    setPackedItemsState((prev) => {
-      const updated = { ...prev.tvs };
-      if (updated[tvName]) {
-        updated[tvName].delete(serialNumber);
-        if (updated[tvName].size === 0) {
-          delete updated[tvName];
+    let foundProductId = null;
+    let foundProductName = "";
+    let isSerial = false;
+
+    // Etsitään inventorysta productId, jolta löytyy barcodeInput
+    Object.entries(inventory).forEach(([pid, product]) => {
+      if (product.units) {
+        if (Object.keys(product.units).includes(barcodeInput.trim())) {
+          foundProductId = pid;
+          foundProductName = product.name;
+          isSerial = true;
         }
       }
-      const newState = { ...prev, tvs: updated };
-      console.log("Packed items state updated (removeSerialNumber):", newState); // Log updated state
-      return newState;
     });
-    console.log("Serial number removed:", serialNumber); // Log removed serial number
 
-    // Update packedManualItems to reflect the removal of the serial number
-    const tvId = Object.keys(inventory).find(id => inventory[id].name === tvName);
-    if (tvId) {
-      setTripItems((prev) => prev.map(item => {
-        if (item.id === tvId) {
-          const newQuantity = item.packedQuantity - 1;
-          return { ...item, packedQuantity: newQuantity };
-        }
-        return item;
-      }));
+    if (!foundProductId) {
+      alert("Sarjanumerolla " + barcodeInput + " ei löytynyt tuotetta varastosta!");
+      setBarcodeInput("");
+      return;
     }
-    updateTripItems();
+
+    // Päivitetään packedItems
+    setPackedItems((prev) => {
+      const oldEntry = prev[foundProductId] || {
+        name: foundProductName,
+        quantity: 0,
+        isSerial,
+        serials: {},
+      };
+
+      // Lisätään serial
+      const newSerials = { ...oldEntry.serials };
+      if (!newSerials[barcodeInput.trim()]) {
+        newSerials[barcodeInput.trim()] = { serial: barcodeInput.trim() };
+      }
+
+      return {
+        ...prev,
+        [foundProductId]: {
+          ...oldEntry,
+          serials: newSerials,
+          isSerial: true,
+          quantity: Object.keys(newSerials).length, // sarjojen määrä
+        },
+      };
+    });
+
+    setBarcodeInput("");
   };
 
-  const handleAddPackedItem = () => {
-    const item = tripItems.find(i => i.id === selectedItem);
-    if (item) {
-      handlePackItem(item);
-      updateTripItems();
+  // 2) Manuaalinen lisäys non-serial
+  const handleAddManualItem = () => {
+    if (!manualProductName.trim() || manualQuantity <= 0) return;
+
+    const productId = "manual-" + manualProductName;
+
+    setPackedItems((prev) => {
+      const oldEntry = prev[productId] || {
+        name: manualProductName,
+        quantity: 0,
+        isSerial: false,
+        serials: {},
+      };
+      return {
+        ...prev,
+        [productId]: {
+          ...oldEntry,
+          quantity: oldEntry.quantity + manualQuantity,
+        },
+      };
+    });
+
+    setManualProductName("");
+    setManualQuantity(1);
+  };
+
+  // 3) Poista yksittäinen sarjanumero
+  const removeSerial = (productId, serial) => {
+    setPackedItems((prev) => {
+      const item = prev[productId];
+      if (!item) return prev;
+
+      const newSerials = { ...item.serials };
+      delete newSerials[serial];
+      const newQty = Object.keys(newSerials).length;
+
+      return {
+        ...prev,
+        [productId]: {
+          ...item,
+          serials: newSerials,
+          quantity: newQty,
+        },
+      };
+    });
+  };
+
+  // 4) Muuta non-serial -tuotteen määrää
+  const adjustQuantity = (productId, delta) => {
+    setPackedItems((prev) => {
+      const item = prev[productId];
+      if (!item) return prev;
+      const newQty = item.quantity + delta;
+      if (newQty <= 0) {
+        const copy = { ...prev };
+        delete copy[productId];
+        return copy;
+      }
+      return {
+        ...prev,
+        [productId]: { ...item, quantity: newQty },
+      };
+    });
+  };
+
+  // 5) Tallenna Firebaseen
+  const handleSave = async () => {
+    if (!selectedTripId) {
+      alert("Valitse keikka ensin!");
+      return;
+    }
+    try {
+      await update(ref(database, `keikat/${selectedTripId}`), {
+        packedItems,
+      });
+      alert("Pakatut tallennettu!");
+    } catch (error) {
+      alert("Virhe tallennuksessa: " + error);
     }
   };
 
   return (
-    <div className="container">
-      <button onClick={() => navigate("/")} className="home-button">🏠 Koti</button>
-      {!selectedTrip ? (
-        <div className="select-trip">
-          <h2>Valitse keikka pakattavaksi</h2>
-          <select onChange={handleSelectTrip} defaultValue="">
-            <option value="" disabled>Valitse keikka</option>
-            {trips.map((trip) => (
-              <option key={trip.id} value={trip.id}>{trip.name}</option>
-            ))}
-          </select>
+    <div style={{ height: "100vh", margin: 0, padding: 0 }}>
+      {/* Yläpalkki */}
+      <div className="topBar">
+        <button onClick={() => navigate("/")}>Koti</button>
+
+        <select
+          value={selectedTripId}
+          onChange={(e) => setSelectedTripId(e.target.value)}
+        >
+          <option value="">Valitse keikka</option>
+          {allTrips.map((trip) => (
+            <option key={trip.id} value={trip.id}>
+              {trip.name || "Nimetön keikka"}
+            </option>
+          ))}
+        </select>
+
+        <button onClick={handleSave}>Tallenna pakatut</button>
+      </div>
+
+      {/* container flex */}
+      <div className="container">
+        {/* VASEN PANEELI */}
+        <div className="leftPanel">
+          <h3>Mitä pitäisi pakata</h3>
+          {selectedTrip && selectedTrip.items ? (
+            <ul>
+              {Object.entries(selectedTrip.items).map(([itemKey, itemData]) => {
+                const productId = itemData.id; // = inventory-avain
+                const requiredCount = itemData.quantity;
+                const productName = inventory[productId]?.name || "Tuntematon tuote";
+
+                // Katsotaan, montako on jo pakattu
+                let packedCount = packedItems[productId]?.quantity || 0;
+                // Tarkistetaan käsin lisätyt (nimellä)
+                Object.entries(packedItems).forEach(([manualId, packed]) => {
+                  if (manualId.startsWith("manual-") && packed.name === productName) {
+                    packedCount += packed.quantity;
+                  }
+                });
+
+                const leftToPack = Math.max(0, requiredCount - packedCount);
+
+                // Värikoodaus:
+                // Jos leftToPack === 0 => vihreä, muuten punainen
+                const leftColorClass = leftToPack === 0 ? "text-green" : "text-red";
+                // Jos packedCount === requiredCount => "pakattu" vihreänä, muuten normaali
+                const packedColorClass = (packedCount === requiredCount) ? "text-green" : "";
+
+                return (
+                  <li key={itemKey} className="itemRow">
+                    {requiredCount} x {productName}
+                    <small className="packingInfo">
+                      {" (pakattu "}
+                      <span className={packedColorClass}>
+                        {packedCount}/{requiredCount}
+                      </span>
+                      , jäljellä <span className={leftColorClass}>{leftToPack}</span>)
+                    </small>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p>Keikalle ei ole määritelty tavaroita.</p>
+          )}
         </div>
-      ) : (
-        <div className="trip-details-container">
-          <div className="trip-details">
-            <div>
-              <h3>{selectedTrip.name}</h3>
-              <button onClick={() => setSelectedTrip(null)} className="back-button">← Takaisin</button>
-              <button onClick={savePackingProgress} className="save-button">Tallenna pakkaustilanne</button>
-              <p>{saveStatus}</p>
-              {tripItems.length > 0 ? (
-                <div>
-                  {tripItems.map((item) => (
-                    <div key={item.id} className="trip-item">
-                      <p>{item.quantity}x {item.name} {calculateStatus(item)}</p>
-                      <button onClick={() => handlePackItem(item)} className="pack-button">Merkitse kaikki pakatuiksi</button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p>Ei tuotteita lisätty</p>
-              )}
-            </div>
+
+        {/* OIKEA PANEELI */}
+        <div className="rightPanel">
+          <h3>Skannaa sarjanumero</h3>
+          <form onSubmit={handleBarcodeSubmit} style={{ marginBottom: "10px" }}>
+            <input
+              type="text"
+              value={barcodeInput}
+              onChange={(e) => setBarcodeInput(e.target.value)}
+              placeholder="Syötä tai skannaa..."
+            />
+            <button type="submit">Lisää</button>
+          </form>
+
+          {/* Manuaalinen lisäys */}
+          <h3>Lisää tuote ilman sarjanumeroa</h3>
+          <div className="manual-add-container">
+            <select
+              value={manualProductName}
+              onChange={(e) => setManualProductName(e.target.value)}
+            >
+              <option value="">Valitse tuote</option>
+              {selectedTrip?.items &&
+                Object.entries(selectedTrip.items).map(([itemId, itemData]) => {
+                  const nameFromInventory =
+                    inventory[itemData.id]?.name || "Tuntematon";
+                  return (
+                    <option key={itemId} value={nameFromInventory}>
+                      {nameFromInventory}
+                    </option>
+                  );
+                })}
+            </select>
+
+            <input
+              type="number"
+              min="1"
+              value={manualQuantity}
+              onChange={(e) => setManualQuantity(Number(e.target.value))}
+            />
+            <button onClick={handleAddManualItem}>Lisää</button>
           </div>
 
-          <div className="packed-items">
-            <h3>Pakatut tuotteet</h3>
-            {Object.keys(packedItemsState.tvs).length > 0 && (
-              Object.entries(packedItemsState.tvs).map(([tvName, serials]) => {
-                const tvId = Object.keys(inventory).find(id => inventory[id].name === tvName);
-                return (
-                  <div key={tvName}>
-                    <h4>{serials.size}x {tvName}</h4>
-                    
-                    {[...serials].map((sn, index) => (
-                      <div key={index} className="serial-and-remove">
-                        <p className="serial-number">{sn}</p>
-                        <button onClick={() => removeSerialNumber(tvName, sn)} className="remove-button">Poista</button>
+          {/* Pakatut tavarat */}
+          <h3>Pakatut tavarat</h3>
+          {Object.keys(packedItems).length === 0 ? (
+            <p>Ei pakattuja tuotteita</p>
+          ) : (
+            <ul style={{ listStyle: "none", paddingLeft: 0 }}>
+              {Object.entries(packedItems)
+                .filter(([_, packed]) => packed.quantity > 0) // poistetaan 0-määräiset
+                .map(([productId, packed]) => (
+                  <li key={productId} className="packed-item">
+                    {/* Tuotteen otsikko */}
+                    <strong>
+                      {packed.quantity} x {packed.name}
+                    </strong>
+
+                    {/* Non-serial tuotteille "+"/"-" napit samalla rivillä */}
+                    {!packed.isSerial && (
+                      <div className="packed-item-buttons">
+                        <button onClick={() => adjustQuantity(productId, -1)}>-</button>
+                        <button onClick={() => adjustQuantity(productId, +1)}>+</button>
                       </div>
-                    ))}
-                  </div>
-                );
-              })
-            )}
-            {packedItemsState.manualItems.length > 0 && (
-              <div>
-                {packedItemsState.manualItems.map((item) => (
-                  <div key={item.id} className="packed-item">
-                    <p>{item.quantity}x {item.name}</p>
-                    <button onClick={() => updatePackedQuantity(item.id, -1)} className="quantity-button">-</button>
-                    <span>{item.quantity}</span>
-                    <button onClick={() => updatePackedQuantity(item.id, 1)} className="quantity-button">+</button>
-                    <button onClick={() => removePackedItem(item.name)} className="remove-button">Poista</button>
-                  </div>
+                    )}
+
+                    {/* Sarjanumerolliset tuotteet listana, mutta napit samalla rivillä */}
+                    {packed.isSerial && (
+                      <ul className="serial-list">
+                        {Object.entries(packed.serials).map(([serial]) => (
+                          <li key={serial} className="serial-item">
+                            {serial}
+                            <button onClick={() => removeSerial(productId, serial)}>Poista</button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
                 ))}
-              </div>
-            )}
-            {Object.keys(packedItemsState.tvs).length === 0 && packedItemsState.manualItems.length === 0 && <p>Ei vielä pakattuja tuotteita</p>}
-            <div>
-              <h4>Lisää tuote pakattuihin</h4>
-              <select onChange={(e) => setSelectedItem(e.target.value)} defaultValue="" className="item-select">
-                <option value="" disabled>Valitse tuote</option>
-                {tripItems.map((item) => (
-                  <option key={item.id} value={item.id}>{item.name}</option>
-                ))}
-              </select>
-              <button onClick={handleAddPackedItem} className="add-item-button">Lisää pakattuihin</button>
-            </div>
-            <div>
-              <input
-                type="text"
-                value={serialNumber}
-                onChange={(e) => setSerialNumber(e.target.value)}
-                placeholder="Syötä sarjanumero"
-                className="serial-input"
-              />
-              <button onClick={handleAddSerialNumber} className="add-tv-button">Lisää TV</button>
-            </div>
-          </div>
+            </ul>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
-};
+}
 
 export default PackingView;
