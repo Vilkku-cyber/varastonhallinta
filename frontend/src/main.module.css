@@ -15,9 +15,9 @@ html, body {
 }
 
 .List {
-  max-height: calc(100vh - 270px); /* Sopiva korkeus suuremmille näytöille */
+  max-height: calc(100vh - 370px); /* Sopiva korkeus suuremmille näytöille */
   overflow-y: auto; /* Mahdollistaa pystysuoran vierityksen */
-  margin-bottom: 70px; /* Lisää 20px marginaalia listan alareunaan */
+  margin-bottom: 170px; /* Lisää 20px marginaalia listan alareunaan */
   scrollbar-width: none; /* Firefoxille, piilottaa vierityspalkin */
   -ms-overflow-style: none; /* Internet Explorer ja Edge */
   
