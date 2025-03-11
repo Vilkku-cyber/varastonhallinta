@@ -26,8 +26,9 @@ html, body {
 /* Mobiililaitteiden mediakysely */
 @media (max-width: 600px) {
   .List {
-    max-height: calc(100vh - 300px); /* Pienempi korkeus mobiililaitteille */
-    margin-bottom: 80px; /* Pienempi marginaali mobiililaitteille */
+    max-height: calc(100vh - 500px); /* Pienempi korkeus mobiililaitteille */
+    margin-bottom: 20px; /* Pienempi marginaali mobiililaitteille */
+    
   }
 }
 
@@ -58,7 +59,12 @@ html, body {
   
 }
 
-
+@media (max-width: 600px) {
+  .keikka {
+    max-width: 100%; /* Täyttää koko leveyden pienillä näytöillä */
+    margin-bottom: 100px;
+  }
+}
 
 .keikkaHeader {
   cursor: pointer;
