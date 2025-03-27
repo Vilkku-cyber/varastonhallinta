@@ -16,6 +16,7 @@ function CreateTrip({ onRequestClose }) {
   const [categorizedInventory, setCategorizedInventory] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
   const [contact, setContact] = useState(""); // Lisätty yhteyshenkilön kenttä
+  const [globalReservedCounts, setGlobalReservedCounts] = useState({});
 
   // Haetaan varaston tuotteet ja kategorisoidaan ne
   useEffect(() => {
@@ -32,6 +33,23 @@ function CreateTrip({ onRequestClose }) {
       }, {});
 
       setCategorizedInventory(categorized);
+    });
+  }, []);
+
+  useEffect(() => {
+    const tripsRef = ref(database, "keikat");
+    onValue(tripsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const counts = {};
+      Object.values(data).forEach(trip => {
+        if (trip.items) {
+          Object.values(trip.items).forEach(item => {
+            if (!counts[item.id]) counts[item.id] = 0;
+            counts[item.id] += Number(item.quantity);
+          });
+        }
+      });
+      setGlobalReservedCounts(counts);
     });
   }, []);
 
@@ -205,6 +223,7 @@ function CreateTrip({ onRequestClose }) {
             value={item.id}
             onChange={(id) => updateItem(index, "id", id)}
             reservedCounts={getReservedCounts()}
+            globalReservedCounts={globalReservedCounts}
           />
           <input
             type="number"

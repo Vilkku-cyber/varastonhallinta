@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-function ProductSearchDropdown({ categorizedInventory, value, onChange, reservedCounts = {} }) {
+function ProductSearchDropdown({ categorizedInventory, value, onChange, reservedCounts = {}, globalReservedCounts = {} }) {
   const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -15,6 +15,14 @@ function ProductSearchDropdown({ categorizedInventory, value, onChange, reserved
     setSearch("");
     setShowDropdown(false);
   };
+
+  const getAvailable = (item) => {
+    const total = item.available || 0;
+    const globallyReserved = globalReservedCounts[item.id] || 0;
+    const locallyReserved = reservedCounts[item.id] || 0;
+    return total - globallyReserved - locallyReserved;
+  };
+  
 
   return (
     <div style={{ position: "relative", marginBottom: "10px" }}>
@@ -51,7 +59,7 @@ function ProductSearchDropdown({ categorizedInventory, value, onChange, reserved
               style={{ padding: "5px", cursor: "pointer", borderBottom: "1px solid #eee" }}
               onClick={() => handleSelect(item.id)}
             >
-              {item.name} ({(item.available || 0) - (reservedCounts[item.id] || 0)} kpl)
+              {item.name} ({getAvailable(item)} kpl)
             </div>
           ))}
         </div>
@@ -69,7 +77,7 @@ function ProductSearchDropdown({ categorizedInventory, value, onChange, reserved
             <optgroup key={category} label={category}>
               {items.map(item => (
                 <option key={item.id} value={item.id}>
-                  {item.name} ({(item.available || 0) - (reservedCounts[item.id] || 0)} kpl)
+                  {item.name} ({getAvailable(item)} kpl)
                 </option>
               ))}
             </optgroup>
