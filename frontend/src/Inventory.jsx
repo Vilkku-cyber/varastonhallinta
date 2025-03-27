@@ -5,6 +5,7 @@ import Modal from "react-modal";
 import ProductModal from "./ProductModal"; // Import the ProductModal component
 import AddProductModal from "./AddProductModal"; // Import the AddProductModal component
 import styles from "./inventory.module.css"; // Import the CSS module
+import Fuse from "fuse.js"; // Add Fuse.js import
 
 // Debounce utility function
 const debounce = (func, delay) => {
@@ -16,6 +17,12 @@ const debounce = (func, delay) => {
     }, delay);
   };
 };
+
+function highlightMatch(text, search) {
+  if (!search) return text;
+  const regex = new RegExp(`(${search})`, 'gi');
+  return text.replace(regex, '<mark>$1</mark>');
+}
 
 function Inventory() {
   const [inventory, setInventory] = useState([]);
@@ -63,9 +70,56 @@ function Inventory() {
     });
   }, []);
 
-  const filteredInventory = inventory.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const fuse = new Fuse(inventory, {
+    keys: [
+      "name",
+      "category",
+      "details",
+      "dimensions",
+      "weight",
+      {
+        name: "unitsKey",
+        getFn: (item) => Object.keys(item.units || {}) // serial numbers
+      }
+    ],
+    threshold: 0.4,
+    ignoreLocation: true,
+    minMatchCharLength: 2,
+  });
+
+  let filteredInventory = [];
+
+  if (searchTerm.trim()) {
+    const results = fuse.search(searchTerm);
+    filteredInventory = results.map(res => ({
+      ...res.item,
+      matchInfo: res.matches?.map(m => m.key) || [] // store match references
+    }));
+
+    // Tolerance search for numeric values (e.g., "2" finds "5")
+    const searchNumber = parseFloat(searchTerm);
+    if (!isNaN(searchNumber)) {
+      const tolerance = 3;
+      const extraMatches = inventory.filter(item => {
+        const dim = parseFloat(item.dimensions);
+        const wei = parseFloat(item.weight);
+        return (!isNaN(dim) && Math.abs(dim - searchNumber) <= tolerance) ||
+               (!isNaN(wei) && Math.abs(wei - searchNumber) <= tolerance);
+      });
+
+      const existingIds = new Set(filteredInventory.map(i => i.id));
+      extraMatches.forEach(item => {
+        if (!existingIds.has(item.id)) {
+          filteredInventory.push({
+            ...item,
+            matchInfo: ["toleranssi (mitat/paino)"]
+          });
+        }
+      });
+    }
+  } else {
+    filteredInventory = inventory.map(item => ({ ...item, matchInfo: [] }));
+  }
 
   const categorizedInventory = filteredInventory.reduce((acc, item) => {
     const category = item.category || "Muu";
@@ -135,8 +189,17 @@ function Inventory() {
                             onClick={() => openModal(item)}
                             style={{ textDecoration: "none" }}
                           >
-                            {item.name}
+                            <span
+                              dangerouslySetInnerHTML={{
+                                __html: highlightMatch(item.name, searchTerm)
+                              }}
+                            />
                           </a>
+                          {item.matchInfo && item.matchInfo.length > 0 && (
+                            <div style={{ fontSize: "0.8em", color: "#555" }}>
+                              <em>Osumia: {item.matchInfo.join(", ")}</em>
+                            </div>
+                          )}
                         </td>
                         <td>{item.available - reserved}</td>
                         <td style={{ color: "red" }}>{reserved}</td>
