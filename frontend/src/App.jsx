@@ -3,13 +3,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { auth } from "./firebaseConfig";
 import Home from "./Home";
 import Inventory from "./Inventory";
-import AddProduct from "./AddProduct";
+
 import QRCodeReader from "./QRCodeReader"; // Add this line
 /*import ProductDetails from "./ProductDetails";*/
 import EditTrip from "./EditTrip";
 import PastTrips from "./PastTrips";
 import CreateTrip from "./CreateTrip";
-import TestDatePicker from "./TestDatePicker";
+
 import PackingView from "./Pakkaus";
 import Login from "./Login";
 
@@ -28,9 +28,9 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
-        <Route path="/test" element={<TestDatePicker />} />
+        
         <Route path="/inventory" element={<Inventory />} />
-        <Route path="/add-product" element={<AddProduct />} />
+    
         <Route path="/qr-reader" element={<QRCodeReader />} />
         {/*<Route path="/product/:id" element={<ProductDetails />} />*/}
         <Route path="/edit-trip/:id" element={<EditTrip />} />

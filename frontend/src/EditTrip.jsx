@@ -4,6 +4,7 @@ import { database, ref, get, update, remove, onValue } from "./firebaseConfig";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import styles from "./CreateTripModal.module.css"; // Reuse the styles from CreateTripModal
+import ProductSearchDropdown from "./ProductSearchDropdown";
 
 function EditTrip({ onRequestClose, tripId }) {
   const navigate = useNavigate();
@@ -144,6 +145,15 @@ function EditTrip({ onRequestClose, tripId }) {
     setShowProductList(false);
   };
 
+  const getReservedCounts = () => {
+    const counts = {};
+    selectedItems.forEach(item => {
+      if (!counts[item.id]) counts[item.id] = 0;
+      counts[item.id] += Number(item.quantity);
+    });
+    return counts;
+  };
+
   return (
     <div className={styles.modalContent}>
       <h1>Muokkaa keikkaa</h1>
@@ -237,17 +247,22 @@ function EditTrip({ onRequestClose, tripId }) {
       </button>
 
       {showProductList && (
-        <div style={{ border: "1px solid gray", padding: "10px", marginTop: "10px" }}>
+        <div style={{ marginTop: "10px", border: "1px solid gray", padding: "10px" }}>
           <h3>Valitse tuote lisättäväksi</h3>
-          {Object.entries(inventory).map(([prodId, item]) => (
-            <button
-              key={prodId}
-              onClick={() => addItemToTrip(prodId)}
-              style={{ display: "block", marginBottom: "5px" }}
-            >
-              {item.name}
-            </button>
-          ))}
+          <ProductSearchDropdown
+            categorizedInventory={Object.entries(inventory).reduce((acc, [id, item]) => {
+              const category = item.category || "Muu";
+              if (!acc[category]) acc[category] = [];
+              acc[category].push({ id, ...item });
+              return acc;
+            }, {})}
+            value=""
+            onChange={(productId) => {
+              addItemToTrip(productId);
+              setShowProductList(false);
+            }}
+            reservedCounts={getReservedCounts()}
+          />
           <button onClick={() => setShowProductList(false)} style={{ marginTop: "10px" }}>
             Sulje
           </button>

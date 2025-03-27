@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { database, ref, push, onValue } from "./firebaseConfig";
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
+import ProductSearchDropdown from "./ProductSearchDropdown";
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -81,6 +82,15 @@ function CreateTrip({ onRequestClose }) {
       }
       setSelectedItems(updatedItems);
     }
+  };
+
+  const getReservedCounts = () => {
+    const counts = {};
+    selectedItems.forEach(item => {
+      if (!counts[item.id]) counts[item.id] = 0;
+      counts[item.id] += Number(item.quantity);
+    });
+    return counts;
   };
 
   const saveTrip = () => {
@@ -190,21 +200,12 @@ function CreateTrip({ onRequestClose }) {
 
       {selectedItems.map((item, index) => (
         <div key={index}>
-          <select
+          <ProductSearchDropdown
+            categorizedInventory={categorizedInventory}
             value={item.id}
-            onChange={(e) => updateItem(index, "id", e.target.value)}
-          >
-            <option value="">Valitse tuote</option>
-            {Object.entries(categorizedInventory).map(([category, items]) => (
-              <optgroup key={category} label={category}>
-                {items.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name} ({product.available} kpl varastossa)
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+            onChange={(id) => updateItem(index, "id", id)}
+            reservedCounts={getReservedCounts()}
+          />
           <input
             type="number"
             value={item.quantity}
