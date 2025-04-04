@@ -21,6 +21,8 @@ function PackingView() {
   // Varasto
   const [inventory, setInventory] = useState({});
 
+  const [shelfData, setShelfData] = useState({});
+
   useEffect(() => {
     const tripsRef = ref(database, "keikat");
     onValue(tripsRef, (snapshot) => {
@@ -40,6 +42,30 @@ function PackingView() {
     onValue(inventoryRef, (snapshot) => {
       const data = snapshot.val();
       setInventory(data || {});
+    });
+
+    const shelfRef = ref(database, "shelves");
+    onValue(shelfRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const productToShelfMap = {};
+        for (const [shelfKey, shelfVal] of Object.entries(data)) {
+          for (const [aisleKey, aisleVal] of Object.entries(shelfVal.aisles || {})) {
+            for (const [levelKey, levelVal] of Object.entries(aisleVal.levels || {})) {
+              if (levelVal.products) {
+                for (const productId of Object.keys(levelVal.products)) {
+                  productToShelfMap[productId] = {
+                    shelf: shelfKey,
+                    aisle: aisleKey,
+                    level: levelKey,
+                  };
+                }
+              }
+            }
+          }
+        }
+        setShelfData(productToShelfMap);
+      }
     });
   }, []);
 
@@ -247,6 +273,16 @@ function PackingView() {
                 return (
                   <li key={itemKey} className="itemRow">
                     {requiredCount} x {productName}
+                    {inventory[productId]?.shelfLocation && (
+                      <a
+                        href={`/shelf/${inventory[productId].shelfLocation.charAt(0)}?highlight=${inventory[productId].shelfLocation.slice(1)}`}
+                        className="shelf-link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        📍 {inventory[productId].shelfLocation}
+                      </a>
+                    )}
                     <small className="packingInfo">
                       {" (pakattu "}
                       <span className={packedColorClass}>

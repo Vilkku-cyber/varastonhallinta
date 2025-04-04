@@ -1,0 +1,73 @@
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  background: #e3f2fd;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.collapsible-content.open {
+  max-height: 1000px; /* Large value to accommodate content */
+  padding-top: 0.5rem;
+}
+
+.scroll-box {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 1rem;
+}
+
+.primary-button.wide {
+    width: 10vw;
+    font-size: 0.85rem;
+    padding: 6px 8px;
+    margin: 4px 4px 4px 0;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .primary-button.wide:hover {
+    background-color: #1565c0;
+  }
+  
+  .white-background {
+    background-color: white;
+    border-radius: 12px;
+    padding: 1.2rem;
+    margin-top: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .primary-button.small {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    width: auto;
+    min-width: 100px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    margin: 4px 4px 4px 0;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .primary-button.small:hover {
+    background-color: #1565c0;
+  }
+
+.shelf-box {
+  margin-bottom: 1.5rem; /* Lisää marginaalia */
+  border-radius: 8px; /* Selkeämpi erottelu */
+}

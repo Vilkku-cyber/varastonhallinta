@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, push, onValue, get, update, remove } from "firebase/database";
+import { getDatabase, ref, push, onValue, update, remove, set } from "firebase/database";
+import { get, child } from "firebase/database";
 import { getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 console.log("Firebase API Key:", import.meta.env.VITE_FIREBASE_API_KEY);
@@ -24,4 +25,4 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 
 // 🔹 Exportataan tarvittavat funktiot ja muuttujat
-export { auth, database, ref, push, onValue, get, update, remove, signInWithEmailAndPassword, signOut };
+export { auth, database, ref, push, onValue, get, update, remove, set, signInWithEmailAndPassword, signOut };

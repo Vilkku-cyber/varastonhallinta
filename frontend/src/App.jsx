@@ -12,6 +12,10 @@ import CreateTrip from "./CreateTrip";
 
 import PackingView from "./Pakkaus";
 import Login from "./Login";
+import ShelfAdmin from "./ShelfAdmin"; // tuo komponentti
+import ShelfMap from "./ShelfMap"; // Add this line
+import ShelfSearch from "./ShelfSearch";
+import VisualShelfView from "./VisualShelfView";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -37,6 +41,10 @@ function App() {
         <Route path="/past-trips" element={<PastTrips />} />
         <Route path="/create-trip" element={<CreateTrip />} />
         <Route path="/pakkaus" element={<PackingView />} /> {/* Tämä korjattu */}
+        <Route path="/shelf-admin" element={<ShelfAdmin />} />
+        <Route path="/shelf-map" element={<ShelfMap />} /> {/* Add this line */}
+        <Route path="/haku" element={<ShelfSearch />} />
+        <Route path="/shelf/:shelfId" element={<VisualShelfView />} /> {/* Add this line */}
       </Routes>
     </Router>
   );
