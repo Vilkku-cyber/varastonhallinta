@@ -81,7 +81,7 @@ function Home() {
         <button className={styles.button} onClick={() => navigate("/pakkaus")}>Pakkaus</button>
         <button className={styles.button} onClick={() => navigate("/shelf-admin")}>Go to Shelf Admin</button>
         <button className={styles.button} onClick={() => navigate("/haku")}>hyllyhaku</button>
-        <button onClick={() => navigate('/qr-reader')}>Scan QR Code</button>
+        <button className={styles.button} onClick={() => navigate('/qr-reader')}>Scan QR Code</button>
         
 
       </div>
