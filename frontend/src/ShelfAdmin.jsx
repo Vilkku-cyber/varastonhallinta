@@ -22,6 +22,13 @@ function ShelfAdmin() {
     });
   }, []);
 
+  const categorizedInventory = {};
+  for (const [id, item] of Object.entries(inventoryItems)) {
+    const category = item.category || "Muut";
+    if (!categorizedInventory[category]) categorizedInventory[category] = [];
+    categorizedInventory[category].push([id, item]);
+  }
+
   const toggleShelf = (key) => {
     setOpenShelves((prev) => ({
       ...prev,
@@ -155,6 +162,19 @@ function ShelfAdmin() {
     });
   };
 
+  const findProductBySerial = (serial) => {
+    for (const [productId, product] of Object.entries(inventoryItems)) {
+      if (product.units) {
+        for (const [unitSerial, unitData] of Object.entries(product.units)) {
+          if (unitSerial === serial) {
+            return { productId, product };
+          }
+        }
+      }
+    }
+    return null;
+  };
+
   return (
     <div className="shelf-admin">
       <h1>Hyllyadmin</h1>
@@ -229,24 +249,63 @@ function ShelfAdmin() {
                                         + Lisää tuote (teksti)
                                       </button>
 
-                                      <select
-                                        className="primary-button small"
-                                        defaultValue=""
-                                        onChange={(e) => {
-                                          const selected = e.target.value;
-                                          if (selected) {
-                                            addProductFromInventory(shelfKey, aisleKey, levelKey, selected);
-                                            e.target.value = ""; // Reset selection
-                                          }
-                                        }}
-                                      >
-                                        <option value="" disabled>+ Lisää tuote varastosta</option>
-                                        {Object.entries(inventoryItems).map(([id, item]) => (
-                                          <option key={id} value={id}>
-                                            {item.name || id}
-                                          </option>
-                                        ))}
-                                      </select>
+                                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+                                        <input
+                                          type="text"
+                                          placeholder="Syötä sarjanumero"
+                                          className="primary-button small"
+                                          style={{ width: "160px" }}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                              const input = e.target.value.trim();
+                                              let foundId = null;
+
+                                              for (const [id, item] of Object.entries(inventoryItems)) {
+                                                if (id === input) {
+                                                  foundId = id;
+                                                  break;
+                                                }
+
+                                                // ✅ ETSITÄÄN SARJANUMERO UNITS-OBJEKTISTA
+                                                if (item.units && Object.keys(item.units).includes(input)) {
+                                                  foundId = id;
+                                                  break;
+                                                }
+                                              }
+
+                                              if (foundId) {
+                                                addProductFromInventory(shelfKey, aisleKey, levelKey, foundId);
+                                                e.target.value = "";
+                                              } else {
+                                                alert("Sarjanumerolla ei löytynyt tuotetta.");
+                                              }
+                                            }
+                                          }}
+                                        />
+
+                                        <select
+                                          className="primary-button small"
+                                          defaultValue=""
+                                          onChange={(e) => {
+                                            const selected = e.target.value;
+                                            if (selected) {
+                                              addProductFromInventory(shelfKey, aisleKey, levelKey, selected);
+                                              e.target.value = "";
+                                            }
+                                          }}
+                                        >
+                                          <option value="" disabled>+ Lisää tuote varastosta</option>
+                                          {Object.entries(categorizedInventory).map(([category, items]) => (
+                                            <optgroup key={category} label={category}>
+                                              {items.map(([id, item]) => (
+                                                <option key={id} value={id}>
+                                                  {item.name || id}
+                                                </option>
+                                              ))}
+                                            </optgroup>
+                                          ))}
+                                        </select>
+                                      </div>
                                     </div>
                                     <button className="primary-button small danger" onClick={() => deleteLevel(shelfKey, aisleKey, levelKey)}>Poista taso</button>
                                   </div>
