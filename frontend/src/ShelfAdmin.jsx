@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { database, ref, onValue, set, remove, update } from "./firebaseConfig";
 import { get, child } from "firebase/database";
 import "./ShelfAdmin.css";
+import ProductSearchBox from "./ProductSearchBox";
 
 function ShelfAdmin() {
   const [shelves, setShelves] = useState({});
   const [openShelves, setOpenShelves] = useState({});
   const [openAisles, setOpenAisles] = useState({});
-  const [openLevels, setOpenLevels] = useState({});
+  const [openLevels, setOpenLevels] = useState({}); 
   const [inventoryItems, setInventoryItems] = useState({}); // Add state for inventory items
 
   useEffect(() => {
@@ -283,28 +284,15 @@ function ShelfAdmin() {
                                           }}
                                         />
 
-                                        <select
-                                          className="primary-button small"
-                                          defaultValue=""
-                                          onChange={(e) => {
-                                            const selected = e.target.value;
-                                            if (selected) {
-                                              addProductFromInventory(shelfKey, aisleKey, levelKey, selected);
-                                              e.target.value = "";
-                                            }
+                                        <ProductSearchBox
+                                          products={Object.entries(inventoryItems).map(([id, item]) => ({
+                                            id,
+                                            ...item,
+                                          }))}
+                                          onSelect={(selectedId) => {
+                                            addProductFromInventory(shelfKey, aisleKey, levelKey, selectedId);
                                           }}
-                                        >
-                                          <option value="" disabled>+ Lisää tuote varastosta</option>
-                                          {Object.entries(categorizedInventory).map(([category, items]) => (
-                                            <optgroup key={category} label={category}>
-                                              {items.map(([id, item]) => (
-                                                <option key={id} value={id}>
-                                                  {item.name || id}
-                                                </option>
-                                              ))}
-                                            </optgroup>
-                                          ))}
-                                        </select>
+                                        />
                                       </div>
                                     </div>
                                     <button className="primary-button small danger" onClick={() => deleteLevel(shelfKey, aisleKey, levelKey)}>Poista taso</button>

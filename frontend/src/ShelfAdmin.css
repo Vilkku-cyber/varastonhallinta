@@ -71,3 +71,51 @@
   margin-bottom: 1.5rem; /* Lisää marginaalia */
   border-radius: 8px; /* Selkeämpi erottelu */
 }
+
+.product-search-dropdown {
+  position: relative;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.product-search-dropdown input {
+  padding: 6px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.product-search-dropdown ul {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-bottom: none;
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 0 0 6px 0; /* ylhäällä listalle tilaa */
+  padding: 6px 0;
+  list-style: none;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+}
+
+
+.product-search-dropdown li button {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  text-align: left;
+  background-color: white;
+  border: none;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.product-search-dropdown li button:hover {
+  background-color: #f1f1f1;
+}
