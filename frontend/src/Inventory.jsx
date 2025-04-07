@@ -38,10 +38,12 @@ function Inventory() {
     onValue(inventoryRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const inventoryList = Object.entries(data).map(([id, value]) => ({
-          id,
-          ...value,
-        }));
+        const inventoryList = Object.entries(data)
+          .filter(([_, item]) => item.name) // Suodatetaan pois tuotteet ilman nimeä
+          .map(([id, item]) => ({
+            id,
+            ...item,
+          }));
         setInventory(inventoryList);
       } else {
         setInventory([]);
