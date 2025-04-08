@@ -28,6 +28,24 @@
     width: 90%; /* Skaalautuu mobiilissa */
    
   }
+
+  @media (max-width: 640px) {
+    .modalContent {
+      position: relative;
+      top: unset;
+      left: unset;
+      right: unset;
+      bottom: unset;
+      transform: none;
+  
+      margin: 20px auto;
+      width: 90%;
+      max-width: 400px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+  }
+  
   
   .closeButton {
     background: none;

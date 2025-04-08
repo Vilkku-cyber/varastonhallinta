@@ -15,7 +15,7 @@ html, body {
 }
 
 .List {
-  max-height: calc(100vh - 370px); /* Sopiva korkeus suuremmille näytöille */
+  max-height: calc(100vh - 250px); /* Sopiva korkeus suuremmille näytöille */
   overflow-y: auto; /* Mahdollistaa pystysuoran vierityksen */
   margin-bottom: 170px; /* Lisää 20px marginaalia listan alareunaan */
   scrollbar-width: none; /* Firefoxille, piilottaa vierityspalkin */
@@ -26,7 +26,7 @@ html, body {
 /* Mobiililaitteiden mediakysely */
 @media (max-width: 600px) {
   .List {
-    max-height: calc(100vh - 500px); /* Pienempi korkeus mobiililaitteille */
+    max-height: calc(100vh - 350px); /* Pienempi korkeus mobiililaitteille */
     margin-bottom: 20px; /* Pienempi marginaali mobiililaitteille */
     
   }
@@ -62,7 +62,7 @@ html, body {
 @media (max-width: 600px) {
   .keikka {
     max-width: 100%; /* Täyttää koko leveyden pienillä näytöillä */
-    margin-bottom: 100px;
+    margin-bottom: 40px;
   }
 }
 
@@ -153,3 +153,12 @@ html, body {
   padding: 10px 0;
 }
 
+@media (max-width: 600px) {
+  .navigation {
+   
+    margin-left: 0;
+    gap: 5px; /* Pienentää väliä painikkeiden välillä mobiililaitteilla */
+  }
+  
+  
+}

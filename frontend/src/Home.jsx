@@ -71,7 +71,7 @@ function Home() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.header}>Varastonhallinnan etusivu</h1>
+    
 
       <div className={styles.navigation}>
         

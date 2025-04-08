@@ -8,30 +8,30 @@
     border-radius: 20px;
     box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
     color: white;
-  }
-  
-  .shelf-search h2 {
+}
+
+.shelf-search h2 {
     font-size: 2rem;
     margin-bottom: 1rem;
     text-align: center;
-  }
-  
-  .search-bar {
+}
+
+.search-bar {
     display: flex;
     gap: 1rem;
     margin-bottom: 1.5rem;
     justify-content: center;
-  }
-  
-  .search-bar input {
+}
+
+.search-bar input {
     padding: 0.6rem 1rem;
     border-radius: 10px;
     border: none;
     width: 60%;
     font-size: 1rem;
-  }
-  
-  .search-bar button {
+}
+
+.search-bar button {
     padding: 0.6rem 1.2rem;
     background: cyan;
     color: black;
@@ -41,28 +41,28 @@
     cursor: pointer;
     font-size: 1rem;
     transition: 0.3s ease;
-  }
-  
-  .search-bar button:hover {
+}
+
+.search-bar button:hover {
     background: #00c8c8;
-  }
-  
-  .results {
+}
+
+.results {
     background: rgba(255, 255, 255, 0.05);
     padding: 1rem;
     border-radius: 10px;
-  }
-  
-  .results h3 {
+}
+
+.results h3 {
     margin-bottom: 1rem;
-  }
-  
-  .results ul {
+}
+
+.results ul {
     list-style: none;
     padding-left: 0;
-  }
-  
-  .results li {
+}
+
+.results li {
     margin-bottom: 0.8rem;
     padding: 0.6rem;
     background: rgba(255, 255, 255, 0.1);
@@ -70,9 +70,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-  
-  .results li button {
+}
+
+.results li button {
     margin-left: 1rem;
     background: #0ff;
     color: black;
@@ -82,9 +82,24 @@
     cursor: pointer;
     font-size: 0.9rem;
     transition: 0.2s;
-  }
-  
-  .results li button:hover {
+}
+
+.results li button:hover {
     background: #00c8c8;
-  }
-  
+}
+
+
+
+.corner-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+}
+
+.corner-button button {
+  font-size: 12px;
+  padding: 6px 20px;
+  color: white;
+}
+

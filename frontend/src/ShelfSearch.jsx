@@ -49,34 +49,40 @@ function ShelfSearch() {
   };
 
   return (
-    <div className="shelf-search">
-      <h2>Hae tuotetta varastosta</h2>
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Hae tuotteen nimellä..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button onClick={handleSearch}>Hae</button>
-      </div>
-
-      {results.length > 0 && (
-        <div className="results">
-          <h3>Hakutulokset:</h3>
-          <ul>
-            {results.map((res, index) => (
-              <li key={index}>
-                {res.name} → Hylly {res.shelf}, Väli {res.aisle}, Taso {res.level}
-                <button onClick={() => navigate(`/shelf/${res.shelf}?highlight=${res.aisle}${res.level}`)}>
-                  Näytä visuaalisesti
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+    <><div className="corner-button">
+      <button onClick={() => navigate("/")}>🏠 Koti</button>
+     
     </div>
+      <div className="shelf-search">
+        <h2>Hae tuotetta varastosta</h2>
+     
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Hae tuotteen nimellä..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button onClick={handleSearch}>Hae</button>
+        </div>
+
+        {results.length > 0 && (
+          <div className="results">
+            <h3>Hakutulokset:</h3>
+            <ul>
+              {results.map((res, index) => (
+                <li key={index}>
+                  {res.name} → Hylly {res.shelf}, Väli {res.aisle}, Taso {res.level}
+                  <button onClick={() => navigate(`/shelf/${res.shelf}?highlight=${res.aisle}${res.level}`)}>
+                    Näytä visuaalisesti
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

@@ -17,6 +17,13 @@ html, body {
   flex-direction: column;
 }
 
+@media (max-width: 640px) {
+  .container {
+    padding: 1px;
+    
+  }
+}
+
 .header {
   color: white;
   margin-left: 125px; 
@@ -37,10 +44,12 @@ html, body {
 
 .searchBar {
   padding: 8px;
-  margin-left: 12%; /* Siirtää hakupalkin oikealle */
-  width: 400px; /* Asettaa hakupalkin leveyden */
-  border: 1px solid #ccc; /* Kevyt kehys */
-  border-radius: 4px; /* Pyöristetyt kulmat */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 400px;
+  margin-left: 12%;
+  box-sizing: border-box;
 }
 
 .buttonBlue {
@@ -69,9 +78,17 @@ html, body {
   border-radius: 10px;
   max-width: 700px; 
   justify-content: center;
-  margin-bottom: 50px; /* Lisää 20px marginaalia listan alareunaan */
+  margin-bottom: 30px; /* Lisää 20px marginaalia listan alareunaan */
   scrollbar-width: none; /* Firefoxille, piilottaa vierityspalkin */
   -ms-overflow-style: none; /* Internet Explorer ja Edge */
+}
+
+@media (max-width: 640px) {
+  .scrollableContainer {
+    max-width: 100%; /* Laatikot venyvät täysleveydelle pienemmillä näytöillä */
+    padding: 0px;
+    margin-bottom: 10px;
+  }
 }
 
 .card {
@@ -80,13 +97,18 @@ html, body {
   border-radius: 10px;
   padding: 20px;
   margin: 20px;
+  
 }
 
 .categoryContainer {
   margin-bottom: 20px;
 }
 
-
+.tableContainer {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 300px; /* suojaa liian kapealta */
+}
 
 .tableContainer th, .tableContainer td {
   padding: 12px;
@@ -106,14 +128,10 @@ html, body {
   }
 }
 
-
-
 .reserved {
   font-weight: bold;
   color: red; /* Punainen väri korostaa keikalla olevia tuotteita */
 }
-
-
 
 .modal {
   position: absolute;
@@ -131,6 +149,10 @@ html, body {
   overflow-y: auto; /* Enable vertical scrolling */
 }
 
+
+
+
+
 .overlay {
   position: fixed;
   top: 0;
@@ -138,4 +160,36 @@ html, body {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.75);
+}
+
+@media (max-width: 640px) {
+  .navigation {
+    flex-direction: column;
+    align-items: center;
+    margin-left: 0;
+  }
+
+  .buttonBlue {
+    font-size: 14px;
+    padding: 8px 10px;
+    min-width: 100px;
+    max-width: 180px;
+  }
+
+  .searchBar {
+    margin-left: 0;
+    width: 90%;
+    max-width: none;
+  }
+
+  .card {
+    margin: 10px;
+    padding: 10px;
+  }
+
+  .tableContainer th,
+  .tableContainer td {
+    font-size: 14px;
+    padding: 6px;
+  }
 }

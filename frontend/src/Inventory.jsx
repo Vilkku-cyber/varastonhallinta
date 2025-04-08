@@ -154,18 +154,18 @@ function Inventory() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.header}>Varasto</h1>
       <div className={styles.navigation}>
         <button className={styles.buttonBlue} onClick={() => navigate("/")}>🏠 Koti</button>
         <button className={styles.buttonBlue} onClick={openAddProductModal}>+ Lisää tuote</button>
-      </div>
-      <input
+        <input
         type="text"
         placeholder="Hae tuotteita..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className={styles.searchBar} // Add a class for styling the search bar
       />
+      </div>
+      
       <div className={styles.scrollableContainer}>
         {Object.keys(categorizedInventory)
           .sort((a, b) => (a === "Muu" ? 1 : b === "Muu" ? -1 : 0))

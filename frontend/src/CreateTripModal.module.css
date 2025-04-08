@@ -15,6 +15,24 @@
   overflow-y: auto; /* Enable vertical scrolling */
 }
 
+@media (max-width: 640px) {
+  .modal {
+    position: relative;
+    top: unset;
+    left: unset;
+    right: unset;
+    bottom: unset;
+    transform: none;
+
+    margin: 20px auto;
+    width: 90%;
+    max-width: 400px;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+}
+
+
 .overlay {
   position: fixed;
   top: 0;
