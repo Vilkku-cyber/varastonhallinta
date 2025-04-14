@@ -16,6 +16,7 @@ import ShelfAdmin from "./ShelfAdmin"; // tuo komponentti
 import ShelfMap from "./ShelfMap"; // Add this line
 import ShelfSearch from "./ShelfSearch";
 import VisualShelfView from "./VisualShelfView";
+import ToDo from "./ToDo";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -45,6 +46,7 @@ function App() {
         <Route path="/shelf-map" element={<ShelfMap />} /> {/* Add this line */}
         <Route path="/haku" element={<ShelfSearch />} />
         <Route path="/shelf/:shelfId" element={<VisualShelfView />} /> {/* Add this line */}
+        <Route path="/todo" element={<ToDo />} />
       </Routes>
     </Router>
   );
