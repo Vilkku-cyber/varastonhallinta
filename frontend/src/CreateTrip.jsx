@@ -17,6 +17,7 @@ function CreateTrip({ onRequestClose }) {
   const [selectedItems, setSelectedItems] = useState([]);
   const [contact, setContact] = useState(""); // Lisätty yhteyshenkilön kenttä
   const [globalReservedCounts, setGlobalReservedCounts] = useState({});
+  const [showProductList, setShowProductList] = useState(false);
 
   // Haetaan varaston tuotteet ja kategorisoidaan ne
   useEffect(() => {
@@ -53,55 +54,6 @@ function CreateTrip({ onRequestClose }) {
     });
   }, []);
 
-  // Uuden tyhjän kohteen lisääminen lomakkeelle
-  const addItem = () => {
-    setSelectedItems((prev) => [...prev, { id: "", quantity: 1 }]);
-  };
-
-  // Päivitetään valitun tuotteen ID tai määrä
-  const updateItem = (index, field, value) => {
-    const updatedItems = [...selectedItems];
-
-    // Jos tuotteen ID:tä päivitetään
-    if (field === "id") {
-      updatedItems[index] = { id: value, quantity: 1 };
-
-      const selectedProduct = Object.values(categorizedInventory).flat().find((prod) => prod.id === value);
-      if (selectedProduct && selectedProduct.category === "LED") {
-        // Tarkista, ovatko lisätuotteet jo listalla
-        const dataItemIndex = updatedItems.findIndex(item => item.id === "-OJXJ6E56XO1N5XUquNG");
-        const powerItemIndex = updatedItems.findIndex(item => item.id === "-OJXJSDQchN5n01ZW5RL");
-
-        // Jos ei ole listalla, lisää ne ja pyöristä määrät ylöspäin seuraavaan tasakymmeneen
-        const initialQuantity = 1 + 5;
-        const roundedQuantity = Math.ceil(initialQuantity / 10) * 10;
-        if (dataItemIndex === -1) {
-          updatedItems.push({ id: "-OJXJ6E56XO1N5XUquNG", quantity: roundedQuantity });
-        }
-        if (powerItemIndex === -1) {
-          updatedItems.push({ id: "-OJXJSDQchN5n01ZW5RL", quantity: roundedQuantity });
-        }
-      }
-      setSelectedItems(updatedItems);
-    } else { // Jos tuotteen määrää päivitetään
-      const selectedProduct = Object.values(categorizedInventory).flat().find((prod) => prod.id === updatedItems[index].id);
-      const maxQuantity = selectedProduct ? selectedProduct.available : 1;
-      updatedItems[index].quantity = Math.min(Number(value), maxQuantity);
-
-      // Jos tuote on LED-kategoria, päivitä lisätuotteiden määrät pyöristäen ylöspäin seuraavaan tasakymmeneen
-      if (selectedProduct && selectedProduct.category === "LED") {
-        const initialQuantity = Number(value) + 5;
-        const roundedQuantity = Math.ceil(initialQuantity / 10) * 10;
-        updatedItems.forEach(item => {
-          if (item.id === "-OJXJ6E56XO1N5XUquNG" || item.id === "-OJXJSDQchN5n01ZW5RL") {
-            item.quantity = roundedQuantity;
-          }
-        });
-      }
-      setSelectedItems(updatedItems);
-    }
-  };
-
   const getReservedCounts = () => {
     const counts = {};
     selectedItems.forEach(item => {
@@ -109,6 +61,49 @@ function CreateTrip({ onRequestClose }) {
       counts[item.id] += Number(item.quantity);
     });
     return counts;
+  };
+
+  const addItemToTrip = (itemId) => {
+    const flatInventory = Object.values(categorizedInventory).flat();
+    const selectedProduct = flatInventory.find(i => i.id === itemId);
+    const itemName = selectedProduct?.name || "Tuntematon tuote";
+
+    let updatedItems = [...selectedItems];
+
+    // Jos tuotetta ei ole jo valittu, lisätään se
+    if (!updatedItems.find(i => i.id === itemId)) {
+      updatedItems.push({ id: itemId, quantity: 1, name: itemName });
+    }
+
+    // Tarkistus LED-tuotteelle
+    if (selectedProduct?.category === "LED") {
+      const baseQty = 1 + 5;
+      const roundedQuantity = Math.ceil(baseQty / 10) * 10;
+
+      const dataId = "-OJXJ6E56XO1N5XUquNG"; // DATA-väli
+      const powerId = "-OJXJSDQchN5n01ZW5RL"; // VIRTA-väli
+
+      const addOrUpdateCable = (cableId, cableName) => {
+        const index = updatedItems.findIndex(item => item.id === cableId);
+        if (index === -1) {
+          updatedItems.push({ id: cableId, quantity: roundedQuantity, name: cableName });
+        } else {
+          updatedItems[index].quantity = roundedQuantity;
+        }
+      };
+
+      addOrUpdateCable(dataId, "DATA-väli");
+      addOrUpdateCable(powerId, "VIRTA-väli");
+    }
+
+    setSelectedItems(updatedItems);
+    setShowProductList(false);
+  };
+
+  const removeItem = (index) => {
+    const updatedItems = [...selectedItems];
+    updatedItems.splice(index, 1);
+    setSelectedItems(updatedItems);
   };
 
   const saveTrip = () => {
@@ -207,34 +202,57 @@ function CreateTrip({ onRequestClose }) {
         onChange={(e) => setStatus(e.target.value)}
       >
         <option value="pakkaamatta">pakkaamatta</option>
-        <option value="pakkattu">pakattu</option>
+        <option value="pakattu">pakattu</option>
         <option value="keikalla">keikalla</option>
         <option value="purkamatta">purkamatta</option>
       </select>
       <br />
       <br />
 
-      <h2 style={{ color: 'black' }}>Lisää tavarat</h2>
+      <h2 style={{ color: 'black' }}>Lisätyt tuotteet</h2>
 
+      {selectedItems.length === 0 && <p>Ei tuotteita lisätty</p>}
       {selectedItems.map((item, index) => (
-        <div key={index}>
-          <ProductSearchDropdown
-            categorizedInventory={categorizedInventory}
-            value={item.id}
-            onChange={(id) => updateItem(index, "id", id)}
-            reservedCounts={getReservedCounts()}
-            globalReservedCounts={globalReservedCounts}
-          />
+        <div key={index} style={{ marginBottom: "10px", display: "flex", alignItems: "center" }}>
+          <strong>{item.name}</strong>
           <input
             type="number"
             value={item.quantity}
             min="1"
-            max={Object.values(categorizedInventory).flat().find((prod) => prod.id === item.id)?.available || 1}
-            onChange={(e) => updateItem(index, "quantity", e.target.value)}
+            onChange={(e) => {
+              const updated = [...selectedItems];
+              updated[index].quantity = Math.max(1, Number(e.target.value));
+              setSelectedItems(updated);
+            }}
+            style={{ width: "50px", marginLeft: "10px" }}
           />
+          <button onClick={() => removeItem(index)} style={{ marginLeft: "10px", color: "red" }}>🗑️ Poista</button>
         </div>
       ))}
-      <button onClick={addItem}>+ Lisää tuote</button>
+
+      <button onClick={() => setShowProductList(true)} style={{ backgroundColor: "blue", color: "white" }}>
+        + Lisää tuotteita
+      </button>
+
+      {showProductList && (
+        <div style={{ marginTop: "10px", border: "1px solid gray", padding: "10px" }}>
+          <h3>Valitse tuote lisättäväksi</h3>
+          <ProductSearchDropdown
+            categorizedInventory={categorizedInventory}
+            value=""
+            onChange={(productId) => {
+              addItemToTrip(productId);
+              setShowProductList(false);
+            }}
+            reservedCounts={getReservedCounts()}
+            globalReservedCounts={globalReservedCounts}
+          />
+          <button onClick={() => setShowProductList(false)} style={{ marginTop: "10px" }}>
+            Sulje
+          </button>
+        </div>
+      )}
+
       <br />
       <br />
 

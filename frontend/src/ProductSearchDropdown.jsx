@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 
-function ProductSearchDropdown({ categorizedInventory, value, onChange }) {
+function ProductSearchDropdown({ categorizedInventory, value, onChange, reservedCounts = {}, globalReservedCounts = {} }) {
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Helper function to calculate available count
+  const getAvailable = (item) => {
+    const total = item.available || 0;
+    const globallyReserved = globalReservedCounts[item.id] || 0;
+    const locallyReserved = reservedCounts[item.id] || 0;
+    return total - globallyReserved - locallyReserved;
+  };
 
   // Suodatetaan tuotteet, joilla ei ole name, ja hakusanan mukaan
   const filteredInventory = Object.entries(categorizedInventory).reduce((acc, [category, items]) => {
@@ -33,18 +41,27 @@ function ProductSearchDropdown({ categorizedInventory, value, onChange }) {
         }}
       />
       <select
-        className="primary-button small"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        size={searchTerm.length > 0 ? Math.min(totalFilteredItems + 1, 10) : undefined} // Näytä lista auki jos haetaan
-        style={{ width: "100%" }}
+        size={Math.max(Math.min(totalFilteredItems + 1, 20), 3)}
+        style={{
+          width: "100%",
+          padding: "10px",
+          fontSize: "1.15em",
+          height: "auto",
+          lineHeight: "1.8em",
+          borderRadius: "6px",
+          backgroundColor: "#fff",
+          border: "2px solid #888",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+        }}
       >
         <option value="" disabled>+ Lisää tuote varastosta</option>
         {Object.entries(filteredInventory).map(([category, items]) => (
           <optgroup key={category} label={category}>
             {items.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.name}
+                {item.name} ({getAvailable(item)} kpl)
               </option>
             ))}
           </optgroup>
