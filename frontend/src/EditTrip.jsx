@@ -5,7 +5,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import styles from "./CreateTripModal.module.css"; // Reuse the styles from CreateTripModal
 import ProductSearchDropdown from "./ProductSearchDropdown";
-import AddLEDWallWizard from "./AddLEDWallWizard";
 
 function EditTrip({ onRequestClose, tripId }) {
   const navigate = useNavigate();
