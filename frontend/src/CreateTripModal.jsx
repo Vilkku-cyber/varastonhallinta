@@ -5,7 +5,7 @@ import styles from "./CreateTripModal.module.css";
 
 Modal.setAppElement("#root");
 
-function CreateTripModal({ isOpen, onRequestClose }) {
+function CreateTripModal({ isOpen, onRequestClose, initialSeed, onCreated }) {
   return (
     <Modal
       isOpen={isOpen}
@@ -15,7 +15,12 @@ function CreateTripModal({ isOpen, onRequestClose }) {
       overlayClassName={styles.overlay}
     >
       <div className={styles.modalContent}>
-        <CreateTrip onRequestClose={onRequestClose} />
+        {/* VÄLITÄ SUUNNITELMAN TAVARAT MODALIN SISÄLLE */}
+        <CreateTrip
+          onRequestClose={onRequestClose}
+          initialSeed={initialSeed}
+          onCreated={onCreated}
+        />
       </div>
     </Modal>
   );

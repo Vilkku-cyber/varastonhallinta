@@ -1,79 +1,127 @@
+/* —— Peruslayout —— */
 .todo-container {
-    padding: 40px;
-    max-width: 600px;
-    margin: 0 auto;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  .todo-title {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 28px;
-  }
-  
-  .todo-input-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  
-  .todo-input {
-   
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 18px;
-  }
-  
-  .todo-button {
-    padding: 10px 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    white-space: nowrap;
-  }
-  
-  .todo-list {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .todo-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #f9f9f9;
-    padding: 12px 16px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .todo-task {
-    display: flex;
-    align-items: center;
-  }
-  
-  .todo-text {
-    margin-left: 12px;
-    font-size: 16px;
-  }
-  
-  .todo-text.done {
-    text-decoration: line-through;
-    color: #aaa;
-  }
-  
-  .todo-delete {
-    background-color: #ff4d4d;
-    border: none;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 8px 16px 24px;
+}
+
+.todo-title {
+  text-align: center;
+  margin: 12px 0 16px;
+}
+
+.todo-input-row {
+  display: grid;
+  grid-template-columns: 1fr 160px;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.todo-input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,.18);
+  background: #fff;
+}
+
+/* —— Lista —— */
+.todo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+/* Yksi rivi: 2-sarakkeinen grid: [vasen] [oikea] */
+.todo-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+}
+
+/* Vasen alue on oma 2-sarakkeinen grid: [checkbox][teksti] */
+.todo-left {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  column-gap: 10px;
+  min-width: 0; /* sallii tekstin rivittyä */
+}
+
+/* Checkbox ei vie tilaa: pienempi koko + nollataan marginit */
+.todo-checkbox {
+  transform: scale(1.1);
+  margin: 2px 0 0 0;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Teksti rivittyy siististi eikä työnnä nappeja */
+.todo-text {
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+  padding-top: 1px;
+}
+
+/* Inline edit -tila */
+.edit-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.todo-edit-input {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #cfd3d8;
+  min-width: 260px;
+}
+
+/* Oikea nappiryhmä (muokkaa + poista) */
+.todo-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* —— Napit: neutraalit, jotta globaalit tyylit eivät sotke —— */
+.btn {
+  all: unset;               /* nollaa globaalit tyylit */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 14px/1 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  min-width: 70px;
+}
+
+.btn:focus-visible { outline: 2px solid #7ab3ff; outline-offset: 2px; }
+.btn:active { transform: translateY(0.5px); }
+
+/* Värivariaatiot */
+.btn-primary { background: #38a64a; color: #fff; }
+.btn-primary:hover { background: #2f8f3f; }
+
+.btn-danger  { background: #ff4d4d; color: #fff; }
+.btn-danger:hover { background: #e64545; }
+
+.btn-muted   { background: #e9ecef; color: #333; }
+.btn-muted:hover { background: #dfe3e6; }
+
+.btn-ghost   { background: #f1f3f5; color: #333; }
+.btn-ghost:hover { background: #e9ecef; }
+
+/* Valmiit rivit hieman himmeämmäksi + yliviivaus tekstille */
+.is-done { opacity: .6; }
+.line    { text-decoration: line-through; }

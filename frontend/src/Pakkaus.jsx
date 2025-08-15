@@ -251,7 +251,8 @@ function PackingView() {
               {Object.entries(selectedTrip.items).map(([itemKey, itemData]) => {
                 const productId = itemData.id; // = inventory-avain
                 const requiredCount = itemData.quantity;
-                const productName = inventory[productId]?.name || "Tuntematon tuote";
+                const productName =
+                  itemData.name || inventory[productId]?.name || "Tuntematon tuote";
 
                 // Katsotaan, montako on jo pakattu
                 let packedCount = packedItems[productId]?.quantity || 0;

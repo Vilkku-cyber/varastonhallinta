@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import styles from "./CreateTripModal.module.css"; // Reuse the styles from CreateTripModal
 import ProductSearchDropdown from "./ProductSearchDropdown";
+import AddLEDWallWizard from "./AddLEDWallWizard";
 
 function EditTrip({ onRequestClose, tripId }) {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ function EditTrip({ onRequestClose, tripId }) {
   const [inventory, setInventory] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
   const [showProductList, setShowProductList] = useState(false);
+  const [showLedWizard, setShowLedWizard] = useState(false);
   const [isInventoryLoaded, setIsInventoryLoaded] = useState(false);
 
   useEffect(() => {
@@ -154,6 +156,12 @@ function EditTrip({ onRequestClose, tripId }) {
     return counts;
   };
 
+  // Luo flat inventory-objekti id -> item
+  const flatInventory = Object.values(inventory).flat().reduce((acc, item) => {
+    acc[item.id] = item;
+    return acc;
+  }, {});
+
   return (
     <div className={styles.modalContent}>
       <h1>Muokkaa keikkaa</h1>
@@ -213,11 +221,8 @@ function EditTrip({ onRequestClose, tripId }) {
 
       {selectedItems.length === 0 && <p>Ei tuotteita lisätty</p>}
       {selectedItems.map((item, index) => (
-        <div
-          key={index}
-          style={{ marginBottom: "10px", display: "flex", alignItems: "center" }}
-        >
-          <strong>{item.name}</strong>
+        <div key={index}>
+          <span>{item.name || inventory[item.id]?.name || "LED-osanen"}</span>
           <input
             type="number"
             value={item.quantity}
@@ -266,6 +271,33 @@ function EditTrip({ onRequestClose, tripId }) {
           <button onClick={() => setShowProductList(false)} style={{ marginTop: "10px" }}>
             Sulje
           </button>
+        </div>
+      )}
+
+      <button
+        style={{ backgroundColor: "#0066cc", color: "white", padding: "6px 12px", marginBottom: "10px" }}
+        onClick={() => setShowLedWizard((prev) => !prev)}
+      >
+        ➕ Lisää LED-seinä
+      </button>
+
+      {showLedWizard && (
+        <div style={{ marginBottom: "20px", border: "1px solid #ccc", padding: "10px" }}>
+          <AddLEDWallWizard
+            onAddItems={(items) => {
+              const updated = [...selectedItems];
+              items.forEach((item) => {
+                const index = updated.findIndex(i => i.id === item.id);
+                if (index !== -1) {
+                  updated[index].quantity += item.quantity;
+                } else {
+                  updated.push({ id: item.id, quantity: item.quantity, name: inventory[item.id]?.name || "LED-osanen" });
+                }
+              });
+              setSelectedItems(updated);
+              setShowLedWizard(false);
+            }}
+          />
         </div>
       )}
 

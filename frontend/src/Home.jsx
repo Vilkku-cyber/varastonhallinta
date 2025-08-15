@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { database, ref, onValue } from "./firebaseConfig";
 import styles from './main.module.css';
 import CreateTripModal from "./CreateTripModal";
@@ -8,11 +8,14 @@ import EditTripModal from "./EditTripModal"; // Import EditTripModal
 
 function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [keikat, setKeikat] = useState([]);
   const [inventory, setInventory] = useState({});
   const [isCreateTripModalOpen, setIsCreateTripModalOpen] = useState(false);
   const [isEditTripModalOpen, setIsEditTripModalOpen] = useState(false); // State for EditTripModal
   const [selectedTripId, setSelectedTripId] = useState(null); // State for selected trip ID
+  const [ledPlanSeed, setLedPlanSeed] = useState(null);
+  const createAnchorRef = useRef(null);
 
   useEffect(() => {
     const inventoryRef = ref(database, "inventory");
@@ -48,6 +51,16 @@ function Home() {
     });
   }, []);
 
+  useEffect(() => {
+    if (location.state?.openCreateTrip && location.state?.ledPlanSeed) {
+      setLedPlanSeed(location.state.ledPlanSeed);
+      navigate(".", { replace: true, state: null });
+      setTimeout(() => {
+        createAnchorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 0);
+    }
+  }, [location.state, navigate]);
+
   const handleSelectTrip = (id) => {
     console.log("Selected Trip ID:", id);
     setSelectedTripId(id);
@@ -75,15 +88,15 @@ function Home() {
 
       <div className={styles.navigation}>
         
-        <button className={styles.button} onClick={() => navigate("/inventory")}>Selaa varastoa</button>
+        <button className={styles.button} onClick={() => navigate("/inventory")}>varasto</button>
         <button className={styles.button} onClick={() => setIsCreateTripModalOpen(true)}>+ Uusi keikka</button>
         <button className={styles.button} onClick={() => navigate("/past-trips")}>Arkisto</button>
         <button className={styles.button} onClick={() => navigate("/pakkaus")}>Pakkaus</button>
-        <button className={styles.button} onClick={() => navigate("/shelf-admin")}>Go to Shelf Admin</button>
+        <button className={styles.button} onClick={() => navigate("/shelf-admin")}>Shelf Admin</button>
         <button className={styles.button} onClick={() => navigate("/haku")}>hyllyhaku</button>
-        <button className={styles.button} onClick={() => navigate('/qr-reader')}>Scan QR Code</button>
+        <button className={styles.button} onClick={() => navigate('/qr-reader')}>Scan QR</button>
         <button className={styles.button} onClick={() => navigate("/todo")}>📝 To Do</button>
-        
+        <button className={styles.button} onClick={() => navigate("/led-planner")}>LED Planner</button>
 
       </div>
 
@@ -134,9 +147,13 @@ function Home() {
         </ul>
       )}
 
+      {/* Create section anchor */}
+      <div ref={createAnchorRef} id="createTripAnchor" />
+
       <CreateTripModal
         isOpen={isCreateTripModalOpen}
         onRequestClose={() => setIsCreateTripModalOpen(false)}
+        initialSeed={ledPlanSeed}
       />
 
       <EditTripModal

@@ -17,6 +17,7 @@ import ShelfMap from "./ShelfMap"; // Add this line
 import ShelfSearch from "./ShelfSearch";
 import VisualShelfView from "./VisualShelfView";
 import ToDo from "./ToDo";
+import LedPlanner from "./LedPlanner.jsx";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -47,6 +48,7 @@ function App() {
         <Route path="/haku" element={<ShelfSearch />} />
         <Route path="/shelf/:shelfId" element={<VisualShelfView />} /> {/* Add this line */}
         <Route path="/todo" element={<ToDo />} />
+        <Route path="/led-planner" element={<LedPlanner />} />
       </Routes>
     </Router>
   );
