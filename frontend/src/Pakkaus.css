@@ -159,3 +159,17 @@ body {
   text-decoration: underline;
   color: #1565c0;
 }
+
+
+@media (max-width: 768px) {
+  .leftPanel,
+  .rightPanel {
+    flex: 1;
+    padding: 10px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.8); /* Läpikuultava valkoinen */
+    border-radius: 6px; /* Pyöristetyt kulmat */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin: 1px; /* Pieni väli reunojen ja elementtien välillä */
+  }
+}
