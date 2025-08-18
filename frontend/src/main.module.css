@@ -8,37 +8,66 @@ html, body {
   font-family: 'Anton', sans-serif; /* Apply Anton font */
 }
 
-.container { /* Oletetaan, että tämä on pääelementti joka sisältää kaikki osat */
-  height: 100%; /* Täyttää koko sivun korkeuden */
-  overflow: hidden; /* Estää vierityksen tässä elementissä */
-  padding: 20px;
-}
-
-.List {
-  max-height: calc(100vh - 250px); /* Sopiva korkeus suuremmille näytöille */
-  overflow-y: auto; /* Mahdollistaa pystysuoran vierityksen */
-  margin-bottom: 170px; /* Lisää 20px marginaalia listan alareunaan */
-  scrollbar-width: none; /* Firefoxille, piilottaa vierityspalkin */
-  -ms-overflow-style: none; /* Internet Explorer ja Edge */
-  
-}
-
-/* Mobiililaitteiden mediakysely */
-@media (max-width: 600px) {
-  .List {
-    max-height: calc(100vh - 350px); /* Pienempi korkeus mobiililaitteille */
-    margin-bottom: 20px; /* Pienempi marginaali mobiililaitteille */
-    
-  }
-}
-
-
 .container {
+  display: flex;              /* tee pystysuuntainen flex-sarake */
+  flex-direction: column;
+  min-height: 100vh;          /* täysi näkymäkorkeus */
+  overflow: hidden;           /* ei koko sivun scrollia */
   background-image: url('/images/bg.png');
   background-size: cover;
   background-position: center;
   color: white; /* Varmista, että teksti erottuu taustasta */
   padding: 20px;
+}
+
+.navigation {                 /* navigaatio vie vain tarvitun tilan */
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 600px;
+  margin-left: 20px;
+  padding: 10px 0;
+  flex: 0 0 auto;
+}
+
+.container h2 {               /* otsikko ei saa venyä */
+  flex: 0 0 auto;
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+/* Keikkalista täyttää kaiken jäljellä olevan tilan */
+.List {
+  flex: 1 1 auto;             /* täyttää lopun korkeuden */
+  min-height: 0;              /* tärkeä flex-konteissa */
+  overflow-y: auto;           /* sisäinen pystyscrollaus */
+
+  /* piilota scrollpalkki kaikissa selaimissa */
+  -ms-overflow-style: none; /* IE/vanha Edge */
+  scrollbar-width: none;    /* Firefox */
+}
+
+.List::-webkit-scrollbar {  /* Chrome/Safari/Edge (Chromium) */
+  display: none;
+}
+
+/* Mobiiliin ei tarvita erillistä max-height-logiikkaa,
+   mutta halutessasi voit lisätä hieman väljäisyyttä */
+@media (max-width: 600px) {
+  .List {
+    padding-bottom: 8px;
+  }
+  .keikka {
+    max-width: 100%;
+    margin-bottom: 40px;
+  }
+  .navigation {
+    margin-left: 0;
+    gap: 5px;
+  }
 }
 
 .header {
@@ -161,4 +190,69 @@ html, body {
   }
   
   
+}
+
+.tripListContainer {
+  flex: 1;                  /* täyttää jäljelle jäävän tilan */
+  width: 50%;               /* vain puolet ruudusta */
+  max-width: 50%;
+  overflow-y: auto;          /* salli pystyscrollaus */
+  -ms-overflow-style: none;  /* IE ja Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.tripListContainer::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari */
+}
+
+.homePage {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* vie koko näkymä */
+  overflow: hidden; /* estää body-scrollin */
+  margin-left: 10px; /* Lisää marginaali vasemmalle */
+      background-image: url(/images/bg.png);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Yläpalkki + otsikot */
+.header {
+  flex-shrink: 0;
+  padding: 16px;
+}
+
+/* Keikkalista-alue täyttää loput */
+.tripListContainer {
+  flex: 1;
+  overflow-y: auto;
+  -ms-overflow-style: none;  /* IE/Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+.tripListContainer::-webkit-scrollbar {
+  display: none;             /* Chrome/Safari */
+}
+
+/* Yksittäinen keikka */
+.tripItem {
+  margin: 20px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+}
+
+@media (max-width: 768px) {
+  .tripListContainer {
+    width: 96%;
+    max-width: none;
+    margin: 0 auto;     /* keskitys */
+    /* scroll on jo päällä ja rulla piilossa aiemmilla säännöillä */
+  }
+
+  /* vähän väljyyttä kortteihin mobiilissa */
+  .tripItem {
+    margin: 12px 8px;
+  }
 }

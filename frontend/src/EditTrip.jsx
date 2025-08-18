@@ -273,12 +273,7 @@ function EditTrip({ onRequestClose, tripId }) {
         </div>
       )}
 
-      <button
-        style={{ backgroundColor: "#0066cc", color: "white", padding: "6px 12px", marginBottom: "10px" }}
-        onClick={() => setShowLedWizard((prev) => !prev)}
-      >
-        ➕ Lisää LED-seinä
-      </button>
+    
 
       {showLedWizard && (
         <div style={{ marginBottom: "20px", border: "1px solid #ccc", padding: "10px" }}>

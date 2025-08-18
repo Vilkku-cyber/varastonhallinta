@@ -83,29 +83,25 @@ function Home() {
   };
 
   return (
-    <div className={styles.container}>
-    
-
-      <div className={styles.navigation}>
-        
-        <button className={styles.button} onClick={() => navigate("/inventory")}>varasto</button>
-        <button className={styles.button} onClick={() => setIsCreateTripModalOpen(true)}>+ Uusi keikka</button>
-        <button className={styles.button} onClick={() => navigate("/past-trips")}>Arkisto</button>
-        <button className={styles.button} onClick={() => navigate("/pakkaus")}>Pakkaus</button>
-        <button className={styles.button} onClick={() => navigate("/shelf-admin")}>Shelf Admin</button>
-        <button className={styles.button} onClick={() => navigate("/haku")}>hyllyhaku</button>
-        <button className={styles.button} onClick={() => navigate('/qr-reader')}>Scan QR</button>
-        <button className={styles.button} onClick={() => navigate("/todo")}>📝 To Do</button>
-        <button className={styles.button} onClick={() => navigate("/led-planner")}>LED Planner</button>
-
-      </div>
-
-      <h2>Aktiiviset keikat</h2>
-      {keikat.length === 0 ? (
-        <p>Ei aktiivisia keikkoja</p>
-      ) : (
-        <ul className={styles.List}>
-          {keikat.map((keikka) => {
+    <div className={styles.homePage}>
+     
+        <div className={styles.navigation}>
+          <button className={styles.button} onClick={() => navigate("/inventory")}>varasto</button>
+          <button className={styles.button} onClick={() => setIsCreateTripModalOpen(true)}>+ Uusi keikka</button>
+          <button className={styles.button} onClick={() => navigate("/past-trips")}>Arkisto</button>
+          <button className={styles.button} onClick={() => navigate("/pakkaus")}>Pakkaus</button>
+          <button className={styles.button} onClick={() => navigate("/shelf-admin")}>Shelf Admin</button>
+          <button className={styles.button} onClick={() => navigate("/haku")}>hyllyhaku</button>
+          <button className={styles.button} onClick={() => navigate('/qr-reader')}>Scan QR</button>
+          <button className={styles.button} onClick={() => navigate("/todo")}>📝 To Do</button>
+          <button className={styles.button} onClick={() => navigate("/led-planner")}>LED Planner</button>
+        </div>
+     
+      <div className={styles.tripListContainer}>
+        {keikat.length === 0 ? (
+          <p>Ei aktiivisia keikkoja</p>
+        ) : (
+          keikat.map((keikka) => {
             const startDateString = keikka.startDate
               ? `${keikka.startDate.toLocaleDateString("fi-FI")} ${keikka.startDate.toLocaleTimeString("fi-FI", { hour: '2-digit', minute: '2-digit' })}`
               : "Ei aloituspäivää";
@@ -114,7 +110,7 @@ function Home() {
               : "Ei päättymispäivää";
 
             return (
-              <li key={keikka.id} className={styles.keikka}>
+              <div key={keikka.id} className={styles.tripItem}>
                 <strong
                   onClick={() => handleSelectTrip(keikka.id)}
                   className={styles.keikkaHeader}
@@ -126,7 +122,6 @@ function Home() {
                   Status: {keikka.status}
                 </div>
                 <div style={{ color: 'black' }}>{keikka.contact}</div>
-
                 {keikka.items && Object.keys(keikka.items).length > 0 ? (
                   <ul className={styles.itemsList}>
                     {Object.entries(keikka.items).map(([itemId, itemData]) => {
@@ -141,11 +136,11 @@ function Home() {
                 ) : (
                   <p>Ei tuotteita lisätty</p>
                 )}
-              </li>
+              </div>
             );
-          })}
-        </ul>
-      )}
+          })
+        )}
+      </div>
 
       {/* Create section anchor */}
       <div ref={createAnchorRef} id="createTripAnchor" />
@@ -166,3 +161,5 @@ function Home() {
 }
 
 export default Home;
+
+
