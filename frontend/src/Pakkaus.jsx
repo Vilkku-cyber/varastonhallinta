@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { database, ref, onValue, update } from "./firebaseConfig";
 import "./Pakkaus.css";
+import SimpleQRScanner from "./SimpleQRScanner";
 
 function PackingView() {
   const navigate = useNavigate();
@@ -22,6 +23,8 @@ function PackingView() {
   const [inventory, setInventory] = useState({});
 
   const [shelfData, setShelfData] = useState({});
+
+  const [showQRScanner, setShowQRScanner] = useState(false);
 
   useEffect(() => {
     const tripsRef = ref(database, "keikat");
@@ -310,8 +313,24 @@ function PackingView() {
               onChange={(e) => setBarcodeInput(e.target.value)}
               placeholder="Syötä tai skannaa..."
             />
-            <button type="submit">Lisää</button>
+            
           </form>
+
+          <button onClick={() => setShowQRScanner(true)}>📷 Skannaa QR-koodi</button>
+
+          {showQRScanner && (
+            <SimpleQRScanner
+              onDetected={(data) => {
+                setBarcodeInput(data);
+                setShowQRScanner(false);
+                // Voidaan automaattisesti lisätä:
+                setTimeout(() => {
+                  document.querySelector("form").dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+                }, 100);
+              }}
+              onClose={() => setShowQRScanner(false)}
+            />
+          )}
 
           {/* Manuaalinen lisäys */}
           <h3>Lisää tuote ilman sarjanumeroa</h3>
