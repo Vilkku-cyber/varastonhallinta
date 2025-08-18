@@ -236,7 +236,7 @@ html, body {
 
 /* Yksittäinen keikka */
 .tripItem {
-  margin: 20px;
+  margin: 25px;
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -245,6 +245,7 @@ html, body {
 
 @media (max-width: 768px) {
   .tripListContainer {
+    height: 99%;
     width: 96%;
     max-width: none;
     margin: 0 auto;     /* keskitys */
@@ -253,6 +254,6 @@ html, body {
 
   /* vähän väljyyttä kortteihin mobiilissa */
   .tripItem {
-    margin: 12px 8px;
+    margin: 25px 8px;
   }
 }
