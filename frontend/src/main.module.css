@@ -210,7 +210,7 @@ html, body {
   flex-direction: column;
   height: 100vh; /* vie koko näkymä */
   overflow: hidden; /* estää body-scrollin */
-  margin-left: 10px; /* Lisää marginaali vasemmalle */
+  
       background-image: url(/images/bg.png);
     background-size: cover;
     background-position: center;
