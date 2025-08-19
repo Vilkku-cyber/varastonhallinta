@@ -6,6 +6,8 @@ import ProductModal from "./ProductModal"; // Import the ProductModal component
 import AddProductModal from "./AddProductModal"; // Import the AddProductModal component
 import styles from "./inventory.module.css"; // Import the CSS module
 import Fuse from "fuse.js"; // Add Fuse.js import
+import HighlightedText from "./helpers/HighlightedText";
+
 
 // Debounce utility function
 const debounce = (func, delay) => {
@@ -183,11 +185,10 @@ function Inventory() {
                             onClick={() => openModal(item)}
                             style={{ textDecoration: "none" }}
                           >
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: highlightMatch(item.name, searchTerm)
-                              }}
-                            />
+                           <span>
+  <HighlightedText text={item.name} query={searchTerm} />
+</span>
+
                           </a>
                           {item.matchInfo && item.matchInfo.length > 0 && (
                             <div style={{ fontSize: "0.8em", color: "#555" }}>
