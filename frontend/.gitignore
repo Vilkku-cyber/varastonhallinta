@@ -7,12 +7,17 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Node dependencies (kaikki tasot)
+node_modules/
+**/node_modules/
 
-# Editor directories and files
+# Builds / output
+dist/
+dist-ssr/
+build/
+coverage/
+
+# Editorit
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -22,4 +27,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Ympäristömuuttujat
 .env
+.env.*
+!.env.example
+
+# Paikallinen tietokanta (jos on backend)
+backend/database.db

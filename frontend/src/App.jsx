@@ -3,24 +3,21 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { auth } from "./firebaseConfig";
 import Home from "./Home";
 import Inventory from "./Inventory";
-
-import QRCodeReader from "./QRCodeReader"; // Add this line
-/*import ProductDetails from "./ProductDetails";*/
+import QRCodeReader from "./QRCodeReader";
 import EditTrip from "./EditTrip";
 import PastTrips from "./PastTrips";
 import CreateTrip from "./CreateTrip";
-
 import PackingView from "./Pakkaus";
 import Login from "./Login";
-import ShelfAdmin from "./ShelfAdmin"; // tuo komponentti
-import ShelfMap from "./ShelfMap"; // Add this line
+import ShelfAdmin from "./ShelfAdmin";
+import ShelfMap from "./ShelfMap";
 import ShelfSearch from "./ShelfSearch";
 import VisualShelfView from "./VisualShelfView";
 import ToDo from "./ToDo";
 import LedPlanner from "./LedPlanner.jsx";
-
 import Calendar from "./Calendar";
 
+import ProtectedRoute from "./ProtectedRoute";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -35,24 +32,125 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Julkinen reitti */}
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
-        
-        <Route path="/inventory" element={<Inventory />} />
-    <Route path="/kalenteri" element={<Calendar />} />
 
-        <Route path="/qr-reader" element={<QRCodeReader />} />
-        {/*<Route path="/product/:id" element={<ProductDetails />} />*/}
-        <Route path="/edit-trip/:id" element={<EditTrip />} />
-        <Route path="/past-trips" element={<PastTrips />} />
-        <Route path="/create-trip" element={<CreateTrip />} />
-        <Route path="/pakkaus" element={<PackingView />} /> {/* Tämä korjattu */}
-        <Route path="/shelf-admin" element={<ShelfAdmin />} />
-        <Route path="/shelf-map" element={<ShelfMap />} /> {/* Add this line */}
-        <Route path="/haku" element={<ShelfSearch />} />
-        <Route path="/shelf/:shelfId" element={<VisualShelfView />} /> {/* Add this line */}
-        <Route path="/todo" element={<ToDo />} />
-        <Route path="/led-planner" element={<LedPlanner />} />
+        {/* Suojatut reitit */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inventory"
+          element={
+            <ProtectedRoute>
+              <Inventory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/kalenteri"
+          element={
+            <ProtectedRoute>
+              <Calendar />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/qr-reader"
+          element={
+            <ProtectedRoute>
+              <QRCodeReader />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit-trip/:id"
+          element={
+            <ProtectedRoute>
+              <EditTrip />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/past-trips"
+          element={
+            <ProtectedRoute>
+              <PastTrips />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-trip"
+          element={
+            <ProtectedRoute>
+              <CreateTrip />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pakkaus"
+          element={
+            <ProtectedRoute>
+              <PackingView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shelf-admin"
+          element={
+            <ProtectedRoute>
+              <ShelfAdmin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shelf-map"
+          element={
+            <ProtectedRoute>
+              <ShelfMap />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/haku"
+          element={
+            <ProtectedRoute>
+              <ShelfSearch />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shelf/:shelfId"
+          element={
+            <ProtectedRoute>
+              <VisualShelfView />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/todo"
+          element={
+            <ProtectedRoute>
+              <ToDo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/led-planner"
+          element={
+            <ProtectedRoute>
+              <LedPlanner />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Turvaverkko: tuntematon reitti -> login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );

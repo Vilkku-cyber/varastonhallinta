@@ -14,16 +14,14 @@ import "./Pakkaus.css"; // sisältää topbar/container peruslayoutin
        Yhdessä “positiossa” 2 tolppaa + 1 plate. Positioiden määrä = ceil(palojen_lkm_leveydessä / 2).
        Kokonaismäärä (oletus): tolpat = pos * 2, platet = pos.
      - Tolppien pituussuositus aiemman logiikan mukaan (lähtökorkeus + ledin korkeus)
-     - Tassut: lisätään yhteenvetoon varastotuote "kiilat/lisut/pumput/tassut" (ID täydennetään alempaan vakioon)
+     - Tassut: lisätään yhteenvetoon varastotuote "kiilat/lisut/pumput/tassut" 
   4) Prosessori + kaapelit
      - Välikaapelit (DATA ja VIRTA) = totalPanels + 5, pyöristys ylöspäin seuraavaan kymmeneen.
      - Virtasyötöt: vähintään 1 per rivi; jos rivi > 20 palaa leveä, 2 per rivi.
   5) Yhteenveto + “Luo uusi keikka” (avaa CreateTripModal ja palaa Homeen tallennuksen jälkeen)
-
-  HUOM: TASSU_ID aseta varaston oikeaan tuotteeseen kun tiedät ID:n.
 */
 
-const TASSU_ID = "-OPjmirEW4lMeqVC7zqW"; // TODO: korvaa varaston oikealla ID:llä
+const TASSU_ID = "-OPjmirEW4lMeqVC7zqW";
 const SHORT_POLE_ID = "-OKfTdGlfsaN-R3xt9FJ"; // LED tolppa lyhyt
 const LONG_POLE_ID = "-OKfT8_SHYGM9P0KUCyg";  // LED tolppa pitkä
 const PLATE_OLD_ID = "-OKeRqQ2m35kxM4ez6XF"; // LED Plate vanha
@@ -815,47 +813,79 @@ const Step3 = () => {
 
   return (
     <div style={{ height: "100vh", overflow: "auto", background: "#f2f2f2" }}>
-      {/* Yläpalkki */}
-      <div className="topBar">
-        <button onClick={() => navigate("/")}>Koti</button>
-        <div style={{ fontWeight: 600 }}>LED Planner</div>
+  {/* Yläpalkki */}
+  <div className="topBar">
+    <button 
+      onClick={() => navigate("/")}
+      style={{
+        background: "navy",
+        color: "white",
+        padding: "6px 12px",
+        borderRadius: 6,
+        border: "none",
+        cursor: "pointer"
+      }}
+    >
+      Koti
+    </button>
+    <div style={{ fontWeight: 600 }}>LED Planner</div>
+  </div>
+
+  <div className="container" style={{ alignItems: "flex-start" }}>
+    {/* Vasemmalla sisältö */}
+    <div className="leftPanel" style={{ overflow: "auto", maxHeight: "calc(100vh - 80px)" }}>
+      <Stepper />
+
+      <div style={{ display: step === 1 ? "block" : "none" }}>
+        <Step1 />
+      </div>
+      <div style={{ display: step === 2 ? "block" : "none" }}>
+        <Step2 />
+      </div>
+      <div style={{ display: step === 3 ? "block" : "none" }}>
+        <Step3 />
+      </div>
+      <div style={{ display: step === 4 ? "block" : "none" }}>
+        <Step4 />
+      </div>
+      <div style={{ display: step === 5 ? "block" : "none" }}>
+        <Step5 />
       </div>
 
-      <div className="container" style={{ alignItems: "flex-start" }}>
-        {/* Vasemmalla sisältö */}
-        <div className="leftPanel" style={{ overflow: "auto", maxHeight: "calc(100vh - 80px)" }}>
-          <Stepper />
-
-          <div style={{ display: step === 1 ? "block" : "none" }}>
-            <Step1 />
-          </div>
-          <div style={{ display: step === 2 ? "block" : "none" }}>
-            <Step2 />
-          </div>
-          <div style={{ display: step === 3 ? "block" : "none" }}>
-            <Step3 />
-          </div>
-          <div style={{ display: step === 4 ? "block" : "none" }}>
-            <Step4 />
-          </div>
-          <div style={{ display: step === 5 ? "block" : "none" }}>
-            <Step5 />
-          </div>
-
-          <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {step > 1 && (
-              <button onClick={() => setStep((s) => Math.max(1, s - 1))}>← Takaisin</button>
-            )}
-            {step < 5 && (
-              <button
-                onClick={() => setStep((s) => Math.min(5, s + 1))}
-                disabled={step === 1 && !(isSurfaceLed || selectedPanelId)}
-              >
-                Seuraava →
-              </button>
-            )}
-          </div>
-        </div>
+      <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {step > 1 && (
+          <button 
+            onClick={() => setStep((s) => Math.max(1, s - 1))}
+            style={{
+              background: "navy",
+              color: "white",
+              padding: "6px 12px",
+              borderRadius: 6,
+              border: "none",
+              cursor: "pointer"
+            }}
+          >
+            ← Takaisin
+          </button>
+        )}
+        {step < 5 && (
+          <button
+            onClick={() => setStep((s) => Math.min(5, s + 1))}
+            disabled={step === 1 && !(isSurfaceLed || selectedPanelId)}
+            style={{
+              background: "navy",
+              color: "white",
+              padding: "6px 12px",
+              borderRadius: 6,
+              border: "none",
+              cursor: "pointer"
+            }}
+          >
+            Seuraava →
+          </button>
+        )}
+      </div>
+    </div>
 
         {/* Oikealla pikayhteenveto */}
         <div className="rightPanel" style={{ overflow: "auto", maxHeight: "calc(100vh - 80px)" }}>

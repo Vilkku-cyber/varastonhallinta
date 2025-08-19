@@ -26,66 +26,76 @@ function PackingView() {
 
   const [showQRScanner, setShowQRScanner] = useState(false);
 
-  useEffect(() => {
-    const tripsRef = ref(database, "keikat");
-    onValue(tripsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const tripsArray = Object.entries(data).map(([id, obj]) => ({
-          id,
-          ...obj,
-        }));
-        setAllTrips(tripsArray);
-      } else {
-        setAllTrips([]);
-      }
-    });
+useEffect(() => {
+  // KEIKAT (reaaliaikainen lista)
+  const tripsRef = ref(database, "keikat");
+  const offTrips = onValue(tripsRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      const tripsArray = Object.entries(data).map(([id, obj]) => ({ id, ...obj }));
+      setAllTrips(tripsArray);
+    } else {
+      setAllTrips([]);
+    }
+  });
 
-    const inventoryRef = ref(database, "inventory");
-    onValue(inventoryRef, (snapshot) => {
-      const data = snapshot.val();
-      setInventory(data || {});
-    });
+  // INVENTORY (reaaliaikainen)
+  const inventoryRef = ref(database, "inventory");
+  const offInventory = onValue(inventoryRef, (snapshot) => {
+    const data = snapshot.val();
+    setInventory(data || {});
+  });
 
-    const shelfRef = ref(database, "shelves");
-    onValue(shelfRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const productToShelfMap = {};
-        for (const [shelfKey, shelfVal] of Object.entries(data)) {
-          for (const [aisleKey, aisleVal] of Object.entries(shelfVal.aisles || {})) {
-            for (const [levelKey, levelVal] of Object.entries(aisleVal.levels || {})) {
-              if (levelVal.products) {
-                for (const productId of Object.keys(levelVal.products)) {
-                  productToShelfMap[productId] = {
-                    shelf: shelfKey,
-                    aisle: aisleKey,
-                    level: levelKey,
-                  };
-                }
-              }
+  // HYLLYT (reaaliaikainen)
+  const shelfRef = ref(database, "shelves");
+  const offShelves = onValue(shelfRef, (snapshot) => {
+    const data = snapshot.val();
+    if (!data) {
+      setShelfData({});
+      return;
+    }
+    const productToShelfMap = {};
+    for (const [shelfKey, shelfVal] of Object.entries(data)) {
+      for (const [aisleKey, aisleVal] of Object.entries(shelfVal.aisles || {})) {
+        for (const [levelKey, levelVal] of Object.entries(aisleVal.levels || {})) {
+          if (levelVal.products) {
+            for (const productId of Object.keys(levelVal.products)) {
+              productToShelfMap[productId] = {
+                shelf: shelfKey,
+                aisle: aisleKey,
+                level: levelKey,
+              };
             }
           }
         }
-        setShelfData(productToShelfMap);
       }
-    });
-  }, []);
-
-  // Haetaan keikan packedItems
-  useEffect(() => {
-    if (!selectedTripId) {
-      setPackedItems({});
-      return;
     }
-    const packedRef = ref(database, `keikat/${selectedTripId}/packedItems`);
-    onValue(packedRef, (snapshot) => {
-      const data = snapshot.val();
-      setPackedItems(data || {});
-    });
-  }, [selectedTripId]);
+    setShelfData(productToShelfMap);
+  });
 
-  const selectedTrip = allTrips.find((t) => t.id === selectedTripId);
+  // 🔻 TÄRKEIN: sulje kuuntelijat unmountissa
+  return () => {
+    offTrips();
+    offInventory();
+    offShelves();
+  };
+}, []);
+useEffect(() => {
+  if (!selectedTripId) {
+    setPackedItems({});
+    return; // ei kuuntelijaa -> ei cleanupia
+  }
+
+  const packedRef = ref(database, `keikat/${selectedTripId}/packedItems`);
+  const offPacked = onValue(packedRef, (snapshot) => {
+    const data = snapshot.val();
+    setPackedItems(data || {});
+  });
+
+  // Kun selectedTripId vaihtuu tai komponentti poistuu, sulje vanha kuuntelija
+  return () => offPacked();
+}, [selectedTripId]);
+
 
   // 1) Sarjanumeron skannaus
   const handleBarcodeSubmit = (e) => {
@@ -222,6 +232,8 @@ function PackingView() {
       alert("Virhe tallennuksessa: " + error);
     }
   };
+
+  const selectedTrip = allTrips.find((t) => t.id === selectedTripId) || null;
 
   return (
     <div style={{ height: "100vh", margin: 0, padding: 0 }}>

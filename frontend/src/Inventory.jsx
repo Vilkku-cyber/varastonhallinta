@@ -34,43 +34,35 @@ function Inventory() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const inventoryRef = ref(database, "inventory");
-    onValue(inventoryRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const inventoryList = Object.entries(data)
-          .filter(([_, item]) => item.name) // Suodatetaan pois tuotteet ilman nimeä
-          .map(([id, item]) => ({
-            id,
-            ...item,
-          }));
-        setInventory(inventoryList);
-      } else {
-        setInventory([]);
-      }
-    });
+  const invRef = ref(database, "inventory");
+  const offInv = onValue(invRef, (snap) => {
+    const data = snap.val();
+    const list = data
+      ? Object.entries(data).map(([id, v]) => ({ id, ...v }))
+      : [];
+    setInventory(list);
+  });
 
-    const tripsRef = ref(database, "keikat");
-    onValue(tripsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const tempReservedCounts = {};
-        Object.values(data).forEach((trip) => {
-          if (trip.items) {
-            Object.values(trip.items).forEach((item) => {
-              if (!tempReservedCounts[item.id]) {
-                tempReservedCounts[item.id] = 0;
-              }
-              tempReservedCounts[item.id] += item.quantity;
-            });
-          }
-        });
-        setReservedCounts(tempReservedCounts);
-      } else {
-        setReservedCounts({});
-      }
+  const tripsRef = ref(database, "keikat");
+  const offTrips = onValue(tripsRef, (snap) => {
+    const trips = snap.val() || {};
+    const counts = {};
+    Object.values(trips).forEach((t) => {
+      if (!t.items) return;
+      Object.values(t.items).forEach(({ id, quantity }) => {
+        counts[id] = (counts[id] || 0) + Number(quantity);
+      });
     });
-  }, []);
+    setReservedCounts(counts);
+  });
+
+  return () => {
+    offInv();
+    offTrips();
+  };
+}, []);
+
+
 
   const fuse = new Fuse(inventory, {
     keys: [
