@@ -89,7 +89,7 @@ function Home() {
            <button className={styles.button} onClick={() => navigate("/kalenteri")} >
         📅 Kalenteri </button>
           <button className={styles.button} onClick={() => navigate("/inventory")}>varasto</button>
-          <button className={styles.button} onClick={() => setIsCreateTripModalOpen(true)}>+ Uusi keikka</button>
+          <button className={styles.button} onClick={() => setIsCreateTripModalOpen(true)}>Uusi keikka</button>
           <button className={styles.button} onClick={() => navigate("/past-trips")}>Arkisto</button>
           <button className={styles.button} onClick={() => navigate("/pakkaus")}>Pakkaus</button>
           <button className={styles.button} onClick={() => navigate("/shelf-admin")}>Shelf Admin</button>
