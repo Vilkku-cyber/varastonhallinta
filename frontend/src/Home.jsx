@@ -86,6 +86,8 @@ function Home() {
     <div className={styles.homePage}>
      
         <div className={styles.navigation}>
+           <button className={styles.button} onClick={() => navigate("/kalenteri")} >
+        📅 Kalenteri </button>
           <button className={styles.button} onClick={() => navigate("/inventory")}>varasto</button>
           <button className={styles.button} onClick={() => setIsCreateTripModalOpen(true)}>+ Uusi keikka</button>
           <button className={styles.button} onClick={() => navigate("/past-trips")}>Arkisto</button>

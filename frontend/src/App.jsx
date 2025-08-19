@@ -19,6 +19,9 @@ import VisualShelfView from "./VisualShelfView";
 import ToDo from "./ToDo";
 import LedPlanner from "./LedPlanner.jsx";
 
+import Calendar from "./Calendar";
+
+
 function App() {
   const [user, setUser] = useState(null);
 
@@ -36,7 +39,8 @@ function App() {
         <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
         
         <Route path="/inventory" element={<Inventory />} />
-    
+    <Route path="/kalenteri" element={<Calendar />} />
+
         <Route path="/qr-reader" element={<QRCodeReader />} />
         {/*<Route path="/product/:id" element={<ProductDetails />} />*/}
         <Route path="/edit-trip/:id" element={<EditTrip />} />

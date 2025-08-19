@@ -1,0 +1,244 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton:wght@400;700&family=Inter:wght@400;600;700&display=swap');
+
+:root{
+  --btn-bg: #0a3cff;
+  --btn-fg: #fff;
+  --card-bg: rgba(255,255,255,0.98);
+  --card-fg: #0d0f12;
+  --line: rgba(255,255,255,0.28);
+  --shadow: 0 4px 16px rgba(0,0,0,0.35);
+  --shadow-sm: 0 2px 10px rgba(0,0,0,0.25);
+}
+
+/* KOKO SIVU – ei pystyscrollia */
+.calendarPage {
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr clamp(280px, 26vw, 360px);
+  gap: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+  position: relative;
+
+  background-image: url('/images/bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: #fff;
+}
+.calendarPage::before{
+  content:"";
+  position:absolute; inset:0;
+  background: linear-gradient(180deg, rgba(0,0,0,.50), rgba(0,0,0,.62));
+  pointer-events:none;
+}
+
+/* VASEN PALSTA – oma grid (ruudukko = 1fr) */
+.left {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  min-width: 0;
+  overflow: hidden;
+  backdrop-filter: saturate(110%);
+}
+
+/* TOPBAR */
+.topbar { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.title {
+  font-family: 'Anton', sans-serif;
+  letter-spacing: .3px;
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 700;
+  text-align: center;
+  flex: 1;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.75);
+}
+.btn {
+  border: none;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .06s ease, filter .12s ease;
+}
+.btn:hover { filter: brightness(1.06); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* viikonpäivät */
+.weekdayRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+  font-weight: 800;
+  text-align: center;
+  font-size: clamp(12px, 1.6vw, 14px);
+  color: #eaf2ff;
+  text-shadow: 0 2px 8px rgba(0,0,0,.7);
+}
+
+/* RUUDUKKO – 6 viikkoa, täyttää tilan */
+.grid {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 6px;
+}
+
+/* PÄIVÄ */
+.day {
+  text-align: left;
+  background: var(--card-bg);
+  color: var(--card-fg);
+  border: 1px solid #d8dbe2;
+  border-radius: 12px;
+  padding: clamp(6px, 1.2vw, 10px);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.day:hover { filter: brightness(1.015); }
+.dayToday { outline: 2px solid #2c3e50; outline-offset: -1px; }
+.dayOtherMonth { opacity: 0.62; }
+
+/* Päivän numero */
+.dateNum {
+  font-size: clamp(11px, 1.6vw, 12px);
+  font-weight: 900;
+  letter-spacing: .2px;
+  color: #0d0f12;
+}
+
+/* Tagit */
+.tags { display:flex; gap:4px; flex-wrap:wrap; align-content:flex-start; }
+.tag {
+  display:inline-block;
+  font-size: clamp(9px, 1.4vw, 11px);
+  font-weight: 700;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 999px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+  letter-spacing: .2px;
+}
+.tagMore { font-size: clamp(9px, 1.4vw, 11px); color: #3f4652; }
+
+/* Statukset */
+.pakkaamatta { background: #e67e22; }
+.pakattu      { background: #2980b9; }
+.keikalla     { background: #27ae60; }
+.purkamatta   { background: #8e44ad; }
+
+/* ✅ Arkistoitu/Palautettu – harmaa */
+.archived {
+  opacity: .65;
+  filter: grayscale(90%);
+  background: #6b7280 !important;     /* neutraali harmaa tausta */
+  color: #e5e7eb !important;           /* vaalea teksti */
+  border-color: transparent !important;
+}
+
+/* Selite */
+.legend {
+  margin-top: 6px;
+  display:flex; gap:10px; flex-wrap:wrap;
+  font-size:12px;
+}
+.legendItem { display:flex; align-items:center; gap:6px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4)); }
+.legendSwatch { width:12px; height:12px; border-radius:3px; display:inline-block; }
+
+/* OIKEA PANEELI (desktop) */
+.side {
+  border-left: 1px solid var(--line);
+  padding-left: 12px;
+  overflow: auto;
+  backdrop-filter: blur(2px);
+}
+.sideTitle {
+  font-weight: 900;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+  font-size: clamp(16px, 2vw, 18px);
+}
+
+/* Kortit */
+.card {
+  border: 1px solid #e5e5e5;
+  border-left-width: 4px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,.97);
+  color: #0d0f12;
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.cardTitle { font-weight: 800; margin-bottom: 6px; display:flex; gap:8px; align-items:center; }
+.cardRow { display:flex; gap:8px; align-items:baseline; font-size: 14px; }
+.badge {
+  display:inline-block; font-size: 11px; font-weight: 800;
+  background:#7f8c8d; color:#ecf0f1; padding:2px 6px; border-radius:999px;
+}
+
+/* Reunavärit statuksille (oikea paneeli) */
+.card_pakkaamatta { border-left-color:#e67e22; }
+.card_pakattu     { border-left-color:#2980b9; }
+.card_keikalla    { border-left-color:#27ae60; }
+.card_purkamatta  { border-left-color:#8e44ad; }
+.cardArchived     { border-left-color:#7f8c8d; filter: grayscale(10%); }
+
+/* MOBILE OVERLAY – oletuksena pois päältä desktopilla */
+.sideOverlay { display: none !important; }
+
+.sideCloseBtn{
+  position:absolute; right:10px; top:10px;
+  background: transparent; border:0; color:#fff;
+  font-size: 20px; cursor:pointer;
+}
+
+/* RESPONSIIVINEN: overlay vain mobiilissa, ei koskaan venytä kuukautta */
+@media (max-width: 1100px){
+  .calendarPage{ grid-template-columns: 1fr; }
+  .side{ display: none; }
+  .legend{ display:none; }
+
+  .sideOverlay{ display:block !important; }
+  .sideOpen{
+    display: block !important;
+    position: fixed;
+    inset: auto 0 0 0;
+    max-height: 70dvh;
+    background: rgba(20,21,34,.90);
+    border-top: 1px solid var(--line);
+    padding: 12px;
+    box-shadow: 0 -10px 30px rgba(0,0,0,.45);
+    overflow: auto;
+    backdrop-filter: blur(6px);
+    z-index: 1000;
+  }
+}
+
+@media (max-width: 640px){
+  .calendarPage{ gap: 8px; padding: 8px; }
+  .grid{ gap: 4px; }
+  .btn{ padding: 7px 10px; }
+  .title{ font-size: clamp(16px, 5vw, 20px); }
+}
+
+/* Vähemmän animaatioita */
+@media (prefers-reduced-motion: reduce){
+  .btn{ transition: none; }
+}

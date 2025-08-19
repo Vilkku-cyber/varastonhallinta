@@ -174,22 +174,30 @@ function EditTrip({ onRequestClose, tripId }) {
         style={{ display: "block", marginBottom: "10px" }}
       />
 
-      <label htmlFor="startDate">Alkamispäivä:</label>
+      <label htmlFor="startDate">Alkamispäivä ja -aika:</label>
       <DatePicker
         selected={startDate}
         onChange={(date) => setStartDate(date)}
-        dateFormat="dd.MM.yyyy"
-        placeholderText="Valitse alkamispäivä"
+        dateFormat="dd.MM.yyyy p"
+        showTimeSelect
+        timeFormat="HH:mm"
+        timeIntervals={15}
+        timeCaption="aika"
+        placeholderText="Valitse alkamispäivä ja -aika"
         id="startDate"
       />
       <br /><br />
 
-      <label htmlFor="endDate">Päättymispäivä:</label>
+      <label htmlFor="endDate">Päättymispäivä ja -aika:</label>
       <DatePicker
         selected={endDate}
         onChange={(date) => setEndDate(date)}
-        dateFormat="dd.MM.yyyy"
-        placeholderText="Valitse päättymispäivä"
+        dateFormat="dd.MM.yyyy p"
+        showTimeSelect
+        timeFormat="HH:mm"
+        timeIntervals={15}
+        timeCaption="aika"
+        placeholderText="Valitse päättymispäivä ja -aika"
         id="endDate"
       />
       <br /><br />
