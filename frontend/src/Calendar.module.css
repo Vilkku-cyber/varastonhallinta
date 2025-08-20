@@ -108,8 +108,21 @@
   min-width: 0;
 }
 .day:hover { filter: brightness(1.015); }
-.dayToday { outline: 2px solid #2c3e50; outline-offset: -1px; }
 .dayOtherMonth { opacity: 0.62; }
+
+/* -- Päivähighlightit -- */
+/* Tämä päivä: punainen kehys */
+.dayToday {
+  border: 6px solid #ff3b30;                 /* selkeä punainen kehys */
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(255,59,48,0.12);
+}
+/* Valittu päivä: hentoharmaa tausta */
+.daySelected {
+  background: #f3f4f6;                       /* hiukan harmaampi */
+}
+/* Jos sama päivä on myös valittuna, punainen voittaa */
+.dayToday.daySelected { border-color: #ff3b30; }
 
 /* Päivän numero */
 .dateNum {
@@ -143,12 +156,12 @@
 .keikalla     { background: #27ae60; }
 .purkamatta   { background: #8e44ad; }
 
-/* ✅ Arkistoitu/Palautettu – harmaa */
+/* Arkistoitu/Palautettu – harmaa */
 .archived {
   opacity: .65;
   filter: grayscale(90%);
-  background: #6b7280 !important;     /* neutraali harmaa tausta */
-  color: #e5e7eb !important;           /* vaalea teksti */
+  background: #6b7280 !important;
+  color: #e5e7eb !important;
   border-color: transparent !important;
 }
 
@@ -202,14 +215,14 @@
 
 /* MOBILE OVERLAY – oletuksena pois päältä desktopilla */
 .sideOverlay { display: none !important; }
-
+.sideOpen { /* aktivoidaan vain mobiilissa */ }
 .sideCloseBtn{
   position:absolute; right:10px; top:10px;
   background: transparent; border:0; color:#fff;
   font-size: 20px; cursor:pointer;
 }
 
-/* RESPONSIIVINEN: overlay vain mobiilissa, ei koskaan venytä kuukautta */
+/* RESPONSIVE: overlay vain mobiilissa, ei koskaan venytä kuukautta */
 @media (max-width: 1100px){
   .calendarPage{ grid-template-columns: 1fr; }
   .side{ display: none; }

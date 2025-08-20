@@ -3,7 +3,7 @@ import { database, ref, onValue } from "./firebaseConfig";
 import { useNavigate } from "react-router-dom";
 import styles from "./Calendar.module.css";
 
-/* --- Helpers --- */
+/* ---------- Helpers ---------- */
 function startOfMonth(d) {
   const dt = new Date(d.getFullYear(), d.getMonth(), 1);
   const day = (dt.getDay() + 6) % 7; // maanantai=0
@@ -16,29 +16,27 @@ function isSameDay(a, b) {
          a.getMonth() === b.getMonth() &&
          a.getDate() === b.getDate();
 }
-/* Päivä klo 00:00 (ilman kellonaikaa) */
 function dayOnly(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
 
-/* ✅ Päivä-tason sisältyvyys (toimii myös 00:00–00:00 -keikoille) */
+/* Päivä-tason sisältyvyys (toimii myös 00:00–00:00 -keikoille) */
 function overlaps(dayDate, startISO, endISO) {
   if (!startISO || !endISO) return false;
-  const s = new Date(startISO);
-  const e = new Date(endISO);
+  const s = dayOnly(new Date(startISO));
+  const e = dayOnly(new Date(endISO));
   const d = dayOnly(dayDate);
-  const s0 = dayOnly(s);
-  const e0 = dayOnly(e);
-  return s0.getTime() <= d.getTime() && d.getTime() <= e0.getTime();
+  return s.getTime() <= d.getTime() && d.getTime() <= e.getTime();
 }
 
+/* ---------- Component ---------- */
 export default function Calendar() {
   const today = dayOnly(new Date());
 
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [trips, setTrips] = useState([]);
-  const [selectedDay, setSelectedDay] = useState(() => today);   // ✅ valitse tänään oletuksena
+  const [selectedDay, setSelectedDay] = useState(() => today);   // oletuksena tänään
   const navigate = useNavigate();
 
-  /* ✅ Lataa aktiiviset + arkistoidut */
+  // Lataa aktiiviset + arkistoidut
   useEffect(() => {
     const activeRef = ref(database, "keikat");
     const archivedRef = ref(database, "archived-trips");
@@ -76,7 +74,7 @@ export default function Calendar() {
     return () => { offA(); offB(); };
   }, []);
 
-  /* 6 viikkoa → ei scrollia */
+  // 6 viikkoa → ei scrollia
   const first = useMemo(() => startOfMonth(month), [month]);
   const days = useMemo(() => Array.from({ length: 42 }, (_, i) => addDays(first, i)), [first]);
   const monthLabel = useMemo(
@@ -84,7 +82,7 @@ export default function Calendar() {
     [month]
   );
 
-  /* Päivän keikat */
+  // Päivän keikat
   const tripsByDay = useMemo(() => {
     const map = new Map();
     days.forEach((d) => map.set(d.toDateString(), []));
@@ -103,7 +101,7 @@ export default function Calendar() {
   const goPrev = () => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1));
   const goNext = () => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1));
 
-  /* ✅ "Tänään" vie kuluvan kuukauden alkuun ja valitsee tämän päivän */
+  // "Tänään" → valitse tänään ja siirry kuukauteen
   const goToday = () => {
     const t = dayOnly(new Date());
     setMonth(new Date(t.getFullYear(), t.getMonth(), 1));
@@ -122,7 +120,7 @@ export default function Calendar() {
           <button className={styles.btn} onClick={goPrev}>◀</button>
           <div className={styles.title}>{monthLabel}</div>
           <button className={styles.btn} onClick={goNext}>▶</button>
-          <button className={styles.btn} onClick={goToday}>Tänään</button> {/* ✅ */}
+          <button className={styles.btn} onClick={goToday}>Tänään</button>
         </div>
 
         <div className={styles.weekdayRow}>
@@ -133,6 +131,8 @@ export default function Calendar() {
           {days.map((d) => {
             const list = tripsByDay.get(d.toDateString()) || [];
             const todayFlag = isSameDay(d, now);
+            const selectedFlag = selectedDay && isSameDay(d, selectedDay);
+
             return (
               <button
                 key={d.toISOString()}
@@ -141,6 +141,7 @@ export default function Calendar() {
                   styles.day,
                   todayFlag ? styles.dayToday : "",
                   isOtherMonth(d) ? styles.dayOtherMonth : "",
+                  selectedFlag ? styles.daySelected : "",
                 ].join(" ")}
                 title={list.length ? `${list.length} keikka(a)` : "Ei keikkoja"}
               >
@@ -150,7 +151,7 @@ export default function Calendar() {
                     const isArchived = t.archived || t.returned;
                     const tagClass = isArchived ? styles.archived : (styles[t.status] || "");
                     return (
-                      <span key={t.id} className={`${styles.tag} ${tagClass}`}>
+                      <span key={`${t.id}-${d.toDateString()}`} className={`${styles.tag} ${tagClass}`}>
                         {t.name}
                       </span>
                     );
@@ -224,11 +225,11 @@ export default function Calendar() {
         )}
       </div>
 
-      {/* Mobiili: overlay (CSS rajoittaa mobiiliin) */}
+      {/* Mobiili: overlay (näkyy vain mobiilissa CSS:n media querylla) */}
       <div className={`${styles.sideOverlay} ${selectedDay ? styles.sideOpen : ""}`}>
         {selectedDay && (
           <>
-            <button className={styles.sideCloseBtn} onClick={() => setSelectedDay(null)}></button>
+            <button className={styles.sideCloseBtn} onClick={() => setSelectedDay(null)}>✕</button>
             <div className={styles.sideTitle}>
               Valittu päivä: {selectedDay.toLocaleDateString("fi-FI")}
             </div>
@@ -237,7 +238,7 @@ export default function Calendar() {
               const isArchived = t.archived || t.returned;
               const borderClass = isArchived ? styles.cardArchived : (styles[`card_${t.status}`] || "");
               return (
-                <div key={t.id} className={`${styles.card} ${borderClass}`}>
+                <div key={`${t.id}-m`} className={`${styles.card} ${borderClass}`}>
                   <div className={styles.cardTitle}>
                     {t.name} {isArchived && <span className={styles.badge}>Arkistoitu</span>}
                   </div>
