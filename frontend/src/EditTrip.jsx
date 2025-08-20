@@ -30,7 +30,7 @@ function EditTrip({ onRequestClose, tripId }) {
       if (data) {
         setInventory(data);
         setIsInventoryLoaded(true);
-        console.log("Inventory loaded:", data);
+          if (import.meta.env.DEV) console.log("Inventory loaded:", data);
       }
     });
   }, []);
@@ -38,14 +38,14 @@ function EditTrip({ onRequestClose, tripId }) {
   useEffect(() => {
     if (!isInventoryLoaded || !id) return;
 
-    console.log(`Fetching trip with ID: ${id}`); // Log the ID being used
+      if (import.meta.env.DEV) console.log(`Fetching trip with ID: ${id}`); // Log the ID being used
 
     const tripRef = ref(database, `keikat/${id}`);
     get(tripRef)
       .then((snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          console.log("Trip data retrieved:", data); // Log the data retrieved
+            if (import.meta.env.DEV) console.log("Trip data retrieved:", data); // Log the data retrieved
           setName(data.name || "");
           setContact(data.contact || "");
           setStartDate(data.startDate ? new Date(data.startDate) : null);

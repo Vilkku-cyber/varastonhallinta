@@ -95,6 +95,22 @@ const auth = getAuth(app);
 export { database, ref, onValue, push, get, update, remove, auth, signInWithEmailAndPassword };
 ```
 
+### 🔐 Key Management / Avainten hallinta
+
+Store Firebase API keys and other secrets in environment variables instead of hardcoding them into the source. Create a `.env` file in the project root:
+
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_domain
+VITE_FIREBASE_DATABASE_URL=your_database_url
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+Do not commit the `.env` file to version control (it's already ignored). Configure Firebase Realtime Database rules to restrict access and protect data.
+
 ---
 
 ### 🔹 Run the app / Käynnistä sovellus
