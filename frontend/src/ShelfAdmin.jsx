@@ -74,7 +74,7 @@ function ShelfAdmin() {
     };
     set(ref(database, shelfPath), data)
       .then(() => {
-        console.log(`Hylly ${nextKey} lisätty`);
+        if (import.meta.env.DEV) console.log(`Hylly ${nextKey} lisätty`);
         alert(`Hylly ${nextKey} lisätty valmiilla rakenteella!`);
       })
       .catch((error) => {

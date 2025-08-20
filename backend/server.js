@@ -325,5 +325,7 @@ const PORT = 5000;
 const HOST = '0.0.0.0'; // 🔥 Tämä sallii yhteydet kaikilta IP-osoitteilta (mukaan lukien Tailscale)
 
 app.listen(5000, '0.0.0.0', () => {
-    console.log('Server running on port 5000');
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('Server running on port 5000');
+    }
 });

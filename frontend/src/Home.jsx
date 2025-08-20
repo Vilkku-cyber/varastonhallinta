@@ -62,7 +62,7 @@ function Home() {
   }, [location.state, navigate]);
 
   const handleSelectTrip = (id) => {
-    console.log("Selected Trip ID:", id);
+    if (import.meta.env.DEV) console.log("Selected Trip ID:", id);
     setSelectedTripId(id);
     setIsEditTripModalOpen(true);
   };
