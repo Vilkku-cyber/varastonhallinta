@@ -18,6 +18,9 @@ import LedPlanner from "./LedPlanner.jsx";
 import Calendar from "./Calendar";
 
 import ProtectedRoute from "./ProtectedRoute";
+import PrintPackingList from "./helpers/PrintPackingList";
+
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -140,6 +143,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+       
+
+
         <Route
           path="/led-planner"
           element={
@@ -147,7 +153,18 @@ function App() {
               <LedPlanner />
             </ProtectedRoute>
           }
+          
         />
+
+<Route
+  path="/print-packing-list/:tripId"
+  element={
+    <ProtectedRoute>
+      <PrintPackingList />
+    </ProtectedRoute>
+  }
+/>
+
 
         {/* Turvaverkko: tuntematon reitti -> login */}
         <Route path="*" element={<Navigate to="/login" replace />} />

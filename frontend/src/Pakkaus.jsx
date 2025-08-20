@@ -253,7 +253,21 @@ useEffect(() => {
           ))}
         </select>
 
-        <button onClick={handleSave}>Tallenna pakatut</button>
+        <button onClick={handleSave}>Tallenna</button>
+   
+ <button
+  onClick={() => {
+    if (!selectedTripId) {
+      alert("Valitse keikka ensin!");
+      return;
+    }
+    navigate(`/print-packing-list/${selectedTripId}`); // ← EI window.open
+  }}
+>
+  Tulosta
+</button>
+
+ 
       </div>
 
       {/* container flex */}
