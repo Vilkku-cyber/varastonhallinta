@@ -22,11 +22,19 @@ export function TripDetail({
   const [error, se] = useState('');
   const [busy, sb] = useState(false);
   const [damaged, sd] = useState(false);
+  const [manual, setManual] = useState<Record<string, string>>({});
+  const [units, setUnits] = useState<Record<string, string>>({});
   const act = async (c: Command) => {
     sb(true);
     se('');
     try {
       await run(c);
+      if (c.type === 'pack')
+        setManual((values) => {
+          const next = { ...values };
+          delete next[c.itemId];
+          return next;
+        });
     } catch (e) {
       se((e as Error).message);
     } finally {
@@ -223,7 +231,68 @@ export function TripDetail({
                       {!closed &&
                         i.type !== 'legacy' &&
                         (serialMode ? (
-                          <small>Käytä sarjanumeroa</small>
+                          <div>
+                            <select
+                              aria-label={`Valitse yksilö käsin ${i.name}`}
+                              value={units[i.id] ?? ''}
+                              disabled={busy}
+                              onChange={(e) => setUnits({ ...units, [i.id]: e.target.value })}
+                            >
+                              <option value="">Valitse laite käsin</option>
+                              {Object.values(p.units)
+                                .filter((u) =>
+                                  returns
+                                    ? i.unitIds.includes(u.id) && !i.returnedUnitIds.includes(u.id)
+                                    : u.condition === 'ready' &&
+                                      !Object.values(state.trips)
+                                        .filter(
+                                          (trip) => !['closed', 'cancelled'].includes(trip.status),
+                                        )
+                                        .some((trip) =>
+                                          trip.items.some(
+                                            (row) =>
+                                              row.unitIds.includes(u.id) &&
+                                              !row.returnedUnitIds.includes(u.id),
+                                          ),
+                                        ),
+                                )
+                                .map((u) => (
+                                  <option key={u.id} value={u.id}>
+                                    {u.serial}
+                                  </option>
+                                ))}
+                            </select>
+                            <button
+                              className="secondary small"
+                              disabled={
+                                busy || !units[i.id] || (!returns && i.packed >= i.quantity)
+                              }
+                              onClick={() => {
+                                void act(
+                                  returns
+                                    ? {
+                                        type: 'return',
+                                        tripId: t.id,
+                                        itemId: i.id,
+                                        unitId: units[i.id],
+                                        damaged,
+                                        expected: t.version,
+                                      }
+                                    : {
+                                        type: 'pack',
+                                        tripId: t.id,
+                                        itemId: i.id,
+                                        unitId: units[i.id],
+                                        expected: t.version,
+                                      },
+                                );
+                                setUnits({ ...units, [i.id]: '' });
+                              }}
+                            >
+                              {returns ? 'Palauta valittu' : 'Pakkaa valittu'}
+                            </button>
+                            <small>Koodia ei tarvitse skannata.</small>
+                          </div>
                         ) : returns ? (
                           <button
                             className="secondary small"
@@ -242,54 +311,93 @@ export function TripDetail({
                             Palauta 1
                           </button>
                         ) : (
-                          <div className="counter">
-                            <button
-                              disabled={busy || i.packed === 0}
-                              aria-label={`Vähennä pakkausta ${i.name}`}
-                              onClick={() =>
+                          <div>
+                            <form
+                              className="actions"
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                const quantity = Number(manual[i.id] ?? i.packed);
                                 void act({
                                   type: 'pack',
                                   tripId: t.id,
                                   itemId: i.id,
-                                  quantity: i.packed - 1,
+                                  quantity,
                                   expected: t.version,
-                                })
-                              }
+                                });
+                              }}
                             >
-                              −
-                            </button>
-                            <button
-                              disabled={busy || i.packed >= i.quantity}
-                              aria-label={`Pakkaa yksi ${i.name}`}
-                              onClick={() =>
-                                void act({
-                                  type: 'pack',
-                                  tripId: t.id,
-                                  itemId: i.id,
-                                  quantity: i.packed + 1,
-                                  expected: t.version,
-                                })
-                              }
-                            >
-                              +
-                            </button>
-                            <button
-                              className="small secondary"
-                              disabled={busy || i.packed === i.quantity}
-                              onClick={() =>
-                                void act({
-                                  type: 'pack',
-                                  tripId: t.id,
-                                  itemId: i.id,
-                                  quantity: i.quantity,
-                                  expected: t.version,
-                                })
-                              }
-                            >
-                              Kaikki
-                            </button>
+                              <label>
+                                Pakattu määrä
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max={i.quantity}
+                                  step="1"
+                                  required
+                                  style={{ width: 90 }}
+                                  aria-label={`Pakattu määrä ${i.name}`}
+                                  value={manual[i.id] ?? String(i.packed)}
+                                  onChange={(e) => setManual({ ...manual, [i.id]: e.target.value })}
+                                />
+                              </label>
+                              <button className="small secondary" disabled={busy}>
+                                Tallenna määrä
+                              </button>
+                            </form>
+                            <div className="counter">
+                              <button
+                                disabled={busy || i.packed === 0}
+                                aria-label={`Vähennä pakkausta ${i.name}`}
+                                onClick={() =>
+                                  void act({
+                                    type: 'pack',
+                                    tripId: t.id,
+                                    itemId: i.id,
+                                    quantity: i.packed - 1,
+                                    expected: t.version,
+                                  })
+                                }
+                              >
+                                −
+                              </button>
+                              <button
+                                disabled={busy || i.packed >= i.quantity}
+                                aria-label={`Pakkaa yksi ${i.name}`}
+                                onClick={() =>
+                                  void act({
+                                    type: 'pack',
+                                    tripId: t.id,
+                                    itemId: i.id,
+                                    quantity: i.packed + 1,
+                                    expected: t.version,
+                                  })
+                                }
+                              >
+                                +
+                              </button>
+                              <button
+                                className="small secondary"
+                                disabled={busy || i.packed === i.quantity}
+                                onClick={() =>
+                                  void act({
+                                    type: 'pack',
+                                    tripId: t.id,
+                                    itemId: i.id,
+                                    quantity: i.quantity,
+                                    expected: t.version,
+                                  })
+                                }
+                              >
+                                Merkitse kaikki pakatuksi
+                              </button>
+                            </div>
                           </div>
                         ))}
+                      {!closed && i.type === 'legacy' && (
+                        <small>
+                          Tuotu pakkausrivi: tuoteyhteys on tarkistettava ennen määrien muuttamista.
+                        </small>
+                      )}
                     </td>
                   </tr>
                 );
@@ -343,3 +451,4 @@ export function TripDetail({
     </>
   );
 }
+
