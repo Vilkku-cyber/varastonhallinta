@@ -133,19 +133,36 @@ export function TripEditor({
                   `${p.name} ${p.category}`.toLowerCase().includes(search.toLowerCase()),
               )
               .slice(0, 12)
-              .map((p) => (
-                <button
-                  type="button"
-                  key={p.id}
-                  onClick={() => {
-                    add(p);
-                    setSearch('');
-                  }}
-                >
-                  <span>{p.name}</span>
-                  <Plus size={16} />
-                </button>
-              ))}
+              .map((p) => {
+                let free: number | undefined;
+                try {
+                  free = availability(state, p.id, draft.start, draft.end, draft.id).available;
+                } catch {}
+                const selected = draft.items
+                  .filter((i) => i.type === 'inventory' && i.productId === p.id)
+                  .reduce((sum, i) => sum + i.quantity, 0);
+                return (
+                  <button
+                    type="button"
+                    key={p.id}
+                    onClick={() => {
+                      add(p);
+                      setSearch('');
+                    }}
+                  >
+                    <span>
+                      {p.name}
+                      <small style={{ display: 'block' }}>
+                        {free === undefined
+                          ? 'Valitse kelvollinen keikan aikaväli'
+                          : `${free} kpl vapaana keikan ajalle`}
+                        {selected > 0 && ` · keikalle valittu ${selected} kpl`}
+                      </small>
+                    </span>
+                    <Plus size={16} />
+                  </button>
+                );
+              })}
           </div>
         )}
         <div className="editor-items">
@@ -224,3 +241,4 @@ export function TripEditor({
     </Dialog>
   );
 }
+
