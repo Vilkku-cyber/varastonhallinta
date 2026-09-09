@@ -19,7 +19,7 @@ Saatavuus, pakkaus, palautus ja keikkalista käyttävät samaa domain-mallia. Pa
 
 Komentotunnus on yhden kutsun ajan pysyvä ja kuitit estävät saman tunnuksen toistamisen. Keikan version tarkistus hylkää vanhaksi jääneen lomakkeen. Paikallisen adapterin kahden samanaikaisen tietokantayhteyden testissä viimeisen 10 laitteen erän sai vain yksi keikka.
 
-Kriittinen ero aiempaan palvelinsuunnitelmaan: liiketoimintavalidointi ajetaan nyt asiakkaalla. RTDB-sääntöluonnos rajaa pääsyn sallittuihin käyttäjiin ja tarkistaa perusrakennetta, mutta **ei todista kaikkia dynaamisia varaus-/pakkausinvariantteja pahantahtoista sallittua kirjoittajaa vastaan**. Kirjoittavan operator-käyttäjän on tässä mallissa oltava luotettu. Sääntöjä ei ole emulaattoritestattu tai julkaistu. Tätä ei esitetä aiemman auktoritatiivisen palvelimen turvallisuustason korvaajana.
+Kriittinen ero aiempaan palvelinsuunnitelmaan: liiketoimintavalidointi ajetaan nyt asiakkaalla. RTDB-sääntöluonnos rajaa pääsyn sallittuihin käyttäjiin ja tarkistaa perusrakennetta, mutta **ei todista kaikkia dynaamisia varaus-/pakkausinvariantteja pahantahtoista sallittua kirjoittajaa vastaan**. allowedUsers-listaan hyväksytyn kirjoittavan käyttäjän on tässä mallissa oltava luotettu. Sääntöjä ei ole emulaattoritestattu tai julkaistu. Tätä ei esitetä aiemman auktoritatiivisen palvelimen turvallisuustason korvaajana.
 
 Ennen yhteistä tuotantoa tarvitaan emulaattori/testiprojekti, sääntötestit, roolien vahvistus ja mahdollisesti tiukempi päivä-/yksilökohtainen kirjoitusmalli. Tämä voidaan toteuttaa ilman Functionsia; vaihtoehtona on myöhemmin erillinen oma palvelin, jos asiakkaan luottamusraja ei riitä. Olemassa olevaa Firebase-laskutusta tai tilausta ei muutettu.
 

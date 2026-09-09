@@ -12,8 +12,10 @@ Nykyinen tuotanto on https://av-arsenal.vercel.app. Käyttäjän Vercel-kuvassa 
 
 ## Julkaisun este
 
+Käyttäjä toimitti nykyiset RTDB-säännöt. Paikallinen firebase/database.rules.json säilyttää niiden allowedUsers-, inventory-, keikat-, archived-trips-, shelves- ja todo-oikeudet ja lisää v2-polun samoille allowedUsers-listan käyttäjille. Erillistä v2-access-listaa ei tarvita. Muutos on julkaisematon ja odottaa Firebase-emulaattorin käyttöoikeustestejä. Yhteinen käyttäjälista ei synkronoi vanhaa ja uutta tietomallia: tuotantoon siirtyessä tarvitaan ajantasainen siirto ja vanhan version kirjoitusten hallittu lopetus.
+
 Paikallinen esikatselu tallentaa IndexedDB:hen. Firebase-adapteri käyttää erillistä avArsenalV2/state-polkua, mutta tuotannon siirtoa, käyttöoikeuksia ja sääntöjä ei ole otettu käyttöön. Kirjautumattomat tarkistukset palauttivat 401 (v2-polku) ja 403 (säännöt); nämä eivät todenna kirjautuneen käytön toimivuutta tai tietojen olemassaoloa. Hallintayhteyttä Firebaseen ei ole käytettävissä tässä työympäristössä. GitHub-yhteys toimii.
 
 Tarvitaan Firebase-hallintayhteys, ajantasainen varmuuskopio sekä dokumentin 05 migraatio- ja käyttötestit ennen tuotannon korvaamista. Firebase Functions ei kuulu toteutukseen. Vanhaan tuotantotietokantaan ei ole kirjoitettu.
 
-Vercelin asetuksissa uuden haaran sovellus on repositorion juuressa (vanha sovellus frontend-kansiossa). Root Directory on tarkistettava julkaisun yhteydessä, samoin Firebase-ympäristöasetukset. Pelkkä GitHub-push ei ratkaise tietokantasiirtoa.
+Vercelin Root Directory on frontend. Myös uuden haaran sovellus on nyt frontend-kansiossa, joten yhteistä projektiasetusta ei tarvitse muuttaa. frontend/vercel.json määrittää Viten, npm ci -asennuksen, npm run build -buildin ja dist-tuloshakemiston. Testit ja build läpäistiin siirretyssä hakemistossa. Firebase-ympäristöasetukset ja tietokantasiirto tarvitaan edelleen ennen verkkokäyttöä; pelkkä GitHub-push ei ratkaise tietokantasiirtoa.

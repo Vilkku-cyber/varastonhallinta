@@ -7,7 +7,7 @@ Ensimmäinen ajettava 2.0-toteutus. React + TypeScript + Vite, yhteinen domain-l
 Koneella on Node 26.3.0. Testit käyttävät Noden TypeScript-tukea; käytä Node >=22.18 (suositus nykyinen 24 LTS) ja npm.
 
 ```powershell
-Set-Location C:\Users\vilhe\Videos\AV-arsenal
+Set-Location C:\Users\vilhe\Videos\AV-arsenal\frontend
 npm.cmd ci
 npm.cmd run dev -- --port 4173
 ```
