@@ -1,154 +1,67 @@
-# Warehouse Management App / Varastonhallintasovellus
+# AV-arsenal 2.0 alpha
 
-A lightweight and customizable warehouse management system designed for AV gear rentals and event logistics. Built with React and Firebase Realtime Database.
+Ensimmäinen ajettava 2.0-toteutus. React + TypeScript + Vite, yhteinen domain-logiikka ja vaihdettava tallennuskerros. **Firebase Functionsia ei käytetä eikä aktivoida.**
 
-Kevyt ja helposti muokattava varastonhallintajärjestelmä, suunniteltu erityisesti AV-laitteiden vuokraukseen ja tapahtumien logistiikkaan. Rakennettu Reactilla ja Firebase-tietokannalla.
+## Käynnistä
 
-📍 GitHub repository: https://github.com/Vilkku-cyber/varastonhallinta.git
+Koneella on Node 26.3.0. Testit käyttävät Noden TypeScript-tukea; käytä Node >=22.18 (suositus nykyinen 24 LTS) ja npm.
 
----
-
-## ✨ Features / Ominaisuudet
-
-- 📦 **Inventory View / Varastonäkymä**
-  - Realtime inventory with category filters
-  - Available vs. reserved item counts
-  - Product detail pages with serial number tracking
-
-- 🎤 **Trip/Event Management / Keikkojen hallinta**
-  - Create trips with name, date range, and contact info
-  - Add multiple products with quantities
-  - Automatic availability tracking
-
-- 📋 **Packing View / Pakkausnäkymä**
-  - Scan product serial numbers
-  - Add manual items without serials
-  - Tracks packed vs. needed amounts
-
-- 🔍 **Search & Filter / Haku ja suodatus**
-  - Dynamic product dropdown filter
-  - Archive filtering by trip name, dates, or products
-
-- 📱 **QR Code Reader / QR-koodinlukija**
-  - Scan serial numbers with a camera
-  - View detailed product and unit info
-
-- 🔐 **Login System / Kirjautuminen**
-  - Firebase Auth with email & password
-  - Password reset included
-
----
-
-## ⚙️ Technologies / Teknologiat
-
-- React
-- Firebase Realtime Database
-- React Router
-- React Modal
-- DatePicker
-- jsQR (QR scanning)
-
----
-
-## 🚀 Getting Started / Käyttöönotto
-
-### 🔸 Prerequisites / Vaatimukset
-
-- Node.js
-- Firebase project with:
-  - Realtime Database
-  - Authentication enabled
-
----
-
-### 🔹 Installation / Asennus
-
-```bash
-git clone https://github.com/Vilkku-cyber/varastonhallinta.git
-cd varastonhallinta
-npm install
+```powershell
+Set-Location C:\Users\vilhe\Videos\AV-arsenal
+npm.cmd ci
+npm.cmd run dev -- --port 4173
 ```
 
----
+Avaa http://127.0.0.1:4173. Oletuksena avautuu paikallinen esimerkkityötila. Tiedot säilyvät selaimen IndexedDB:ssä, ja saman selaimen välilehdet päivittyvät BroadcastChannelin kautta. Paikallinen tila ei synkronoidu laitteiden välillä.
 
-### 🔹 Firebase Config
-
-Create a file called `firebaseConfig.js` inside the `src/` folder:
-
-```js
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue, push, get, update, remove } from "firebase/database";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_DOMAIN",
-  databaseURL: "YOUR_DATABASE_URL",
-  projectId: "YOUR_PROJECT_ID",
-  // etc...
-};
-
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
-const auth = getAuth(app);
-
-export { database, ref, onValue, push, get, update, remove, auth, signInWithEmailAndPassword };
+```powershell
+npm.cmd test
+npm.cmd run build
+npm.cmd run preview -- --port 4173
 ```
 
-### 🔐 Key Management / Avainten hallinta
+Älä käynnistä preview- ja dev-palvelinta samaan porttiin. Kehityspalvelin on rajattu localhostiin.
 
-Store Firebase API keys and other secrets in environment variables instead of hardcoding them into the source. Create a `.env` file in the project root:
+## Toteutettu
 
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_domain
-VITE_FIREBASE_DATABASE_URL=your_database_url
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
+- Etusivu, aktiiviset keikat ja arkisto; tuote- ja sarjanumerohaku historiasta.
+- Keikkojen luonti ja muokkaus, inventory-rivit sekä vapaan tekstin muu tuote.
+- **Päiväkohtainen saatavuus ja kalenteri.** Peräkkäisten päivien keikat voivat varata saman laitteen. Aikavälin saatavuus perustuu kuormituksen huippuun, ei eri päivien varausten summaan.
+- Kaluston luonti/muokkaus, kategoriat, sarjanumerot, huoltotila ja useat hyllysijainnit.
+- Sarjanumeropakkaus, käsin pakkaus, osapalautus, huoltoon palautus ja keikan sulkeminen. Tapahtumaloki.
+- Kameran QR-lukija sekä käsin/USB-skannerilla syötetty sarjanumero. Kameran fyysistä toimintaa ei vielä todennettu.
+- Tulostettava lähetyslista myös arkistokeikasta. Paperi-/PDF-tulosteen ulkoasua ei vielä renderöity erikseen.
+- Hyllypaikkojen ja hyllymerkintöjen hallinta, haku ja yhteinen tehtävälista.
+- Alkuperäinen varaston pohjakartta, hyllyjen tasot sekä tuote-, sarjanumero- ja hyllyosoitehaku. Hakutulos korostaa oikean hyllypaikan.
+- LED-paneelimitoitus ja Pintaledin 0,5 m palojen siirto uudelle tai olemassa olevalle keikalle.
+- Vanhan RTDB-exportin paikallinen tuontiesikatselu, tarkistusjono, 2.0-varmuuskopion vienti ja palautus. Alkuperäinen tuonti säilyy varmuuskopiossa.
+- Valinnainen Firebase Auth + RTDB-adapteri erilliseen v2-polkuun, ilman Functions SDK:ta.
+
+## Tietojen tuonti
+
+Tiedot ja asetukset → Valitse JSON-export → tarkista yhteenveto → Ota esikatseltu aineisto paikalliseen käyttöön. Tuonti korvaa vain paikallisen työtilan. Vie nykyinen varmuuskopio ennen vaihtamista. Alkuperäistä lähdetiedostoa tai vanhaa Firebase-kantaa ei muuteta.
+
+CLI-esikatselu ilman selainta tai verkkoyhteyttä:
+
+```powershell
+node tools/preview-import.ts "C:\Users\vilhe\Videos\varasto\tietokanta tuonti\varastosofta-default-rtdb-export.json" reports/private/uusi-esikatselu.json
+npm.cmd run audit:export -- "C:\Users\vilhe\Videos\varasto\tietokanta tuonti\varastosofta-default-rtdb-export.json" reports/private/uusi-audit.json
 ```
 
-Do not commit the `.env` file to version control (it's already ignored). Configure Firebase Realtime Database rules to restrict access and protect data.
+Ulkoinen aineisto ja raportit ovat gitignoratussa reports/private-kansiossa. Älä julkaise niitä tai siirrä niitä public/dist-kansioon. CLI ei ylikirjoita olemassa olevaa tiedostoa.
 
----
+Oikeasta exportista saatiin 189 tuotetta, 124 keikkaa, 103 hyllypaikkaa ja 264 sijoittelua. Alkuperäisten suunnitelmarivien määrien summa 6102 ja pakattujen määrien summa 3181 säilyivät. Tuonti sisältää 378 tarkistusmerkintää (useita samasta kohteesta), joita ei väitetä ratkaistuiksi.
 
-### 🔹 Run the app / Käynnistä sovellus
+## Tiedostot
 
-```bash
-npm run dev
-```
+- [Nykyinen toteutus ja rajat](docs/05-toteutus-ja-jatko.md)
+- [Alkuperäinen kokonaisuussuunnitelma](docs/01-kokonaisuussuunnitelma.md)
+- [Vanhan version kartoitus](docs/02-nykytila.md)
+- [Alkuperäinen migraatiosuunnitelma](docs/03-tietomalli-ja-migraatio.md)
+- [Riippuvuussuunnitelma](docs/04-riippuvuudet-ja-hyvaksynta.md)
 
----
+`src/domain` sisältää testattavat säännöt, `src/data` paikallisen/Firebase-tallennuksen ja `src/ui` käyttöliittymän. `package-lock.json` lukitsee asennetut versiot. Fontit toimitetaan paikallisesti, ei Google Fonts -verkkopyyntöjä.
 
-## 📁 Folder Structure / Kansion rakenne
+## Rajat ennen tuotantokäyttöä
 
-src/
-├── App.jsx
-├── Home.jsx
-├── Inventory.jsx
-├── CreateTrip.jsx
-├── EditTrip.jsx
-├── CreateTripModal.jsx
-├── EditTripModal.jsx
-├── PastTrips.jsx
-├── Pakkaus.jsx
-├── QRCodeReader.jsx
-├── ProductModal.jsx
-├── AddProductModal.jsx
-├── ProductSelector.jsx
-├── ProductSearchDropdown.jsx
-├── Login.jsx
-└── firebaseConfig.js
-
----
-
-## 📄 License / Lisenssi
-
-This project is open source and free to use.
-
-Tämä projekti on avoin ja ilmainen käyttää. Kehitysehdotukset ja kontribuutiot ovat tervetulleita!
-
----
-
-🛠️ Made with love by [Vilkku-cyber](https://github.com/Vilkku-cyber)
+Tämä on paikallisesti kokeiltava alpha. Vanhaa tuotantoa ei ole korvattu. Firebase-kirjautuminen, RTDB-säännöt ja kahden oikean verkkolaitteen kilpailutilanteet odottavat emulaattori-/testiprojektivarmistusta. Sääntöluonnos on tiedostossa firebase/database.rules.json; sitä ei ole julkaistu. Täydet LED-asennus-/kaapeli-/prosessoriprofiilit, historiapoikkeamien ratkaiseminen sekä tuotantoon siirto ovat vielä kesken. Katso tarkempi hyväksymislista toteutusdokumentista.

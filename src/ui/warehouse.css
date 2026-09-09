@@ -1,0 +1,130 @@
+.warehouse-toolbar {
+  margin-bottom: 18px;
+}
+.warehouse-toolbar .tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.warehouse-toolbar .selected {
+  outline: 2px solid #d5ad53;
+}
+.warehouse-search {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+.warehouse-search .search {
+  flex: 1;
+  min-width: 220px;
+}
+.warehouse-map-panel,
+.shelf-elevation-panel {
+  margin-bottom: 22px;
+}
+.warehouse-map-scroll,
+.shelf-elevation-scroll {
+  overflow-x: auto;
+}
+.warehouse-map {
+  position: relative;
+  min-width: 720px;
+}
+.warehouse-map img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+.warehouse-map-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  background: #176651;
+  color: #fff;
+  box-shadow: 0 2px 8px #0009;
+  font-weight: 800;
+}
+.warehouse-map-marker.unrecorded {
+  border-style: dashed;
+  background: #48505a;
+}
+.warehouse-map-marker.chosen,
+.warehouse-map-marker.matched {
+  background: #edc467;
+  color: #17202c;
+}
+.map-help {
+  margin: 12px 0;
+}
+.warehouse-shelf-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.selected-shelf {
+  outline: 2px solid #d5ad53;
+}
+.shelf-elevation {
+  display: grid;
+  gap: 14px;
+}
+.shelf-aisle {
+  min-width: 0;
+  border-left: 5px solid #7b8794;
+  border-right: 5px solid #7b8794;
+}
+.shelf-aisle h3 {
+  padding: 0 10px;
+}
+.shelf-level {
+  padding: 14px 10px;
+  border-bottom: 6px solid #7b8794;
+  min-height: 130px;
+}
+.shelf-level header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.shelf-level ul {
+  padding-left: 20px;
+  overflow-wrap: anywhere;
+}
+.shelf-level.search-location {
+  background: #d5ad5318;
+}
+.shelf-level.focused-location {
+  outline: 3px solid #d5ad53;
+  outline-offset: -3px;
+  background: #d5ad532b;
+}
+.warehouse-result {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid #ffffff18;
+}
+.warehouse-result > div {
+  flex: 1;
+}
+.warehouse-result p {
+  margin: 5px 0;
+}
+@media (max-width: 600px) {
+  .warehouse-result {
+    flex-wrap: wrap;
+  }
+  .warehouse-result > div {
+    min-width: 180px;
+  }
+  .warehouse-search > button {
+    flex: 1;
+  }
+}

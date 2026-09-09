@@ -1,0 +1,16 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "avArsenalV2": {
+      "access": {"$uid": {".read": "auth != null && auth.uid == $uid", ".write": false}},
+      "state": {
+        ".read": "auth != null && root.child('avArsenalV2/access').child(auth.uid).child('enabled').val() == true",
+        ".write": "auth != null && root.child('avArsenalV2/access').child(auth.uid).child('enabled').val() == true && root.child('avArsenalV2/access').child(auth.uid).child('role').val() == 'operator' && newData.exists()",
+        ".validate": "newData.hasChildren(['schemaVersion','revision']) && newData.child('schemaVersion').val() == 2 && newData.child('revision').isNumber() && ((!data.exists() && newData.child('revision').val() == 1) || newData.child('revision').val() == data.child('revision').val() + 1)",
+        "products": {"$id": {".validate": "newData.hasChildren(['id','name','total','maintenance','tracking','version']) && newData.child('id').val() == $id && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('total').isNumber() && newData.child('total').val() >= 0 && newData.child('maintenance').isNumber() && newData.child('maintenance').val() >= 0 && (newData.child('tracking').val() == 'serial' || newData.child('tracking').val() == 'quantity')"}},
+        "trips": {"$id": {".validate": "newData.hasChildren(['id','name','start','end','status','version']) && newData.child('id').val() == $id && newData.child('name').isString() && newData.child('version').isNumber() && newData.child('start').isString() && newData.child('end').isString()"}}
+      }
+    }
+  }
+}

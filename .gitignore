@@ -1,5 +1,11 @@
 node_modules/
 dist/
-.vscode/
-.DS_Store
 .env
+.env.*
+!.env.example
+local-data/
+tmp/
+reports/private/
+*.log
+.vercel/
+.firebase/
