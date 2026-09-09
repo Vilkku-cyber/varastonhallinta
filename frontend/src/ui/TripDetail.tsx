@@ -299,6 +299,82 @@ export function TripDetail({
                               {returns ? 'Palauta valittu' : 'Pakkaa valittu'}
                             </button>
                             <small>Koodia ei tarvitse skannata.</small>
+                            <small>
+                              Ilman sarjanumeroa pakattu: {Math.max(0, i.packed - i.unitIds.length)}{' '}
+                              kpl
+                            </small>
+                            {returns ? (
+                              <button
+                                className="secondary small"
+                                disabled={
+                                  busy ||
+                                  i.packed - i.unitIds.length <=
+                                    i.returned - i.returnedUnitIds.length
+                                }
+                                onClick={() =>
+                                  void act({
+                                    type: 'return',
+                                    tripId: t.id,
+                                    itemId: i.id,
+                                    quantity: 1,
+                                    damaged,
+                                    expected: t.version,
+                                  })
+                                }
+                              >
+                                Palauta 1 ilman sarjanumeroa
+                              </button>
+                            ) : (
+                              <form
+                                className="actions"
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  void act({
+                                    type: 'pack',
+                                    tripId: t.id,
+                                    itemId: i.id,
+                                    quantity: Number(manual[i.id] ?? i.packed),
+                                    expected: t.version,
+                                  });
+                                }}
+                              >
+                                <label>
+                                  Pakattu yhteensä
+                                  <input
+                                    type="number"
+                                    required
+                                    min={i.unitIds.length}
+                                    max={i.quantity}
+                                    step="1"
+                                    aria-label={`Pakattu määrä ${i.name}`}
+                                    value={manual[i.id] ?? String(i.packed)}
+                                    onChange={(e) =>
+                                      setManual({ ...manual, [i.id]: e.target.value })
+                                    }
+                                    style={{ width: 90 }}
+                                  />
+                                </label>
+                                <button disabled={busy} className="secondary small">
+                                  Tallenna käsin
+                                </button>
+                                <button
+                                  type="button"
+                                  className="secondary small"
+                                  disabled={busy || i.packed >= i.quantity}
+                                  onClick={() =>
+                                    void act({
+                                      type: 'pack',
+                                      tripId: t.id,
+                                      itemId: i.id,
+                                      quantity: i.quantity,
+                                      expected: t.version,
+                                    })
+                                  }
+                                >
+                                  Merkitse kaikki pakatuksi
+                                </button>
+                              </form>
+                            )}
                           </div>
                         ) : returns ? (
                           <button

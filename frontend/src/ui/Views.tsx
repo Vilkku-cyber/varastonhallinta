@@ -24,6 +24,7 @@ import { importLegacy } from '../domain/importLegacy';
 import { parseBackup } from '../domain/backup';
 import { panelPlan } from '../domain/planner';
 import { Empty, Field, download, uid } from './shared';
+import { DatePicker } from './DatePicker';
 import { CloudImport } from './CloudImport';
 export function TripCards({ trips, select }: { trips: Trip[]; select: (id: string) => void }) {
   return (
@@ -60,6 +61,7 @@ export function Dashboard({
   create: () => void;
 }) {
   const now = today();
+  const [visibleCount, setVisibleCount] = useState(6);
   const trips = Object.values(state.trips)
     .filter(open)
     .sort((a, b) => a.start.localeCompare(b.start));
@@ -107,7 +109,14 @@ export function Dashboard({
         <span>{trips.length} keikkaa</span>
       </div>
       {trips.length ? (
-        <TripCards trips={trips.slice(0, 6)} select={select} />
+        <>
+          <TripCards trips={trips.slice(0, visibleCount)} select={select} />
+          {visibleCount < trips.length && (
+            <button className="secondary" onClick={() => setVisibleCount((n) => n + 6)}>
+              Näytä lisää keikkoja ({trips.length - visibleCount})
+            </button>
+          )}
+        </>
       ) : (
         <Empty>Ei aktiivisia keikkoja. Luo ensimmäinen keikka.</Empty>
       )}
@@ -145,115 +154,7 @@ export function Dashboard({
     </>
   );
 }
-export function CalendarView({ state, select }: { state: State; select: (id: string) => void }) {
-  const [start, ss] = useState(today());
-  const dates = days(start, addDays(start, 13));
-  const trips = Object.values(state.trips).filter(
-    (t) => !['closed', 'cancelled'].includes(t.status) && t.end >= start && t.start <= dates[13],
-  );
-  return (
-    <>
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow">VARAUKSET PÄIVITTÄIN</p>
-          <h1>Kalenteri</h1>
-          <p className="subtitle">Lähtö- ja loppupäivä kuuluvat varaukseen.</p>
-        </div>
-        <div className="actions">
-          <button className="secondary" onClick={() => ss(addDays(start, -14))}>
-            ←
-          </button>
-          <input
-            aria-label="Kalenterin alkupäivä"
-            type="date"
-            value={start}
-            onChange={(e) => {
-              if (validDay(e.target.value)) ss(e.target.value);
-            }}
-          />
-          <button className="secondary" onClick={() => ss(addDays(start, 14))}>
-            →
-          </button>
-        </div>
-      </div>
-      <section className="panel calendar-scroll">
-        <div
-          className="calendar-grid"
-          style={{ gridTemplateColumns: `220px repeat(14,minmax(70px,1fr))` }}
-        >
-          <div className="calendar-label">Keikka</div>
-          {dates.map((d) => (
-            <div key={d} className={d === today() ? 'is-today' : ''}>
-              <small>{new Date(d).toLocaleDateString('fi-FI', { weekday: 'short' })}</small>
-              <b>{formatDay(d)}</b>
-            </div>
-          ))}
-          {trips.map((t) => (
-            <div className="calendar-row" key={t.id}>
-              <button className="calendar-name" onClick={() => select(t.id)}>
-                {t.name}
-                <small>{statusLabels[t.status]}</small>
-              </button>
-              {dates.map((d) => (
-                <button
-                  aria-label={`${t.name}, ${formatDay(d)}`}
-                  key={d}
-                  onClick={() => select(t.id)}
-                  className={d >= t.start && d <= t.end ? 'occupied' : 'unoccupied'}
-                >
-                  {d === t.start ? 'Lähtö' : d === t.end ? 'Paluu' : ''}
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
-        {!trips.length && <Empty>Ei keikkoja tällä aikavälillä.</Empty>}
-      </section>
-      <div className="section-heading">
-        <h2>Kaluston vapaa määrä</h2>
-        <span>Päiväkohtainen saldo</span>
-      </div>
-      <section className="panel calendar-scroll">
-        <table className="capacity-table">
-          <thead>
-            <tr>
-              <th>Kalusto</th>
-              {dates.map((d) => (
-                <th key={d}>{formatDay(d)}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {Object.values(state.products)
-              .filter((p) => !p.retired)
-              .map((p) => (
-                <tr key={p.id}>
-                  <td>{p.name}</td>
-                  {dates.map((d) => {
-                    const a = availability(state, p.id, d, d);
-                    return (
-                      <td
-                        key={d}
-                        className={
-                          a.available < 0
-                            ? 'danger-text'
-                            : a.available === 0
-                              ? 'muted'
-                              : 'success-text'
-                        }
-                      >
-                        {a.available}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </section>
-    </>
-  );
-}
+export { CalendarView } from './MonthCalendar';
 export function InventoryView({ state, edit }: { state: State; edit: (p?: Product) => void }) {
   const [query, sq] = useState('');
   const [start, ss] = useState(today()),
@@ -295,16 +196,16 @@ export function InventoryView({ state, edit }: { state: State; edit: (p?: Produc
             <option key={c}>{c}</option>
           ))}
         </select>
-        <input
+        <DatePicker
           aria-label="Saatavuus alkaa"
-          type="date"
+
           value={start}
           onChange={(e) => ss(e.target.value)}
         />
         <span>—</span>
-        <input
+        <DatePicker
           aria-label="Saatavuus päättyy"
-          type="date"
+
           value={end}
           min={start}
           onChange={(e) => se(e.target.value)}

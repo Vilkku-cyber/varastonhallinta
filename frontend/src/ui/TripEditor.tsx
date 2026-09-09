@@ -1,3 +1,4 @@
+import { DatePicker } from './DatePicker';
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { type State, type Trip, type Item } from '../domain/model';
@@ -90,17 +91,15 @@ export function TripEditor({
         </Field>
         <div className="form-grid">
           <Field label="Alkupäivä">
-            <input
+            <DatePicker
               required
-              type="date"
               value={draft.start}
               onChange={(e) => patch({ start: e.target.value })}
             />
           </Field>
           <Field label="Loppupäivä">
-            <input
+            <DatePicker
               required
-              type="date"
               min={draft.start}
               value={draft.end}
               onChange={(e) => patch({ end: e.target.value })}

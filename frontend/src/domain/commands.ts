@@ -232,21 +232,28 @@ export function applyCommand(
         if (!['planned', 'packed'].includes(t.status)) fail('Pakkaa keikka ennen lähtöä.');
         if (p?.review || p?.retired) fail('Tuote pitää tarkistaa ennen pakkaamista.');
         if (p?.tracking === 'serial') {
-          const uid = c.unitId ?? '';
-          const u = p.units[uid];
-          if (!u) fail('Sarjanumeroa ei löydy tämän tuotteen yksilöistä.');
-          if (c.remove) {
-            i.unitIds = i.unitIds.filter((x) => x !== uid);
-          } else if (!i.unitIds.includes(uid)) {
-            if (u.condition !== 'ready') fail('Laite on huollossa.');
-            for (const other of Object.values(s.trips).filter(open))
-              for (const row of other.items)
-                if (row !== i && row.unitIds.includes(uid) && !row.returnedUnitIds.includes(uid))
-                  fail('Laite on jo pakattu toiselle riville tai keikalle.');
-            i.unitIds.push(uid);
+          const anonymous = Math.max(0, i.packed - i.unitIds.length);
+          if (c.quantity !== undefined && !c.unitId) {
+            if (!int(c.quantity) || c.quantity < i.unitIds.length)
+              fail('Kokonaismäärä ei voi alittaa tunnistettujen laitteiden määrää.');
+            i.packed = c.quantity;
+          } else {
+            const uid = c.unitId ?? '';
+            const u = p.units[uid];
+            if (!u) fail('Sarjanumeroa ei löydy tämän tuotteen yksilöistä.');
+            if (c.remove) {
+              i.unitIds = i.unitIds.filter((x) => x !== uid);
+            } else if (!i.unitIds.includes(uid)) {
+              if (u.condition !== 'ready') fail('Laite on huollossa.');
+              for (const other of Object.values(s.trips).filter(open))
+                for (const row of other.items)
+                  if (row !== i && row.unitIds.includes(uid) && !row.returnedUnitIds.includes(uid))
+                    fail('Laite on jo pakattu toiselle riville tai keikalle.');
+              i.unitIds.push(uid);
+            }
+            i.packed = i.unitIds.length + anonymous;
+            i.serialSnapshots = i.unitIds.map((uid) => p.units[uid].serial);
           }
-          i.packed = i.unitIds.length;
-          i.serialSnapshots = i.unitIds.map((uid) => p.units[uid].serial);
         } else {
           if (c.unitId) fail('Tuotetta seurataan kappalemääränä.');
           if (!int(c.quantity ?? -1)) fail('Anna kelvollinen määrä.');
@@ -272,16 +279,26 @@ export function applyCommand(
         if (!['out', 'returning'].includes(t.status))
           fail('Palautus tehdään keikalla olevalle kalustolle.');
         if (p?.tracking === 'serial') {
-          const uid = c.unitId ?? '';
-          if (!i.unitIds.includes(uid)) fail('Yksilöä ei ole pakattu.');
-          if (!i.returnedUnitIds.includes(uid)) {
-            i.returnedUnitIds.push(uid);
-            if (c.damaged) {
-              p.units[uid].condition = 'maintenance';
-              p.version++;
+          const anonymousReturned = Math.max(0, i.returned - i.returnedUnitIds.length);
+          if (c.quantity !== undefined && !c.unitId) {
+            const outstanding = i.packed - i.unitIds.length - anonymousReturned;
+            if (!int(c.quantity, 1) || c.quantity > outstanding)
+              fail('Määrä ylittää ilman sarjanumeroa palauttamatta olevat laitteet.');
+            if (c.damaged)
+              fail('Tunnista huoltoon palautettava laite sarjanumerolla ennen huoltomerkintää.');
+            i.returned += c.quantity;
+          } else {
+            const uid = c.unitId ?? '';
+            if (!i.unitIds.includes(uid)) fail('Yksilöä ei ole pakattu.');
+            if (!i.returnedUnitIds.includes(uid)) {
+              i.returnedUnitIds.push(uid);
+              if (c.damaged) {
+                p.units[uid].condition = 'maintenance';
+                p.version++;
+              }
             }
+            i.returned = i.returnedUnitIds.length + anonymousReturned;
           }
-          i.returned = i.returnedUnitIds.length;
         } else {
           if (!int(c.quantity ?? -1) || c.quantity! > i.packed - i.returned)
             fail('Palautusmäärä ylittää palauttamatta olevan määrän.');
