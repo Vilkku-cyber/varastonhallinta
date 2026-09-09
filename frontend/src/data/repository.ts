@@ -7,6 +7,7 @@ export interface Repository {
   dispatch(c: Command): Promise<void>;
   importLocal?(s: State, source: unknown): Promise<void>;
   backup(): Promise<unknown>;
+  initializeDemo?(): Promise<void>;
 }
 // RTDB removes empty maps and arrays. Restore the domain shape at this boundary.
 export function hydrate(raw: Partial<State> | null): State {

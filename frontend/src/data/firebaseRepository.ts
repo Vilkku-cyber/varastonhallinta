@@ -10,6 +10,7 @@ import { getDatabase, onValue, ref, runTransaction, get } from 'firebase/databas
 import { applyCommand, type Command } from '../domain/commands';
 import { hydrate, type Repository } from './repository';
 import { type State } from '../domain/model';
+import { initialDemo } from '../domain/demoSetup';
 const env = import.meta.env;
 const app = initializeApp({
   apiKey: env.VITE_FIREBASE_API_KEY,
@@ -31,7 +32,15 @@ export class FirebaseRepository implements Repository {
     return onValue(
       this.root,
       (snap) => {
-        if (!snap.exists() || snap.val().schemaVersion !== 2) {
+        if (!snap.exists()) {
+          error(
+            Object.assign(new Error('Verkkotestin esimerkkiaineistoa ei ole vielä alustettu.'), {
+              code: 'workspace/missing',
+            }),
+          );
+          return;
+        }
+        if (snap.val().schemaVersion !== 2) {
           error(
             new Error(
               'Verkkotietokannan 2.0-siirtoa ei ole viimeistelty. Ota yhteys ylläpitäjään.',
@@ -43,6 +52,13 @@ export class FirebaseRepository implements Repository {
       },
       error,
     );
+  }
+  async initializeDemo() {
+    if (import.meta.env.VITE_DEMO_SETUP !== 'enabled')
+      throw Error('Alustus on käytettävissä vain esikatselussa.');
+    if (!auth.currentUser) throw Error('Kirjaudu ensin sisään.');
+    const result = await runTransaction(this.root, initialDemo, { applyLocally: false });
+    if (!result.committed) throw Error('Tietopolku sisältää jo aineistoa. Mitään ei korvattu.');
   }
   async dispatch(c: Command) {
     if (!auth.currentUser) throw Error('Kirjaudu ensin sisään.');

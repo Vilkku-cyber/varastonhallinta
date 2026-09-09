@@ -47,6 +47,8 @@ export function App() {
   const [repo, sr] = useState<Repository | null>(null);
   const [state, ss] = useState<State | null>(null);
   const [error, se] = useState('');
+  const [missing, setMissing] = useState(false);
+  const [initializing, setInitializing] = useState(false);
   const [authReady, sar] = useState(false);
   const [signed, sg] = useState(false);
   const [email, sem] = useState(''),
@@ -88,7 +90,20 @@ export function App() {
       off?.();
     };
   }, []);
-  useEffect(() => repo?.subscribe(ss, (e) => se(e.message)), [repo]);
+  useEffect(() => {
+    setMissing(false);
+    return repo?.subscribe(
+      (s) => {
+        ss(s);
+        se('');
+        setMissing(false);
+      },
+      (e) => {
+        se(e.message);
+        setMissing((e as Error & { code?: string }).code === 'workspace/missing');
+      },
+    );
+  }, [repo]);
   useEffect(() => {
     if (!toast) return;
     const timer = setTimeout(() => st(''), 4000);
@@ -172,6 +187,29 @@ export function App() {
           <i>2.0</i>
         </div>
         <p>{error || 'Avataan työtilaa…'}</p>
+        {missing && signed && import.meta.env.VITE_DEMO_SETUP === 'enabled' && (
+          <div>
+            <p>
+              Luo 8 testituotetta ja 3 testikeikkaa yhteiseen 2.0-työtilaan. Vanhaa varastoa ei
+              muuteta.
+            </p>
+            <button
+              disabled={initializing}
+              onClick={async () => {
+                setInitializing(true);
+                try {
+                  await repo?.initializeDemo?.();
+                } catch (e) {
+                  se(e instanceof Error ? e.message : 'Alustus epäonnistui.');
+                } finally {
+                  setInitializing(false);
+                }
+              }}
+            >
+              {initializing ? 'Alustetaan…' : 'Alusta verkkotestin esimerkkiaineisto'}
+            </button>
+          </div>
+        )}
       </main>
     );
   const detail = state.trips[selected];

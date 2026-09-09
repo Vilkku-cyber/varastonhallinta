@@ -9,5 +9,5 @@ export default defineConfig(({ command, mode }) => {
       throw new Error('Vercel release requires VITE_STORAGE=firebase and complete Firebase configuration. Complete the database migration before deploying.');
     }
   }
-  return {};
+  return { define: { 'import.meta.env.VITE_DEMO_SETUP': JSON.stringify(env.VERCEL_ENV === 'preview' ? 'enabled' : 'disabled') } };
 });
