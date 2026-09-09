@@ -1,0 +1,31 @@
+import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+import { initialDemo } from '../frontend/src/domain/demoSetup.ts';
+import { legacyPaths, prepareLegacy, replaceDemo, sourceHash } from '../frontend/src/domain/cloudImport.ts';
+const require = createRequire(new URL('../tmp/firebase-test/package.json', import.meta.url));
+const { initializeTestEnvironment } = require('@firebase/rules-unit-testing');
+if (process.env.FIREBASE_DATABASE_EMULATOR_HOST !== '127.0.0.1:9000') throw Error('Local emulator required.');
+const input = process.argv[2] ? JSON.parse(readFileSync(process.argv[2], 'utf8')) : { inventory: { p: { name: 'Fixture', available: 3 } } };
+const source = Object.fromEntries(legacyPaths.map((p) => [p, input[p] ?? null]));
+const env = await initializeTestEnvironment({ projectId: 'demo-av-arsenal', database: { host: '127.0.0.1', port: 9000, rules: readFileSync(new URL('database.rules.json', import.meta.url), 'utf8') } });
+try {
+  await env.clearDatabase();
+  const demo = initialDemo(null);
+  await env.withSecurityRulesDisabled(async (ctx) => ctx.database().ref().set({ ...source, allowedUsers: { approved: true }, avArsenalV2: { state: demo } }));
+  const db = env.authenticatedContext('approved').database();
+  const preview = prepareLegacy(source, demo, await sourceHash(source));
+  assert.throws(() => replaceDemo({ ...demo, revision: 2 }, preview), /muuttui/);
+  await db.ref('avArsenalV2/state').once('value');
+  const result = await db.ref('avArsenalV2/state').transaction((raw) => replaceDemo(raw ?? preview.previous, preview));
+  assert.equal(result.committed, true);
+  const imported = (await db.ref('avArsenalV2/state').once('value')).val();
+  assert.equal(imported.revision, 2);
+  assert.equal(imported.migration.sourceHash, preview.sourceHash);
+  assert.equal(Object.keys(imported.products).length, Object.keys(preview.state.products).length);
+  assert.equal(Object.keys(imported.trips ?? {}).length, Object.keys(preview.state.trips).length);
+  assert.equal(Object.keys(imported.migration.previousState.products).length, 8);
+  assert.throws(() => replaceDemo(imported, preview), /muuttui/);
+  for (const path of legacyPaths) assert.equal(JSON.stringify((await db.ref(path).once('value')).val()), JSON.stringify(source[path]));
+  console.log(`PASS atomic import: ${Object.keys(imported.products).length} products, ${Object.keys(imported.trips ?? {}).length} trips, ${imported.reviews?.length ?? 0} review notes; legacy branches unchanged; backup retained; stale and repeated replacement rejected.`);
+} finally { await env.cleanup(); }

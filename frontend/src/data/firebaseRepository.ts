@@ -11,6 +11,13 @@ import { applyCommand, type Command } from '../domain/commands';
 import { hydrate, type Repository } from './repository';
 import { type State } from '../domain/model';
 import { initialDemo } from '../domain/demoSetup';
+import {
+  legacyPaths,
+  prepareLegacy,
+  replaceDemo,
+  sourceHash,
+  type LegacyPreview,
+} from '../domain/cloudImport';
 const env = import.meta.env;
 const app = initializeApp({
   apiKey: env.VITE_FIREBASE_API_KEY,
@@ -80,6 +87,47 @@ export class FirebaseRepository implements Repository {
       { applyLocally: false },
     );
     if (!result.committed) throw failure ?? Error('Tallennus ei onnistunut.');
+  }
+  private async readLegacy() {
+    const pairs = await Promise.all(
+      legacyPaths.map(async (path) => [path, (await get(ref(getDatabase(app), path))).val()]),
+    );
+    return Object.fromEntries(pairs);
+  }
+  async prepareLegacyImport() {
+    if (!auth.currentUser || !navigator.onLine)
+      throw Error('Tuonti vaatii kirjautumisen ja verkkoyhteyden.');
+    const previous = hydrate((await get(this.root)).val());
+    const source = await this.readLegacy();
+    const hash = await sourceHash(source);
+    if (hash !== (await sourceHash(await this.readLegacy())))
+      throw Error(
+        'Vanha kanta muuttui lukemisen aikana. Keskeytä vanhan version muokkaukset ja yritä uudelleen.',
+      );
+    return prepareLegacy(source, previous, hash);
+  }
+  async commitLegacyImport(preview: LegacyPreview) {
+    if (!auth.currentUser || !navigator.onLine)
+      throw Error('Tuonti vaatii kirjautumisen ja verkkoyhteyden.');
+    if (preview.sourceHash !== (await sourceHash(await this.readLegacy())))
+      throw Error('Vanha kanta muuttui esikatselun jälkeen. Lue tuonti uudelleen.');
+    await get(this.root);
+    let failure: unknown;
+    const result = await runTransaction(
+      this.root,
+      (raw) => {
+        try {
+          // Firebase may start with an empty local cache. The server checks the
+          // candidate and retries with its current state before committing.
+          return replaceDemo(raw === null ? preview.previous : hydrate(raw), preview);
+        } catch (e) {
+          failure = e;
+          return undefined;
+        }
+      },
+      { applyLocally: false },
+    );
+    if (!result.committed) throw failure ?? Error('Tuonti ei onnistunut.');
   }
   async backup() {
     return {

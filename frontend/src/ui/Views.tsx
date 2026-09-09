@@ -24,6 +24,7 @@ import { importLegacy } from '../domain/importLegacy';
 import { parseBackup } from '../domain/backup';
 import { panelPlan } from '../domain/planner';
 import { Empty, Field, download, uid } from './shared';
+import { CloudImport } from './CloudImport';
 export function TripCards({ trips, select }: { trips: Trip[]; select: (id: string) => void }) {
   return (
     <div className="trip-cards">
@@ -832,10 +833,12 @@ export function SettingsView({ state, repo }: { state: State; repo: Repository }
         </section>
         <section className="panel">
           <h2>Vanhan tietokannan tuonti</h2>
-          <p>
-            Valitse RTDB-export tai 2.0-varmuuskopio. Näet yhteenvedon ennen paikallisen työtilan
-            vaihtamista. Tuotantokantaan ei kirjoiteta.
-          </p>
+          {repo.mode === 'local' && (
+            <p>
+              Valitse RTDB-export tai 2.0-varmuuskopio. Näet yhteenvedon ennen paikallisen työtilan
+              vaihtamista. Tuotantokantaan ei kirjoiteta.
+            </p>
+          )}
           {repo.mode === 'local' ? (
             <label className="upload">
               <Upload size={18} /> Valitse JSON-export
@@ -861,7 +864,7 @@ export function SettingsView({ state, repo }: { state: State; repo: Repository }
               />
             </label>
           ) : (
-            <p>Tuonti tehdään ensin paikallisessa testityötilassa.</p>
+            <CloudImport repo={repo} state={state} />
           )}
         </section>
       </div>

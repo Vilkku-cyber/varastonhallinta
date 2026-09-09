@@ -1,6 +1,7 @@
 import { type State, emptyState } from '../domain/model.ts';
 import { applyCommand, type Command } from '../domain/commands.ts';
 import { demoState } from '../domain/seed.ts';
+import type { LegacyPreview } from '../domain/cloudImport.ts';
 export interface Repository {
   mode: 'local' | 'firebase';
   subscribe(fn: (s: State) => void, error: (e: Error) => void): () => void;
@@ -8,6 +9,8 @@ export interface Repository {
   importLocal?(s: State, source: unknown): Promise<void>;
   backup(): Promise<unknown>;
   initializeDemo?(): Promise<void>;
+  prepareLegacyImport?(): Promise<LegacyPreview>;
+  commitLegacyImport?(preview: LegacyPreview): Promise<void>;
 }
 // RTDB removes empty maps and arrays. Restore the domain shape at this boundary.
 export function hydrate(raw: Partial<State> | null): State {

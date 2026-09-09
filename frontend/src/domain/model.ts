@@ -57,6 +57,7 @@ export type Placement = { id: string; locationId: string; productId: string; lab
 export type Task = { id: string; text: string; done: boolean };
 export type Review = { id: string; path: string; message: string };
 export type State = {
+  migration?: { importedAt: string; sourceHash: string; source: unknown; previousState: unknown };
   schemaVersion: 2;
   revision: number;
   products: Record<string, Product>;

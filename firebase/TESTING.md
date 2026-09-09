@@ -6,6 +6,12 @@ Coverage: the five legacy paths preserve approved access and deny anonymous/unli
 
 This does not validate every business invariant, a real browser login, live production rules, or migration correctness. Calendar and packing checks remain in frontend/tests. The two SDK connections are not two physical devices.
 
+## Live-import implementation
+
+firebase/import-test.mjs additionally tested the actual legacy export in the local emulator: 189 products, 124 trips and 378 review notes were written atomically into v2. All five legacy source branches stayed unchanged. The previous demo workspace and original source remained in state.migration, and repeated/stale replacement was rejected. Sparse Firebase arrays are compared by JSON representation. This verifies preservation and rule acceptance, not resolution of historical ambiguities.
+
+The app reads the five permitted legacy branches twice for a stable preview, and checks the source hash again immediately before replacing v2 in a transaction. Legacy edits must be paused during the import: separately read branches cannot form a globally atomic snapshot under the existing per-branch permissions. This is a one-time copy; there is no ongoing old/new synchronization.
+
 Run from the repository root after installing a Java 21+ runtime:
 
 ```powershell
