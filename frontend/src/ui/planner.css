@@ -1,0 +1,49 @@
+.led-drawing {
+  background: #18352c;
+  border-radius: 12px;
+  padding: 26px;
+  margin: 18px 0;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.led-drawing svg {
+  width: 100%;
+  max-height: 480px;
+  display: block;
+}
+.led-drawing p {
+  color: white;
+}
+.led-feed-counts {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.led-material-row {
+  padding: 12px 0;
+  border-bottom: 1px solid #dce1d6;
+}
+.led-material-row > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+.led-material-row select {
+  width: 100%;
+  margin-top: 7px;
+}
+.led-plan-result > button {
+  margin-top: 18px;
+}
+@media print {
+  .led-drawing {
+    break-inside: avoid;
+    print-color-adjust: exact;
+  }
+  .led-material-row {
+    break-inside: avoid;
+  }
+}
