@@ -22,6 +22,7 @@ export function TripDetail({
   const [error, se] = useState('');
   const [busy, sb] = useState(false);
   const [damaged, sd] = useState(false);
+  const [confirmArchive, setConfirmArchive] = useState(false);
   const [manual, setManual] = useState<Record<string, string>>({});
   const [units, setUnits] = useState<Record<string, string>>({});
   const act = async (c: Command) => {
@@ -118,6 +119,12 @@ export function TripDetail({
       {t.packingUnknown && (
         <p className="notice">
           Vanhan keikan pakkaustietoa ei ole tallennettu. Suunnitelma ja toteuma pidetään erillään.
+        </p>
+      )}
+      {t.manualClosure && (
+        <p className="notice">
+          Keikka on palautettu ja arkistoitu käsin. Puuttuvia pakkausmerkintöjä ei ole täydennetty
+          jälkikäteen.
         </p>
       )}
       {!closed && (
@@ -409,6 +416,11 @@ export function TripDetail({
       <div className="detail-footer no-print">
         <p>{t.notes}</p>
         <div className="actions">
+          {!['closed', 'cancelled'].includes(t.status) && (
+            <button className="secondary" disabled={busy} onClick={() => setConfirmArchive(true)}>
+              Palauta ja arkistoi keikka
+            </button>
+          )}
           {['draft', 'planned'].includes(t.status) && (
             <button
               className="secondary"
@@ -447,8 +459,30 @@ export function TripDetail({
           )}
         </div>
       </div>
+      {confirmArchive && !['closed', 'cancelled'].includes(t.status) && (
+        <section className="panel no-print" aria-label="Vahvista keikan arkistointi">
+          <h2>Palauta ja arkistoi keskeneräinen keikka</h2>
+          <p>
+            Keikka siirtyy arkistoon, vaikka pakkaustiedot olisivat puutteelliset. Kirjatut pakatut
+            laitteet merkitään palautetuiksi ja keikan kalustovaraukset vapautuvat. Alkuperäiset
+            pakkausmäärät säilyvät.
+          </p>
+          <div className="actions">
+            <button
+              disabled={busy}
+              onClick={() =>
+                void act({ type: 'archiveReturned', tripId: t.id, expected: t.version })
+              }
+            >
+              Vahvista palautus ja arkistointi
+            </button>
+            <button className="secondary" disabled={busy} onClick={() => setConfirmArchive(false)}>
+              Peruuta
+            </button>
+          </div>
+        </section>
+      )}
       {scan && <Scanner scan={scanSerial} close={() => setScan(false)} />}
     </>
   );
 }
-

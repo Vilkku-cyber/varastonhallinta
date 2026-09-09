@@ -31,6 +31,7 @@ export type Command =
       expected: number;
     }
   | { type: 'status'; tripId: string; status: Status; expected: number }
+  | { type: 'archiveReturned'; tripId: string; expected: number }
   | { type: 'task'; task: Task | null; id: string }
   | { type: 'location'; location: Location }
   | { type: 'placement'; placement: Placement | null; id: string };
@@ -187,7 +188,23 @@ export function applyCommand(
     if (!t) fail('Keikkaa ei löydy.');
     checkVersion(t.version, c.expected);
     if (!open(t)) fail('Keikka on suljettu.');
-    if (c.type === 'status') {
+    if (c.type === 'archiveReturned') {
+      t.manualClosure = {
+        at,
+        previousStatus: t.status,
+        previousReturns: t.items.map((i) => ({
+          itemId: i.id,
+          returned: i.returned,
+          returnedUnitIds: [...i.returnedUnitIds],
+        })),
+      };
+      for (const i of t.items) {
+        i.returned = i.packed;
+        i.returnedUnitIds = [...i.unitIds];
+      }
+      t.status = 'closed';
+      text = `Keikka palautettu ja arkistoitu käsin keskeneräisistä tiedoista: ${t.name}`;
+    } else if (c.type === 'status') {
       const allowed: Partial<Record<Status, Status[]>> = {
         draft: ['planned', 'cancelled'],
         planned: ['packed', 'cancelled'],

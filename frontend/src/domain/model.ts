@@ -34,6 +34,11 @@ export type Item = {
   serialSnapshots: string[];
 };
 export type Trip = {
+  manualClosure?: {
+    at: string;
+    previousStatus: Status;
+    previousReturns: { itemId: string; returned: number; returnedUnitIds: string[] }[];
+  };
   id: string;
   name: string;
   contact: string;
