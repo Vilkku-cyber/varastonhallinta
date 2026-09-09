@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { State, Trip, Item, Product } from '../domain/model';
 import {
   panelPlan,
@@ -7,6 +7,7 @@ import {
   legacyLedIds,
   panelPixels,
   processorCapacity,
+  suitableProcessors,
   ledItems,
   type PanelPlan,
 } from '../domain/led';
@@ -113,7 +114,7 @@ export function PlannerView({
   create: (items: Item[]) => void;
   append: (trip: Trip, items: Item[]) => Promise<void>;
 }) {
-  const [surface, setSurface] = useState(false),
+  const [selectedPanel, setSelectedPanel] = useState(''),
     [width, setWidth] = useState(2500),
     [height, setHeight] = useState(500);
   const [long, setLong] = useState(''),
@@ -139,6 +140,8 @@ export function PlannerView({
     ),
   );
   const products = Object.values(state.products).filter((p) => !p.retired);
+  const selectedKind = panelKind(state.products[selectedPanel]);
+  const surface = selectedKind === 'long' || selectedKind === 'half';
   const candidates = (kind: string) => products.filter((p) => panelKind(p) === kind);
   let plan: PanelPlan | undefined,
     mountPlan: ReturnType<typeof mounting> | undefined,
@@ -233,11 +236,17 @@ export function PlannerView({
       : null;
   const capacity = processorCapacity(state.products[processor]);
   const over = !!(pixels && capacity && pixels.w * pixels.h > capacity);
+  const processors = suitableProcessors(products, pixels ? pixels.w * pixels.h : null);
+  useEffect(() => {
+    if (processor && !processors.some((p) => p.id === processor)) setProcessor('');
+  }, [processor, processors.map((p) => p.id).join('|')]);
   const selectedValid =
     (!plan?.long || panelKind(state.products[long]) === (surface ? 'long' : 'standard')) &&
     (!plan?.half || panelKind(state.products[half]) === 'half');
   const material = () => {
-    if (!plan || !selectedValid) throw Error('Valitse tarvittavat LED-paneelit.');
+    if (!plan || !selectedPanel || !selectedValid) throw Error('Valitse tarvittavat LED-paneelit.');
+    if (processor && !processors.some((p) => p.id === processor))
+      throw Error('Valitse seinän pikselimäärälle riittävä prosessori.');
     if (plan.powerFeeds === null) throw Error('Vahvista Pintaledin virtaketjun enimmäispalamäärä.');
     if (over) throw Error('Valitun prosessorin pikselikapasiteetti ylittyy.');
     return ledItems(
@@ -278,19 +287,35 @@ export function PlannerView({
       <div className="planner-layout">
         <section className="panel">
           <h2>Seinän rakenne</h2>
-          <Field label="Paneelityyppi">
-            <select
-              value={surface ? 'surface' : 'standard'}
-              onChange={(e) => {
-                setSurface(e.target.value === 'surface');
-                setLong('');
-                setHalf('');
-              }}
-            >
-              <option value="standard">LED 500 × 500 mm</option>
-              <option value="surface">Pintaled 1000 / 500 × 250 mm</option>
-            </select>
-          </Field>
+          {selectProduct(
+            'LED-tuote',
+            selectedPanel,
+            (id) => {
+              setSelectedPanel(id);
+              setProcessor('');
+              const kind = panelKind(state.products[id]);
+              const longs = candidates('long'),
+                halves = candidates('half');
+              setLong(
+                kind === 'standard' || kind === 'long'
+                  ? id
+                  : kind === 'half' && longs.length === 1
+                    ? longs[0].id
+                    : '',
+              );
+              setHalf(
+                kind === 'half' ? id : kind === 'long' && halves.length === 1 ? halves[0].id : '',
+              );
+            },
+            products.filter((p) => panelKind(p) !== null),
+          )}
+          {selectedKind && (
+            <p className="hint">
+              {surface
+                ? 'Pintaled · 1000 / 500 × 250 mm · pystysuuntainen johdotus'
+                : 'LED · 500 × 500 mm · vaakasuuntainen johdotus'}
+            </p>
+          )}
           <div className="form-grid">
             <Field label="Leveys mm">
               <input
@@ -311,14 +336,15 @@ export function PlannerView({
               />
             </Field>
           </div>
-          {(!plan || plan.long > 0) &&
+          {selectedKind === 'half' &&
+            (!plan || plan.long > 0) &&
             selectProduct(
               surface ? '1000 × 250 mm tuote' : '500 × 500 mm paneeli',
               long,
               setLong,
               candidates(surface ? 'long' : 'standard'),
             )}
-          {surface &&
+          {selectedKind === 'long' &&
             !!plan?.half &&
             selectProduct('500 × 250 mm tuote', half, setHalf, candidates('half'))}
           <p className="hint">
@@ -380,11 +406,17 @@ export function PlannerView({
             </p>
           )}
           <h2>Prosessori</h2>
-          {selectProduct(
-            'LED-prosessori (valinnainen)',
-            processor,
-            setProcessor,
-            products.filter((p) => p.category.trim().toLowerCase() === 'led prosessori'),
+          {selectProduct('LED-prosessori (valinnainen)', processor, setProcessor, processors)}
+          <p className="hint">
+            {pixels
+              ? `${(pixels.w * pixels.h).toLocaleString('fi')} pikseliä: ${processors.length} kapasiteetiltaan riittävää prosessoria. Lista on järjestetty kapasiteetin mukaan.`
+              : 'Valitse paneelit, joiden pikselimitat löytyvät tuotetiedoista. Prosessorit näytetään, kun seinän pikselimäärä tunnetaan.'}
+          </p>
+          {pixels && !processors.length && (
+            <p className="notice">
+              Kalustosta ei löytynyt prosessoria, jonka tunnettu pikselikapasiteetti riittäisi.
+              Tarkista prosessorien tuotetiedot.
+            </p>
           )}
           {processor && (
             <p>

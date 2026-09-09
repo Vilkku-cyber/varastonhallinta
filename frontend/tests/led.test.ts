@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { suitableProcessors } from '../src/domain/led.ts';
 import assert from 'node:assert/strict';
 import {
   panelPlan,
@@ -9,6 +10,26 @@ import {
   processorCapacity,
 } from '../src/domain/led.ts';
 import { demoState } from '../src/domain/seed.ts';
+test('processor choices require sufficient known capacity, including exact equality', () => {
+  const base = demoState().products.processor;
+  const products = [
+    { ...base, id: 'small', category: 'LED prosessori', notes: 'MaxPixels=1000' },
+    { ...base, id: 'exact', category: 'LED prosessori', notes: 'MaxPixels=2000' },
+    { ...base, id: 'large', category: 'LED prosessori', notes: 'MaxPixels=4000' },
+    { ...base, id: 'unknown', category: 'LED prosessori', notes: '' },
+    { ...base, id: 'retired', category: 'LED prosessori', notes: 'MaxPixels=9000', retired: true },
+  ];
+  assert.deepEqual(
+    suitableProcessors(products, 2000).map((p) => p.id),
+    ['exact', 'large'],
+  );
+  assert.deepEqual(
+    suitableProcessors(products, 2001).map((p) => p.id),
+    ['large'],
+  );
+  assert.deepEqual(suitableProcessors(products, null), []);
+  assert.deepEqual(suitableProcessors(products, 5000), []);
+});
 test('surface geometry is actual 1000 and 500 wide panels, height 250', () => {
   const p = panelPlan(2500, 500, 500, 500, true);
   assert.deepEqual(p.columnWidths, [1000, 1000, 500]);

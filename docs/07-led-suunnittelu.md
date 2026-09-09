@@ -1,5 +1,7 @@
 # LED-suunnittelu, päivitys 9.9.2026
 
+Jatkopäivitys: erillinen paneelityyppivalinta poistettu. LED-tuote määrää paneelityypin; Pintaledin toinen palakoko valitaan automaattisesti, jos vaihtoehtoja on yksi. Prosessorilistassa näytetään vain kokonaispikselimäärälle riittävät, tunnetun kapasiteetin mallit kapasiteettijärjestyksessä. Liian pieneksi muuttuva valinta tyhjennetään. Tuntematon seinän pikselimäärä tai prosessorikapasiteetti ei tuota perusteetonta sopivuussuositusta.
+
 Vertailulähde: vanhan varasto-projektin frontend/src/LedPlanner.jsx. Tuotetunnisteet, asennusmäärät ja prosessorien kapasiteettien varatiedot on luettu siitä; tuotetietojen MaxPixels-arvoa käytetään ensisijaisesti. Käyttäjän uudet rajaukset ohittavat vanhan koodin oletukset.
 
 - Tavallinen LED: 500 × 500 mm. Pintaled: 1000 × 250 mm ja 500 × 250 mm, leveys ensin. Piirros käyttää todellisia palojen leveyksiä.

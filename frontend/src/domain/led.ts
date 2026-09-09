@@ -110,6 +110,19 @@ export function processorCapacity(p?: Product): number | null {
   };
   return old[p.id] ?? null;
 }
+export function suitableProcessors(products: Product[], pixels: number | null): Product[] {
+  if (pixels === null || !Number.isFinite(pixels) || pixels <= 0) return [];
+  return products
+    .filter(
+      (p) =>
+        !p.retired &&
+        p.category.trim().toLowerCase() === 'led prosessori' &&
+        (processorCapacity(p) ?? 0) >= pixels,
+    )
+    .sort(
+      (a, b) => processorCapacity(a)! - processorCapacity(b)! || a.name.localeCompare(b.name, 'fi'),
+    );
+}
 export function ledItems(
   rows: { productId: string; quantity: number; label: string }[],
   products: Record<string, Product>,
