@@ -10,6 +10,14 @@ import {
 } from './model.ts';
 import { availability, capacity, days, today } from './calendar.ts';
 export type Command =
+  | {
+      type: 'unitCondition';
+      productId: string;
+      unitId: string;
+      condition: 'ready' | 'maintenance';
+      notes: string;
+      expected: number;
+    }
   | { type: 'trip'; trip: Trip; expected: number }
   | { type: 'product'; product: Product; expected: number }
   | {
@@ -124,6 +132,17 @@ export function applyCommand(
     t.version = (old?.version ?? 0) + 1;
     s.trips[t.id] = t;
     text = `Keikka tallennettu: ${t.name}`;
+  } else if (c.type === 'unitCondition') {
+    const p = s.products[c.productId];
+    if (!p || !p.units[c.unitId]) fail('Laitetta ei löydy.');
+    checkVersion(p.version, c.expected);
+    if (!['ready', 'maintenance'].includes(c.condition) || typeof c.notes !== 'string')
+      fail('Tarkista laitteen kunto ja huomiot.');
+    const unit = p.units[c.unitId];
+    unit.condition = c.condition;
+    unit.notes = c.notes.trim();
+    p.version++;
+    text = `Laitteen tiedot päivitetty: ${p.name} / ${unit.serial} (${c.condition === 'ready' ? 'käyttökunnossa' : 'huollossa'})`;
   } else if (c.type === 'product') {
     const p = structuredClone(c.product);
     checkVersion(s.products[p.id]?.version ?? 0, c.expected);

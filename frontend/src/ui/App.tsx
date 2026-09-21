@@ -30,13 +30,24 @@ import { ProductEditor } from './ProductEditor';
 import { TripDetail } from './TripDetail';
 import { Empty, Field } from './shared';
 import { WarehouseView } from './WarehouseView';
+import { DeviceView } from './DeviceView';
+import { ScanLine } from 'lucide-react';
 type Page =
-  'dashboard' | 'trips' | 'calendar' | 'inventory' | 'locations' | 'planner' | 'tasks' | 'settings';
+  | 'dashboard'
+  | 'trips'
+  | 'calendar'
+  | 'inventory'
+  | 'device'
+  | 'locations'
+  | 'planner'
+  | 'tasks'
+  | 'settings';
 const nav = [
   ['dashboard', 'Etusivu', LayoutDashboard],
   ['trips', 'Keikat', BriefcaseBusiness],
   ['calendar', 'Kalenteri', CalendarDays],
   ['inventory', 'Kalusto', Package],
+  ['device', 'Laitteen tiedot', ScanLine],
   ['locations', 'Varasto', Warehouse],
   ['planner', 'LED-suunnittelu', Monitor],
   ['tasks', 'Tehtävät', ListTodo],
@@ -347,6 +358,14 @@ export function App() {
                 </>
               )}
               {page === 'calendar' && <CalendarView state={state} select={sel} />}
+              {page === 'device' && (
+                <DeviceView
+                  state={state}
+                  run={run}
+                  select={sel}
+                  edit={(p) => setProduct({ product: p })}
+                />
+              )}
               {page === 'inventory' && (
                 <InventoryView state={state} edit={(p) => setProduct({ product: p })} />
               )}
