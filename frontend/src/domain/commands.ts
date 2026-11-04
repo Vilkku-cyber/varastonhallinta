@@ -9,7 +9,10 @@ import {
   open,
 } from './model.ts';
 import { availability, capacity, days, today } from './calendar.ts';
+import { applyOperation } from '../worktime/state.js';
 export type Command =
+  | { type: 'worktime'; subject: string; actor: string; operation: Record<string, unknown> }
+  | { type: 'worktimeProfile'; uid: string; name: string }
   | {
       type: 'unitCondition';
       productId: string;
@@ -91,7 +94,28 @@ export function applyCommand(
   }
   const s = structuredClone(source);
   let text = '';
-  if (c.type === 'trip') {
+  if (c.type === 'worktimeProfile') {
+    if (!c.uid || !c.name.trim()) fail('Työntekijän tunnus ja nimi tarvitaan.');
+    s.worktime ??= { people: {}, records: {} };
+    s.worktime.people ??= {};
+    s.worktime.people[c.uid] = { name: c.name.trim().slice(0, 120) };
+    text = `Työaikakäyttäjä: ${c.name}`;
+  } else if (c.type === 'worktime') {
+    if (!c.actor || !c.subject || !['save', 'start', 'stop'].includes(String(c.operation.type)))
+      fail('Työaikatoiminto ei ole kelvollinen.');
+    s.worktime ??= { people: {}, records: {} };
+    s.worktime.records ??= {};
+    s.worktime.people ??= {};
+    if (!s.worktime.people[c.subject]) fail('Valitse työtilan työntekijä.');
+    s.worktime.records[c.subject] = applyOperation(s.worktime.records[c.subject], {
+      ...c.operation,
+      id,
+      at,
+      actor: c.actor,
+      subject: c.subject,
+    });
+    text = `Työaika: ${s.worktime.people[c.subject].name}`;
+  } else if (c.type === 'trip') {
     const old = s.trips[c.trip.id];
     checkVersion(old?.version ?? 0, c.expected);
     if (old && !open(old)) fail('Arkistoitua tai peruttua keikkaa ei voi muokata.');

@@ -57,6 +57,7 @@ export function replaceDemo(current: State, preview: LegacyPreview): State {
   if (!isDemoWorkspace(current) || current.revision !== preview.previous.revision)
     throw Error('2.0-työtila muuttui esikatselun jälkeen. Lue tuonti uudelleen.');
   const state = structuredClone(preview.state);
+  if (current.worktime) state.worktime = structuredClone(current.worktime);
   state.revision = current.revision + 1;
   state.migration = {
     importedAt: preview.preparedAt,

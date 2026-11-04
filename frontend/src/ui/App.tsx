@@ -12,6 +12,7 @@ import {
   ArrowUpRight,
   Menu,
   LogOut,
+  Clock,
 } from 'lucide-react';
 import { type State, type Product, type Trip, type Item, open } from '../domain/model';
 import { type Command } from '../domain/commands';
@@ -32,6 +33,7 @@ import { Empty, Field } from './shared';
 import { WarehouseView } from './WarehouseView';
 import { DeviceView } from './DeviceView';
 import { ScanLine } from 'lucide-react';
+import { WorktimePage } from '../worktime/WorktimePage.jsx';
 type Page =
   | 'dashboard'
   | 'trips'
@@ -41,6 +43,7 @@ type Page =
   | 'locations'
   | 'planner'
   | 'tasks'
+  | 'worktime'
   | 'settings';
 const nav = [
   ['dashboard', 'Etusivu', LayoutDashboard],
@@ -51,6 +54,7 @@ const nav = [
   ['locations', 'Varasto', Warehouse],
   ['planner', 'LED-suunnittelu', Monitor],
   ['tasks', 'Tehtävät', ListTodo],
+  ['worktime', 'Työaika', Clock],
   ['settings', 'Tiedot ja asetukset', SlidersHorizontal],
 ] as const;
 let local: LocalRepository | undefined;
@@ -64,7 +68,9 @@ export function App() {
   const [signed, sg] = useState(false);
   const [email, sem] = useState(''),
     [password, spw] = useState('');
-  const [page, sp] = useState<Page>('dashboard');
+  const [page, sp] = useState<Page>(() =>
+    window.location.hash === '#tyoaika' ? 'worktime' : 'dashboard',
+  );
   const [menu, sm] = useState(false);
   const [selected, sel] = useState('');
   const [editor, setEditor] = useState<{ trip?: Trip; seed?: Item[] } | null>(null);
@@ -125,6 +131,11 @@ export function App() {
     st('Tallennettu');
   };
   const go = (p: Page) => {
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}${window.location.search}${p === 'worktime' ? '#tyoaika' : ''}`,
+    );
     sp(p);
     sel('');
     sm(false);
@@ -371,6 +382,7 @@ export function App() {
               )}
               {page === 'locations' && <WarehouseView state={state} run={run} />}
               {page === 'tasks' && <TasksView state={state} run={run} />}
+              {page === 'worktime' && <WorktimePage state={state} repo={repo} />}
               {page === 'settings' && <SettingsView state={state} repo={repo} />}
               {page === 'planner' && (
                 <PlannerView

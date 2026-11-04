@@ -69,6 +69,14 @@ export class FirebaseRepository implements Repository {
   }
   async dispatch(c: Command) {
     if (!auth.currentUser) throw Error('Kirjaudu ensin sisään.');
+    // The actor always comes from the existing authenticated session.
+    if (c.type === 'worktime') c = { ...c, actor: auth.currentUser.uid };
+    if (c.type === 'worktimeProfile')
+      c = {
+        ...c,
+        uid: auth.currentUser.uid,
+        name: auth.currentUser.displayName || auth.currentUser.email?.split('@')[0] || 'Työntekijä',
+      };
     if (!navigator.onLine) throw Error('Ei verkkoyhteyttä. Muutosta ei lähetetty.');
     const id = crypto.randomUUID(),
       at = new Date().toISOString();

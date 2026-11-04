@@ -24,6 +24,9 @@ npm.cmd run preview -- --port 4173
 
 ## Toteutettu
 
+- **Työaika:** ajastin, jälkikirjaus, kopiointi, työntekijävalinta, yleistyöajan
+  laskenta ja muutoshistoria samassa työtilassa. [Toteutus ja tallennus](docs/08-tyoaika.md).
+
 - Etusivu, aktiiviset keikat ja arkisto; tuote- ja sarjanumerohaku historiasta.
 - Keikkojen luonti ja muokkaus, inventory-rivit sekä vapaan tekstin muu tuote.
 - **Päiväkohtainen saatavuus ja kalenteri.** Peräkkäisten päivien keikat voivat varata saman laitteen. Aikavälin saatavuus perustuu kuormituksen huippuun, ei eri päivien varausten summaan.
