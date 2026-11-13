@@ -129,7 +129,12 @@ function BundleDetail({
 }) {
   const [target, setTarget] = useState('');
   const [serial, setSerial] = useState('');
-  const [mode, setMode] = useState<'load' | 'assign'>('load');
+  const [mode, setMode] = useState<'load' | 'assign' | 'returnUnit'>('load');
+  const [damaged, setDamaged] = useState(false);
+  const [returnConfirm, setReturnConfirm] = useState<{
+    command: BundleCommand;
+    count: number;
+  } | null>(null);
   useEffect(() => {
     if (b.departed) setMode('assign');
   }, [b.departed]);
@@ -143,6 +148,7 @@ function BundleDetail({
     try {
       await run(c);
       setSerial('');
+      setReturnConfirm(null);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -162,6 +168,18 @@ function BundleDetail({
       return;
     }
     const { product, unit } = found[0];
+    if (mode === 'returnUnit') {
+      void act({
+        type: 'bundle',
+        id: b.id,
+        expected: b.version,
+        action: 'returnUnit',
+        productId: product.id,
+        unitId: unit.id,
+        damaged,
+      });
+      return;
+    }
     const t = state.trips[target];
     const i = t?.items.find(
       (i) => i.type === 'inventory' && i.productId === product.id && i.packed < i.quantity,
@@ -208,18 +226,39 @@ function BundleDetail({
                 Pakkaa autoon, asiakas valitaan myöhemmin
               </option>
               <option value="assign">Kohdista nipusta asiakkaalle</option>
+              <option value="returnUnit" disabled={!b.departed}>
+                Palauta sarjanumerolla oikealle asiakkaalle
+              </option>
             </select>
           </Field>
-          <Field label="Asiakkaan keikka">
-            <select value={target} onChange={(e) => setTarget(e.target.value)}>
-              <option value="">Valitse asiakkaan keikka</option>
-              {b.tripIds.map((id) => (
-                <option key={id} value={id}>
-                  {state.trips[id]?.name} · {state.trips[id]?.contact}
-                </option>
-              ))}
-            </select>
-          </Field>
+          {mode !== 'returnUnit' && (
+            <Field label="Asiakkaan keikka">
+              <select value={target} onChange={(e) => setTarget(e.target.value)}>
+                <option value="">Valitse asiakkaan keikka</option>
+                {b.tripIds.map((id) => (
+                  <option key={id} value={id}>
+                    {state.trips[id]?.name} · {state.trips[id]?.contact}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
+          {mode === 'returnUnit' && (
+            <>
+              <p>
+                Asiakkaan keikka tunnistetaan sarjanumerosta automaattisesti. Sama laite palautetaan
+                vain kerran.
+              </p>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={damaged}
+                  onChange={(e) => setDamaged(e.target.checked)}
+                />
+                Palautettava laite on vaurioitunut — siirrä huoltoon
+              </label>
+            </>
+          )}
           <form
             className="filters"
             onSubmit={(e) => {
@@ -235,7 +274,11 @@ function BundleDetail({
               placeholder="Sarjanumero / USB-lukija"
             />
             <button disabled={busy}>
-              {mode === 'load' ? 'Pakkaa autoon' : 'Kohdista asiakkaalle'}
+              {mode === 'load'
+                ? 'Pakkaa autoon'
+                : mode === 'returnUnit'
+                  ? 'Palauta laite'
+                  : 'Kohdista asiakkaalle'}
             </button>
             <button
               type="button"
@@ -247,8 +290,9 @@ function BundleDetail({
             </button>
           </form>
           <p className="hint">
-            Pakkaa ensin nippuun. Valitse paikan päällä asiakkaan keikka, vaihda toiminnoksi
-            kohdistus ja skannaa asiakkaalle annettava laite.
+            {mode === 'returnUnit'
+              ? 'Skannaa varastoon palannut laite. Palautus kirjataan sen asiakkaan keikalle, jolle sarjanumero on kohdistettu.'
+              : 'Pakkaa ensin nippuun. Valitse paikan päällä asiakkaan keikka, vaihda toiminnoksi kohdistus ja skannaa asiakkaalle annettava laite.'}
           </p>
         </section>
       )}
@@ -439,6 +483,30 @@ function BundleDetail({
                           Vapauta 1 ilman sarjanumeroa nippuun
                         </button>
                       )}
+                    {!b.closed &&
+                      b.departed &&
+                      ['out', 'returning'].includes(t.status) &&
+                      i.packed - i.unitIds.length > i.returned - i.returnedUnitIds.length && (
+                        <button
+                          className="secondary"
+                          disabled={busy}
+                          onClick={() =>
+                            void act({
+                              type: 'bundle',
+                              id: b.id,
+                              expected: b.version,
+                              action: 'returnQuantity',
+                              productId: i.productId,
+                              quantity: 1,
+                              tripId: t.id,
+                              itemId: i.id,
+                              tripVersion: t.version,
+                            })
+                          }
+                        >
+                          Palauta 1 ilman sarjanumeroa
+                        </button>
+                      )}
                   </div>
                 ))}
               </details>
@@ -455,9 +523,60 @@ function BundleDetail({
             </button>
           )}
           <p>
-            Palautukset kirjataan asiakkaiden keikoille. Pura asiakkaalle kohdistamatta jäänyt
-            kalusto yllä olevasta listasta takaisin varastoon.
+            Palauta laitteet tämän näkymän sarjanumerolukijalla. Palautukset päivittyvät
+            automaattisesti oikeille asiakkaiden keikoille. Määrätuotteita voi palauttaa asiakkaan
+            kohdalta yllä tai koko nipun mukana.
           </p>
+          {b.departed && (
+            <>
+              <button
+                className="secondary"
+                disabled={busy}
+                onClick={() =>
+                  setReturnConfirm({
+                    command: {
+                      type: 'bundle',
+                      id: b.id,
+                      expected: b.version,
+                      action: 'returnAll',
+                      tripVersions: Object.fromEntries(
+                        b.tripIds.map((id) => [id, state.trips[id].version]),
+                      ),
+                    },
+                    count:
+                      b.tripIds.reduce(
+                        (n, id) =>
+                          n + state.trips[id].items.reduce((m, i) => m + i.packed - i.returned, 0),
+                        0,
+                      ) + Object.values(b.holding).reduce((n, h) => n + h.quantity, 0),
+                  })
+                }
+              >
+                Palauta koko nipun kalusto
+              </button>
+              {returnConfirm && (
+                <section className="panel" role="region" aria-label="Vahvista nipun palautus">
+                  <h3>Vahvista {returnConfirm.count} kappaleen palautus</h3>
+                  <p>
+                    Vahvistan, että kaikki nipun palauttamatta olevat tavarat ovat palanneet
+                    varastoon. Palautus sisältää myös määrätuotteet ja kohdistamattoman kaluston.
+                    Asiakkaiden keikat arkistoidaan ja niputus päätetään. Kirjaa vaurioituneet
+                    laitteet ensin yksittäin huoltoon.
+                  </p>
+                  <button disabled={busy} onClick={() => void act(returnConfirm.command)}>
+                    Vahvistan: kaikki tavarat palautettu
+                  </button>
+                  <button
+                    className="secondary"
+                    disabled={busy}
+                    onClick={() => setReturnConfirm(null)}
+                  >
+                    Peruuta palautus
+                  </button>
+                </section>
+              )}
+            </>
+          )}
           <details>
             <summary>Päätä niputus</summary>
             <p>

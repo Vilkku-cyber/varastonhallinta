@@ -2,6 +2,33 @@ import { type State, type PackingBundle, open } from './model.ts';
 import { availability, capacity, days } from './calendar.ts';
 
 export type BundleCommand =
+  | {
+      type: 'bundle';
+      id: string;
+      expected: number;
+      action: 'returnAll';
+      tripVersions: Record<string, number>;
+    }
+  | {
+      type: 'bundle';
+      id: string;
+      expected: number;
+      action: 'returnUnit';
+      productId: string;
+      unitId: string;
+      damaged: boolean;
+    }
+  | {
+      type: 'bundle';
+      id: string;
+      expected: number;
+      action: 'returnQuantity';
+      productId: string;
+      quantity: number;
+      tripId: string;
+      itemId: string;
+      tripVersion: number;
+    }
   | { type: 'bundleCreate'; id: string; name: string; tripIds: string[] }
   | {
       type: 'bundle';
@@ -102,7 +129,100 @@ export function applyBundle(s: State, c: BundleCommand): string {
     b.version === c.expected,
     'Nippu muuttui toisella laitteella. Tarkista tiedot ja yritä uudelleen.',
   );
-  if (c.action === 'close') {
+  if (c.action === 'returnAll' || c.action === 'returnUnit' || c.action === 'returnQuantity') {
+    requireThat(b.departed, 'Merkitse nippu lähteneeksi ennen palautusta.');
+    const finish = (t: State['trips'][string], complete = false) => {
+      t.status = t.items.every(
+        (i) => i.returned === i.packed && (complete || i.packed === i.quantity),
+      )
+        ? 'closed'
+        : 'returning';
+      t.version++;
+    };
+    if (c.action === 'returnAll') {
+      for (const id of b.tripIds) {
+        const t = s.trips[id];
+        requireThat(
+          t && c.tripVersions[id] === t.version,
+          'Keikan tiedot muuttuivat. Tarkista palautettava kalusto uudelleen.',
+        );
+        requireThat(
+          ['out', 'returning', 'closed', 'cancelled'].includes(t.status),
+          'Keikka ei ole palautettavassa tilassa.',
+        );
+        if (!['closed', 'cancelled'].includes(t.status)) {
+          for (const i of t.items) {
+            i.returned = i.packed;
+            i.returnedUnitIds = [...i.unitIds];
+          }
+          finish(t, true);
+        }
+      }
+      for (const h of Object.values(b.holding)) {
+        h.quantity = 0;
+        h.unitIds = [];
+      }
+      b.closed = true;
+    } else if (c.action === 'returnUnit') {
+      const p = s.products[c.productId];
+      requireThat(p?.units[c.unitId], 'Laitetta ei löydy.');
+      const matches = b.tripIds.flatMap((id) => {
+        const t = s.trips[id];
+        return t && ['out', 'returning'].includes(t.status)
+          ? t.items
+              .filter(
+                (i) =>
+                  i.productId === p.id &&
+                  i.unitIds.includes(c.unitId) &&
+                  !i.returnedUnitIds.includes(c.unitId),
+              )
+              .map((i) => ({ t, i }))
+          : [];
+      });
+      const h = b.holding[p.id];
+      const inHolding = !!h?.unitIds.includes(c.unitId);
+      requireThat(
+        matches.length + Number(inHolding) === 1,
+        'Laite on jo palautettu tai sitä ei ole kohdistettu tähän nippuun.',
+      );
+      if (inHolding) {
+        h.quantity--;
+        h.unitIds = h.unitIds.filter((id) => id !== c.unitId);
+      } else {
+        const { t, i } = matches[0];
+        i.returnedUnitIds.push(c.unitId);
+        i.returned++;
+        finish(t);
+      }
+      if (c.damaged) {
+        p.units[c.unitId].condition = 'maintenance';
+        p.version++;
+      }
+    } else {
+      requireThat(b.tripIds.includes(c.tripId), 'Keikka ei kuulu nippuun.');
+      const t = s.trips[c.tripId];
+      requireThat(
+        t.version === c.tripVersion,
+        'Keikan tiedot muuttuivat. Tarkista palautus uudelleen.',
+      );
+      requireThat(
+        ['out', 'returning'].includes(t.status),
+        'Keikka ei ole palautettavassa tilassa.',
+      );
+      const i = t.items.find((i) => i.id === c.itemId && i.productId === c.productId);
+      requireThat(
+        i &&
+          Number.isSafeInteger(c.quantity) &&
+          c.quantity > 0 &&
+          c.quantity <= i.packed - i.unitIds.length - (i.returned - i.returnedUnitIds.length),
+        'Määrä ylittää ilman sarjanumeroa palauttamatta olevan määrän.',
+      );
+      i.returned += c.quantity;
+      finish(t);
+    }
+    b.version++;
+    return `Pakkausnippu ${b.name}: ${c.action === 'returnAll' ? 'koko kalusto palautettu ja asiakkaiden keikat arkistoitu' : c.action === 'returnUnit' ? `sarjanumero ${s.products[c.productId].units[c.unitId].serial} palautettu${c.damaged ? ' huoltoon' : ''}` : 'määrä palautettu asiakkaan keikalle'}`;
+  } else if (c.action === 'close') {
     requireThat(
       Object.values(b.holding).every((h) => h.quantity === 0),
       'Kohdista tai pura nipun kohdistamattomat tavarat ensin.',
