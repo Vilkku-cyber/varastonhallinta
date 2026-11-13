@@ -10,7 +10,17 @@ import {
 } from './model.ts';
 import { availability, capacity, days, today } from './calendar.ts';
 import { applyOperation } from '../worktime/state.js';
+import {
+  type BundleCommand,
+  applyBundle,
+  bundleForTrip,
+  activeBundles,
+  bundleRows,
+  held,
+  heldUnit,
+} from './bundles.ts';
 export type Command =
+  | BundleCommand
   | { type: 'worktime'; subject: string; actor: string; operation: Record<string, unknown> }
   | { type: 'worktimeProfile'; uid: string; name: string }
   | {
@@ -94,7 +104,9 @@ export function applyCommand(
   }
   const s = structuredClone(source);
   let text = '';
-  if (c.type === 'worktimeProfile') {
+  if (c.type === 'bundle' || c.type === 'bundleCreate') {
+    text = applyBundle(s, c);
+  } else if (c.type === 'worktimeProfile') {
     if (!c.uid || !c.name.trim()) fail('Työntekijän tunnus ja nimi tarvitaan.');
     s.worktime ??= { people: {}, records: {} };
     s.worktime.people ??= {};
@@ -116,6 +128,8 @@ export function applyCommand(
     });
     text = `Työaika: ${s.worktime.people[c.subject].name}`;
   } else if (c.type === 'trip') {
+    if (bundleForTrip(s, c.trip.id))
+      fail('Päätä niputus ennen keikan varauksen muokkaamista. Keikan pakkaustiedot säilyvät.');
     const old = s.trips[c.trip.id];
     checkVersion(old?.version ?? 0, c.expected);
     if (old && !open(old)) fail('Arkistoitua tai peruttua keikkaa ei voi muokata.');
@@ -169,6 +183,12 @@ export function applyCommand(
     text = `Laitteen tiedot päivitetty: ${p.name} / ${unit.serial} (${c.condition === 'ready' ? 'käyttökunnossa' : 'huollossa'})`;
   } else if (c.type === 'product') {
     const p = structuredClone(c.product);
+    if (
+      held(s, p.id) > 0 &&
+      (p.tracking !== s.products[p.id]?.tracking ||
+        activeBundles(s).some((b) => b.holding[p.id]?.unitIds.some((id) => !p.units[id])))
+    )
+      fail('Nippuun pakatun tuotteen seurantatapaa tai yksilöitä ei voi poistaa.');
     checkVersion(s.products[p.id]?.version ?? 0, c.expected);
     if (!p.name.trim() || !int(p.total) || !int(p.maintenance) || p.maintenance > p.total)
       fail('Tarkista tuotteen nimi ja määrät.');
@@ -231,6 +251,14 @@ export function applyCommand(
     if (!t) fail('Keikkaa ei löydy.');
     checkVersion(t.version, c.expected);
     if (!open(t)) fail('Keikka on suljettu.');
+    if (
+      bundleForTrip(s, t.id) &&
+      (c.type === 'archiveReturned' || c.type === 'status') &&
+      Object.values(bundleForTrip(s, t.id)!.holding).some((h) => h.quantity > 0)
+    )
+      fail(
+        'Kohdista tai pura nipun kohdistamaton kalusto ennen keikan tilan muuttamista. Lähtö merkitään pakkausnipusta.',
+      );
     if (c.type === 'archiveReturned') {
       t.manualClosure = {
         at,
@@ -287,6 +315,8 @@ export function applyCommand(
             if (c.remove) {
               i.unitIds = i.unitIds.filter((x) => x !== uid);
             } else if (!i.unitIds.includes(uid)) {
+              if (heldUnit(s, p.id, uid))
+                fail('Laite on pakkausnipussa. Kohdista se asiakkaalle nipun näkymässä.');
               if (u.condition !== 'ready') fail('Laite on huollossa.');
               for (const other of Object.values(s.trips).filter(open))
                 for (const row of other.items)
@@ -313,7 +343,7 @@ export function applyCommand(
           const here = t.items
             .filter((x) => x.productId === p.id)
             .reduce((n, x) => n + x.packed - x.returned, 0);
-          if (elsewhere + here > capacity(p))
+          if (elsewhere + here + held(s, p.id) > capacity(p))
             fail('Fyysisesti vapaata kalustoa ei ole riittävästi.');
         }
         t.status = 'planned';
@@ -357,6 +387,9 @@ export function applyCommand(
     }
     t.version++;
   }
+  for (const b of activeBundles(s))
+    if (bundleRows(s, b).some((r) => r.packed + r.holding > r.quantity))
+      fail('Tuote on jo pakattu nippuun. Kohdista se nipun näkymässä.');
   s.revision++;
   s.receipts[id] = fingerprint;
   s.events.unshift({ id, at, text });

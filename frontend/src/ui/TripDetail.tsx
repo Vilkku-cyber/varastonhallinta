@@ -4,6 +4,7 @@ import { type State, type Trip, type Status, statusLabels } from '../domain/mode
 import { formatDay } from '../domain/calendar';
 import { type Command } from '../domain/commands';
 import { Scanner } from './Scanner';
+import { bundleForTrip } from '../domain/bundles';
 export function TripDetail({
   state,
   trip: t,
@@ -77,6 +78,13 @@ export function TripDetail({
   };
   return (
     <>
+      {bundleForTrip(state, t.id) && (
+        <p className="hint">
+          Keikka kuuluu pakkausnippuun: <strong>{bundleForTrip(state, t.id)!.name}</strong>.
+          Kohdista yhteisestä autokuormasta tulevat laitteet Pakkausniput-näkymässä. Keikan
+          kalustovarausta voi muokata niputuksen päättämisen jälkeen.
+        </p>
+      )}
       <div className="page-heading no-print">
         <button className="secondary" onClick={back}>
           <ArrowLeft size={16} /> Keikat

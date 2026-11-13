@@ -13,6 +13,7 @@ export type LegacyPreview = {
 export function isDemoWorkspace(state: State) {
   return (
     !state.migration &&
+    !Object.keys(state.bundles ?? {}).length &&
     state.events.some((e) => e.id === 'demo-setup') &&
     !Object.values(state.trips).some((t) => t.imported)
   );

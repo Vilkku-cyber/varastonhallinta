@@ -63,6 +63,14 @@ export function availability(
   const conflicts = new Set<string>();
   for (const d of dates) {
     let used = 0;
+    for (const b of Object.values(s.bundles ?? {})) {
+      if (b.closed || b.tripIds.includes(exclude)) continue;
+      const end = b.tripIds
+        .map((id) => s.trips[id]?.end ?? '')
+        .sort()
+        .at(-1);
+      if (end && end < now && d >= now) used += b.holding[productId]?.quantity ?? 0;
+    }
     for (const t of Object.values(s.trips)) {
       if (t.id === exclude) continue;
       const n = demand(t, productId, d, now);

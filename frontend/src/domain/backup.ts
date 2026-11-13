@@ -62,5 +62,60 @@ export function parseBackup(raw: unknown): { state: State; source: unknown } {
   for (const p of Object.values(s.placements))
     if (typeof p.label !== 'string' || !s.locations[p.locationId])
       throw Error('Hyllysijoittelun viittaus puuttuu.');
+  if (s.bundles !== undefined) {
+    if (!object(s.bundles)) throw Error('Pakkausnippujen rakenne ei ole kelvollinen.');
+    const members = new Set<string>();
+    const units = new Set<string>();
+    for (const [id, b] of Object.entries(s.bundles)) {
+      if (
+        id !== b.id ||
+        typeof b.name !== 'string' ||
+        !integer(b.version) ||
+        typeof b.closed !== 'boolean' ||
+        typeof b.departed !== 'boolean' ||
+        !Array.isArray(b.tripIds) ||
+        b.tripIds.length < 2 ||
+        new Set(b.tripIds).size !== b.tripIds.length ||
+        b.tripIds.some((id) => !s.trips[id]) ||
+        !object(b.holding)
+      )
+        throw Error('Pakkausnipun tiedot eivät ole kelvollisia.');
+      for (const id of b.tripIds)
+        if (!b.closed) {
+          if (members.has(id)) throw Error('Keikka kuuluu useaan aktiiviseen nippuun.');
+          members.add(id);
+        }
+      for (const [pid, h] of Object.entries(b.holding)) {
+        if (
+          !s.products[pid] ||
+          !integer(h.quantity) ||
+          !Array.isArray(h.unitIds) ||
+          h.unitIds.length > h.quantity ||
+          new Set(h.unitIds).size !== h.unitIds.length ||
+          (b.closed && h.quantity !== 0)
+        )
+          throw Error('Nipun pakkausmäärä ei ole kelvollinen.');
+        for (const uid of h.unitIds) {
+          const key = pid + '/' + uid;
+          if (
+            !s.products[pid].units[uid] ||
+            units.has(key) ||
+            Object.values(s.trips).some(
+              (t) =>
+                !['closed', 'cancelled'].includes(t.status) &&
+                t.items.some(
+                  (i) =>
+                    i.productId === pid &&
+                    i.unitIds.includes(uid) &&
+                    !i.returnedUnitIds.includes(uid),
+                ),
+            )
+          )
+            throw Error('Nipun laite puuttuu tai on jo pakattu muualle.');
+          units.add(key);
+        }
+      }
+    }
+  }
   return { state: structuredClone(s), source: r.legacySource ?? null };
 }

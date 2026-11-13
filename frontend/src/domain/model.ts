@@ -62,6 +62,7 @@ export type Placement = { id: string; locationId: string; productId: string; lab
 export type Task = { id: string; text: string; done: boolean };
 export type Review = { id: string; path: string; message: string };
 export type State = {
+  bundles?: Record<string, PackingBundle>;
   worktime?: {
     people: Record<string, { name: string }>;
     records: Record<string, unknown>;
@@ -77,6 +78,15 @@ export type State = {
   reviews: Review[];
   receipts: Record<string, string>;
   events: { id: string; at: string; text: string }[];
+};
+export type PackingBundle = {
+  id: string;
+  name: string;
+  tripIds: string[];
+  version: number;
+  departed: boolean;
+  closed: boolean;
+  holding: Record<string, { quantity: number; unitIds: string[] }>;
 };
 export const emptyState = (): State => ({
   schemaVersion: 2,

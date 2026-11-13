@@ -34,9 +34,11 @@ import { WarehouseView } from './WarehouseView';
 import { DeviceView } from './DeviceView';
 import { ScanLine } from 'lucide-react';
 import { WorktimePage } from '../worktime/WorktimePage.jsx';
+import { BundlesView } from './BundlesView';
 type Page =
   | 'dashboard'
   | 'trips'
+  | 'bundles'
   | 'calendar'
   | 'inventory'
   | 'device'
@@ -48,6 +50,7 @@ type Page =
 const nav = [
   ['dashboard', 'Etusivu', LayoutDashboard],
   ['trips', 'Keikat', BriefcaseBusiness],
+  ['bundles', 'Pakkausniput', Package],
   ['calendar', 'Kalenteri', CalendarDays],
   ['inventory', 'Kalusto', Package],
   ['device', 'Laitteen tiedot', ScanLine],
@@ -369,6 +372,7 @@ export function App() {
                 </>
               )}
               {page === 'calendar' && <CalendarView state={state} select={sel} />}
+              {page === 'bundles' && <BundlesView state={state} run={run} select={sel} />}
               {page === 'device' && (
                 <DeviceView
                   state={state}

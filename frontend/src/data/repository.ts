@@ -26,6 +26,11 @@ export function hydrate(raw: Partial<State> | null): State {
     s[field] ??= {};
   s.events ??= [];
   s.reviews ??= [];
+  for (const b of Object.values(s.bundles ?? {})) {
+    b.holding ??= {};
+    b.tripIds ??= [];
+    for (const h of Object.values(b.holding)) h.unitIds ??= [];
+  }
   for (const p of Object.values(s.products)) p.units ??= {};
   for (const t of Object.values(s.trips)) {
     t.items ??= [];
