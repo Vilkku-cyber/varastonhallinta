@@ -71,11 +71,12 @@ function checkTrip(s: State, t: Trip, now: string) {
     fail('Kalustorivien tunnisteiden pitää olla yksilöllisiä.');
   const quantities: Record<string, number> = {};
   for (const i of t.items) {
-    if (!i.name.trim() || !int(i.quantity, 1))
+    if (!i.name.trim() || !int(i.quantity, bundleForTrip(s, t.id) && i.packed > 0 ? 0 : 1))
       fail('Jokaiselle riville tarvitaan nimi ja positiivinen kokonaismäärä.');
     if (i.type === 'legacy')
       fail('Ratkaise tuodun keikan epäselvät kalustorivit ennen muokkaamista.');
-    if (i.quantity < i.packed) fail('Suunniteltu määrä ei voi alittaa pakattua määrää.');
+    if (i.quantity < i.packed && !bundleForTrip(s, t.id))
+      fail('Suunniteltu määrä ei voi alittaa pakattua määrää.');
     if (i.type === 'inventory') {
       const p = s.products[i.productId];
       if (!p || p.retired || p.review)
@@ -132,19 +133,20 @@ export function applyCommand(
     });
     text = `Työaika: ${s.worktime.people[c.subject].name}`;
   } else if (c.type === 'trip') {
-    if (bundleForTrip(s, c.trip.id))
-      fail('Päätä niputus ennen keikan varauksen muokkaamista. Keikan pakkaustiedot säilyvät.');
+    const bundle = bundleForTrip(s, c.trip.id);
     const old = s.trips[c.trip.id];
     checkVersion(old?.version ?? 0, c.expected);
     if (old && !open(old)) fail('Arkistoitua tai peruttua keikkaa ei voi muokata.');
-    if (old && ['out', 'returning'].includes(old.status))
+    if (old && (old.status === 'returning' || (old.status === 'out' && !bundle)))
       fail('Keikalla olevan kaluston suunnitelmaa ei voi vaihtaa palautuksen aikana.');
     const t = structuredClone(c.trip);
     // Physical packing data is never writable through the planning form.
     if (old) {
       for (const previous of old.items)
-        if (previous.packed && !t.items.some((i) => i.id === previous.id))
-          fail('Pakatun rivin poistaminen ei ole sallittu.');
+        if (previous.packed && !t.items.some((i) => i.id === previous.id)) {
+          if (bundle) t.items.push({ ...structuredClone(previous), quantity: 0 });
+          else fail('Pakatun rivin poistaminen ei ole sallittu.');
+        }
       for (const i of t.items) {
         const previous = old.items.find((x) => x.id === i.id);
         if (previous?.packed && (previous.productId !== i.productId || previous.type !== i.type))
@@ -170,7 +172,9 @@ export function applyCommand(
           serialSnapshots: [],
         });
     }
+    s.trips[t.id] = t;
     checkTrip(s, t, now);
+    if (bundle) bundle.version++;
     t.version = (old?.version ?? 0) + 1;
     s.trips[t.id] = t;
     text = `Keikka tallennettu: ${t.name}`;
@@ -336,7 +340,7 @@ export function applyCommand(
           if (!int(c.quantity ?? -1)) fail('Anna kelvollinen määrä.');
           i.packed = c.quantity!;
         }
-        if (i.packed > i.quantity)
+        if (i.packed > i.quantity && !bundleForTrip(s, t.id))
           fail('Pakkausmäärä ylittää suunnitelman. Muuta ensin kalustovarausta.');
         if (p) {
           const elsewhere = Object.values(s.trips)
@@ -391,9 +395,6 @@ export function applyCommand(
     }
     t.version++;
   }
-  for (const b of activeBundles(s))
-    if (bundleRows(s, b).some((r) => r.packed + r.holding > r.quantity))
-      fail('Tuote on jo pakattu nippuun. Kohdista se nipun näkymässä.');
   s.revision++;
   s.receipts[id] = fingerprint;
   s.events.unshift({ id, at, text });

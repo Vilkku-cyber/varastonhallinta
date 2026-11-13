@@ -82,7 +82,7 @@ export function TripDetail({
         <p className="hint">
           Keikka kuuluu pakkausnippuun: <strong>{bundleForTrip(state, t.id)!.name}</strong>.
           Kohdista yhteisestä autokuormasta tulevat laitteet Pakkausniput-näkymässä. Keikan
-          kalustovarausta voi muokata niputuksen päättämisen jälkeen.
+          tarvemäärän muutos päivittyy nippuun muuttamatta pakattua määrää.
         </p>
       )}
       <div className="page-heading no-print">

@@ -1,4 +1,5 @@
 import { DatePicker } from './DatePicker';
+import { bundleForTrip } from '../domain/bundles';
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { type State, type Trip, type Item } from '../domain/model';
@@ -206,7 +207,7 @@ export function TripEditor({
                 <input
                   aria-label={`Määrä: ${i.name}`}
                   type="number"
-                  min="1"
+                  min={bundleForTrip(state, draft.id) && i.packed > 0 ? 0 : 1}
                   required
                   value={i.quantity}
                   onChange={(e) => change({ quantity: Number(e.target.value) })}
@@ -241,4 +242,3 @@ export function TripEditor({
     </Dialog>
   );
 }
-

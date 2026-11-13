@@ -77,6 +77,16 @@ export function bundleRows(s: State, b: PackingBundle) {
       r.packed += i.packed;
       r.returned += i.returned;
     }
+  for (const [pid, h] of Object.entries(b.holding))
+    if (h.quantity > 0 && !result[pid])
+      result[pid] = {
+        productId: pid,
+        name: s.products[pid]?.name ?? pid,
+        quantity: 0,
+        packed: 0,
+        returned: 0,
+        holding: h.quantity,
+      };
   return Object.values(result);
 }
 function requireThat(ok: unknown, message: string): asserts ok {
@@ -133,7 +143,7 @@ export function applyBundle(s: State, c: BundleCommand): string {
     requireThat(b.departed, 'Merkitse nippu lähteneeksi ennen palautusta.');
     const finish = (t: State['trips'][string], complete = false) => {
       t.status = t.items.every(
-        (i) => i.returned === i.packed && (complete || i.packed === i.quantity),
+        (i) => i.returned === i.packed && (complete || i.packed >= i.quantity),
       )
         ? 'closed'
         : 'returning';
@@ -232,7 +242,7 @@ export function applyBundle(s: State, c: BundleCommand): string {
   } else if (c.action === 'depart') {
     requireThat(!b.departed, 'Nippu on jo merkitty lähteneeksi.');
     requireThat(
-      bundleRows(s, b).every((r) => r.packed + r.holding === r.quantity),
+      bundleRows(s, b).every((r) => r.packed + r.holding >= r.quantity),
       'Pakkaa nipun koko kalusto ennen lähtöä.',
     );
     for (const id of b.tripIds) {
@@ -277,10 +287,6 @@ export function applyBundle(s: State, c: BundleCommand): string {
     if (c.action === 'load') {
       requireThat(!b.departed, 'Lähteneeseen nippuun ei voi lisätä kalustoa.');
       requireThat(!p.retired && !p.review, 'Tuotteen tiedot pitää tarkistaa.');
-      requireThat(
-        row!.packed + h.quantity + count <= row!.quantity,
-        'Määrä ylittää nipun varauksen.',
-      );
       if (c.unitId) {
         requireThat(p.units[c.unitId].condition === 'ready', 'Laite on huollossa.');
         requireThat(!heldUnit(s, p.id, c.unitId), 'Laite on jo pakattu nippuun.');
@@ -335,10 +341,6 @@ export function applyBundle(s: State, c: BundleCommand): string {
       );
       requireThat(i, 'Kalustoriviä ei löydy keikalta.');
       if (c.action === 'assign') {
-        requireThat(
-          i!.packed + count <= i!.quantity,
-          'Keikalle on jo kohdistettu koko varattu määrä.',
-        );
         if (c.unitId) {
           if (!h.unitIds.includes(c.unitId)) {
             requireThat(

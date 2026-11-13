@@ -118,20 +118,10 @@ test('count-based loading allows later QR identification after departure and nor
     /palautuksen/,
   );
 });
-test('bundle holdings prevent direct double packing, overpacking and stale allocation', () => {
+test('bundle supports overpacking while rejecting stale allocation', () => {
   let s = operation(fixture(), 'load', { quantity: 4 });
-  assert.throws(() => operation(s, 'load', { quantity: 1 }), /ylittää/);
-  assert.throws(
-    () =>
-      run(s, {
-        type: 'pack',
-        tripId: 'demo1',
-        itemId: s.trips.demo1.items[0].id,
-        quantity: 1,
-        expected: s.trips.demo1.version,
-      }),
-    /nippuun/,
-  );
+  s = operation(s, 'load', { quantity: 1 });
+  assert.equal(held(s, 'screen'), 5);
   assert.throws(
     () =>
       operation(s, 'assign', {
@@ -154,16 +144,13 @@ test('bundle holdings prevent direct double packing, overpacking and stale alloc
       }),
     /muuttui/,
   );
-  assert.throws(
-    () =>
-      operation(s, 'assign', {
-        quantity: 3,
-        tripId: 'demo1',
-        itemId: s.trips.demo1.items[0].id,
-        tripVersion: s.trips.demo1.version,
-      }),
-    /koko/,
-  );
+  s = operation(s, 'assign', {
+    quantity: 3,
+    tripId: 'demo1',
+    itemId: s.trips.demo1.items[0].id,
+    tripVersion: s.trips.demo1.version,
+  });
+  assert.equal(s.trips.demo1.items[0].packed, 3);
 });
 test('held serials cannot be packed by another trip and capacity counts all holdings', () => {
   let s = operation(fixture(), 'load', { unitId: 'screen-1' });
@@ -183,10 +170,7 @@ test('held serials cannot be packed by another trip and capacity counts all hold
 });
 test('membership and archive are protected until unallocated load is handled', () => {
   let s = operation(fixture(), 'load', { quantity: 1 });
-  assert.throws(
-    () => run(s, { type: 'trip', trip: s.trips.demo1, expected: s.trips.demo1.version }),
-    /niputus/,
-  );
+  s = run(s, { type: 'trip', trip: s.trips.demo1, expected: s.trips.demo1.version });
   assert.throws(
     () => run(s, { type: 'archiveReturned', tripId: 'demo1', expected: s.trips.demo1.version }),
     /kohdistamaton/,

@@ -181,11 +181,9 @@ function BundleDetail({
       return;
     }
     const t = state.trips[target];
-    const i = t?.items.find(
-      (i) => i.type === 'inventory' && i.productId === product.id && i.packed < i.quantity,
-    );
+    const i = t?.items.find((i) => i.type === 'inventory' && i.productId === product.id);
     if (mode === 'assign' && !i) {
-      setError('Valitse asiakas, jolla on tätä mallia vielä kohdistamatta.');
+      setError('Valitse asiakas, jonka keikalla on tämän mallin kalustorivi.');
       return;
     }
     void act({
@@ -306,16 +304,17 @@ function BundleDetail({
           const h = b.holding[r.productId] ?? { quantity: 0, unitIds: [] };
           const p = state.products[r.productId];
           const t = state.trips[target];
-          const i = t?.items.find(
-            (i) => i.type === 'inventory' && i.productId === r.productId && i.packed < i.quantity,
-          );
+          const i = t?.items.find((i) => i.type === 'inventory' && i.productId === r.productId);
           const n = Number(amounts[r.productId] ?? '1');
           return (
             <section className="panel" key={r.productId}>
               <h3>{r.name}</h3>
               <p>
                 <strong>
-                  {r.packed + r.holding} / {r.quantity} pakattu
+                  Tarvitaan {r.quantity} · Pakattu {r.packed + r.holding} ·{' '}
+                  {r.packed + r.holding >= r.quantity
+                    ? `Ylimäärä ${r.packed + r.holding - r.quantity}`
+                    : `Puuttuu ${r.quantity - r.packed - r.holding}`}
                 </strong>{' '}
                 · Kohdistamatta {h.quantity} · Asiakkaille {r.packed} · Palautettu {r.returned}
               </p>

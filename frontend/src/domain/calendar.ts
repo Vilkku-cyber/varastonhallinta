@@ -64,12 +64,29 @@ export function availability(
   for (const d of dates) {
     let used = 0;
     for (const b of Object.values(s.bundles ?? {})) {
-      if (b.closed || b.tripIds.includes(exclude)) continue;
+      if (b.closed) continue;
+      const members = b.tripIds.map((id) => s.trips[id]).filter(Boolean);
+      const first = members.map((t) => t.start).sort()[0];
       const end = b.tripIds
         .map((id) => s.trips[id]?.end ?? '')
         .sort()
         .at(-1);
-      if (end && end < now && d >= now) used += b.holding[productId]?.quantity ?? 0;
+      if (end && first && ((d >= first && d <= end) || (end < now && d >= now))) {
+        const unfilled = members
+          .filter((t) => active(t) && d >= t.start && d <= t.end)
+          .reduce((n, t) => {
+            const rows = t.items.filter((i) => i.type === 'inventory' && i.productId === productId);
+            return (
+              n +
+              Math.max(
+                0,
+                rows.reduce((v, i) => v + i.quantity, 0) -
+                  rows.reduce((v, i) => v + i.packed - i.returned, 0),
+              )
+            );
+          }, 0);
+        used += Math.max(0, (b.holding[productId]?.quantity ?? 0) - unfilled);
+      }
     }
     for (const t of Object.values(s.trips)) {
       if (t.id === exclude) continue;
