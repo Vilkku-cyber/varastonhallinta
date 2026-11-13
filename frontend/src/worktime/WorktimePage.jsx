@@ -1,10 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { WorktimeView } from './Worktime.jsx';
 import { EMPTY_STATE } from './state.js';
+import { BalanceOverview } from './BalanceOverview.jsx';
+import { settleBalance } from './engine.js';
 
 // Uses AV Arsenal's existing repository: IndexedDB locally and its authenticated
 // RTDB transaction in the shared workspace. No second Firebase app or database.
-export function WorktimePage({ state, repo }) {
+export function WorktimePage({ state, repo, compact = false, onOpen = () => {} }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
   const [actor, setActor] = useState(
     repo.mode === 'local' ? { uid: 'local-user', name: 'Paikallinen käyttäjä' } : null,
   );
@@ -81,6 +88,21 @@ export function WorktimePage({ state, repo }) {
       pending.current = false;
       setBusy(false);
     }
+  }
+  if (compact) {
+    if (!actor || !people[subject]) return null;
+    const record = state.worktime?.records?.[subject] || EMPTY_STATE;
+    const balance = settleBalance(
+      Object.values(record.entries || {}),
+      now,
+      record.active,
+      record.settings || {},
+    );
+    return (
+      <div className="wt-page">
+        <BalanceOverview compact balance={balance} onOpen={onOpen} />
+      </div>
+    );
   }
   return (
     <WorktimeView

@@ -82,6 +82,65 @@
   flex: 1 1 250px;
   color: #516176;
 }
+.wt-balance {
+  border-top: 4px solid #73975a;
+}
+.wt-balance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.wt-balance-grid > * {
+  padding: 16px;
+  background: #f2f6ef;
+  border-radius: 10px;
+  min-width: 0;
+}
+.wt-balance-grid > div > span,
+.wt-balance-grid strong,
+.wt-balance-grid small,
+.wt-balance-main summary > span {
+  display: block;
+}
+.wt-balance-grid strong {
+  font-size: 23px;
+  color: #24452d;
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.wt-balance-grid .wt-balance-main {
+  grid-column: 1 / -1;
+  margin: 0;
+  background: #e5eddf;
+}
+.wt-balance-main summary > strong {
+  font-size: 38px;
+}
+.wt-balance-grid .wt-negative {
+  color: #903b2d;
+}
+.wt-balance-table {
+  overflow-x: auto;
+}
+.wt-balance table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.wt-balance th,
+.wt-balance td {
+  padding: 10px;
+  border-bottom: 1px solid #d6e0cf;
+  text-align: left;
+}
+@media (max-width: 700px) {
+  .wt-balance-grid {
+    grid-template-columns: 1fr;
+  }
+  .wt-balance-grid strong {
+    font-size: 22px;
+  }
+}
 .wt-page button,
 .wt-page input,
 .wt-page select,

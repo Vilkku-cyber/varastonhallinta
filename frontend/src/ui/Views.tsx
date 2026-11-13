@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   ArrowUpRight,
   Plus,
@@ -55,10 +55,12 @@ export function Dashboard({
   state,
   select,
   create,
+  worktimeSummary,
 }: {
   state: State;
   select: (id: string) => void;
   create: () => void;
+  worktimeSummary?: ReactNode;
 }) {
   const now = today();
   const [visibleCount, setVisibleCount] = useState(6);
@@ -79,6 +81,7 @@ export function Dashboard({
           <Plus size={18} /> Uusi keikka
         </button>
       </div>
+      {worktimeSummary}
       <div className="metrics">
         {[
           ['Aktiiviset keikat', trips.length, 'Suunnittelusta palautukseen'],

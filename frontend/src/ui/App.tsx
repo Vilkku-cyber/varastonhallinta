@@ -134,6 +134,7 @@ export function App() {
     st('Tallennettu');
   };
   const go = (p: Page) => {
+    window.scrollTo(0, 0);
     window.history.replaceState(
       null,
       '',
@@ -330,6 +331,9 @@ export function App() {
               {page === 'dashboard' && (
                 <Dashboard
                   state={state}
+                  worktimeSummary={
+                    <WorktimePage state={state} repo={repo} compact onOpen={() => go('worktime')} />
+                  }
                   select={(id) => {
                     sel(id);
                     sp('trips');

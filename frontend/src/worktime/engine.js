@@ -135,7 +135,7 @@ function longestGap(intervals, from, to) {
   return Math.max(longest, to - cursor) / MINUTE;
 }
 
-export function calculate(entries, now = Date.now(), active = null) {
+export function calculate(entries, now = Date.now(), active = null, settings = {}) {
   const work = entries
     .filter((e) => !e.deleted && e.kind !== 'off')
     .sort((a, b) => a.start.localeCompare(b.start));
@@ -213,11 +213,7 @@ export function calculate(entries, now = Date.now(), active = null) {
       sunday: 0,
       days: [],
     });
-    day.daily50 = Math.min(120, Math.max(0, day.minutes - 480));
-    day.daily100 = Math.max(0, day.minutes - 600);
-    const base = Math.min(day.minutes, 480);
-    day.weekly50 = Math.min(base, Math.max(0, week.regular + base - 2400));
-    day.regular = base - day.weekly50;
+    Object.assign(day, overtimeParts(day.minutes, week.regular));
     day.sunday = new Date(`${day.date}T12:00:00Z`).getUTCDay() === 0 ? day.minutes : 0;
     day.leave = (day.daily50 + day.weekly50) * 1.5 + day.daily100 * 2;
     for (const key of ['minutes', 'regular', 'daily50', 'daily100', 'weekly50', 'sunday'])
@@ -264,5 +260,177 @@ export function calculate(entries, now = Date.now(), active = null) {
     },
     { minutes: 0, regular: 0, daily50: 0, daily100: 0, weekly50: 0, sunday: 0, leave: 0 },
   );
-  return { days, weeks, warnings, totals, rules: RULES };
+  const result = { days, weeks, warnings, totals, rules: RULES };
+  result.balance = settleBalance(entries, now, active, settings);
+  return result;
+}
+
+export function validateBalanceSettings(settings) {
+  if (
+    !settings ||
+    !Array.isArray(settings.workDays) ||
+    !settings.workDays.length ||
+    new Set(settings.workDays).size !== settings.workDays.length ||
+    settings.workDays.some((day) => !Number.isInteger(day) || day < 0 || day > 6)
+  )
+    throw new Error('Valitse vähintään yksi säännöllinen työpäivä.');
+  if (
+    !Number.isFinite(settings.weeklyMinutes) ||
+    settings.weeklyMinutes <= 0 ||
+    settings.weeklyMinutes > settings.workDays.length * 1440
+  )
+    throw new Error('Tarkista viikkotyöaika.');
+  if (!Number.isFinite(settings.openingMinutes)) throw new Error('Anna kelvollinen alkusaldo.');
+  if (
+    typeof settings.startDate !== 'string' ||
+    (settings.startDate &&
+      (!/^\d{4}-\d{2}-\d{2}$/.test(settings.startDate) ||
+        addDays(settings.startDate, 0) !== settings.startDate))
+  )
+    throw new Error('Anna kelvollinen seurannan aloituspäivä.');
+}
+
+export function formatSignedMinutes(minutes) {
+  const rounded = Math.round(minutes * 10) / 10;
+  return `${rounded > 0 ? '+' : rounded < 0 ? '−' : ''}${formatMinutes(Math.abs(rounded))}`;
+}
+
+// Operational time-off estimate, not a new legal overtime classification.
+// All elapsed dates are inferred off if no work exists, as requested by the user.
+export function settleBalance(entries, now = Date.now(), active = null, config = {}) {
+  const settings = {
+    weeklyMinutes: 2400,
+    workDays: [1, 2, 3, 4, 5],
+    openingMinutes: 0,
+    startDate: '',
+    ...config,
+  };
+  validateBalanceSettings(settings);
+  const visible = entries.filter((e) => !e.deleted);
+  const today = dateKey(now);
+  const unfinished = visible.some(
+    (e) => e.kind !== 'off' && dateKey(e.start) <= today && Date.parse(e.end) > now,
+  );
+  const finishedToday = visible.some(
+    (e) => e.kind !== 'off' && Date.parse(e.end) <= now && dateKey(Date.parse(e.end) - 1) === today,
+  );
+  let through = finishedToday && !unfinished && !active ? today : addDays(today, -1);
+  if (active && dateKey(active.start) <= through) through = addDays(dateKey(active.start), -1);
+  for (const entry of visible) {
+    if (
+      entry.kind !== 'off' &&
+      Date.parse(entry.start) <= now &&
+      Date.parse(entry.end) > now &&
+      dateKey(entry.start) <= through
+    )
+      through = addDays(dateKey(entry.start), -1);
+  }
+  const dates = visible.map((e) => (e.kind === 'off' ? e.date : dateKey(e.start))).sort();
+  const startDate = settings.startDate || dates[0] || null;
+  const totals = {
+    actual: 0,
+    target: 0,
+    extra: 0,
+    used: 0,
+    premium: 0,
+    freeDays: 0,
+    weekdayFreeDays: 0,
+    restDays: 0,
+  };
+  const rows = [],
+    weeks = {};
+  const dailyTarget = settings.weeklyMinutes / settings.workDays.length;
+  // Reclassify only completed input. Future entries must never change today's balance.
+  const past = visible.filter((e) => e.kind === 'off' || Date.parse(e.end) <= now);
+  const classified = classifyCompleted(past);
+  let balance = settings.openingMinutes;
+  if (startDate)
+    for (let date = startDate; date <= through; date = addDays(date, 1)) {
+      const day = classified[date] || { minutes: 0, premium: 0 };
+      const target = settings.workDays.includes(new Date(`${date}T12:00Z`).getUTCDay())
+        ? dailyTarget
+        : 0;
+      const actual = day.minutes;
+      const extra = Math.max(0, actual - target),
+        used = Math.max(0, target - actual);
+      const free = actual === 0;
+      const row = {
+        date,
+        actual,
+        target,
+        extra,
+        used,
+        premium: day.premium,
+        free,
+        scheduled: target > 0,
+      };
+      balance += extra + row.premium - used;
+      row.balance = balance;
+      rows.push(row);
+      const week = (weeks[weekKey(date)] ||= {
+        date: weekKey(date),
+        actual: 0,
+        target: 0,
+        extra: 0,
+        used: 0,
+        premium: 0,
+        freeDays: 0,
+        weekdayFreeDays: 0,
+        restDays: 0,
+      });
+      for (const accumulator of [totals, week]) {
+        for (const key of ['actual', 'target', 'extra', 'used', 'premium'])
+          accumulator[key] += row[key];
+        if (free) {
+          accumulator.freeDays++;
+          accumulator[target ? 'weekdayFreeDays' : 'restDays']++;
+        }
+      }
+      week.balance = balance;
+    }
+  return {
+    ...totals,
+    startDate,
+    through,
+    settings,
+    dailyTarget,
+    balance,
+    rawBalance: totals.actual - totals.target,
+    earned: totals.extra + totals.premium,
+    rows,
+    weeks: Object.values(weeks),
+    version: RULES.balancePolicy,
+  };
+}
+
+function classifyCompleted(entries) {
+  const days = {},
+    weekly = {};
+  for (const entry of entries
+    .filter((e) => e.kind !== 'off')
+    .sort((a, b) => a.start.localeCompare(b.start)))
+    for (const slice of daySlices(entry))
+      (days[slice.date] ||= { minutes: 0, premium: 0 }).minutes += slice.minutes;
+  for (const [date, day] of Object.entries(days).sort(([a], [b]) => a.localeCompare(b))) {
+    const key = weekKey(date),
+      before = weekly[key] || 0;
+    const parts = overtimeParts(day.minutes, before);
+    day.premium = parts.premium;
+    weekly[key] = before + parts.regular;
+  }
+  return days;
+}
+
+function overtimeParts(minutes, previousRegular) {
+  const daily50 = Math.min(120, Math.max(0, minutes - 480));
+  const daily100 = Math.max(0, minutes - 600);
+  const base = Math.min(minutes, 480);
+  const weekly50 = Math.min(base, Math.max(0, previousRegular + base - 2400));
+  return {
+    daily50,
+    daily100,
+    weekly50,
+    regular: base - weekly50,
+    premium: (daily50 + weekly50) * 0.5 + daily100,
+  };
 }

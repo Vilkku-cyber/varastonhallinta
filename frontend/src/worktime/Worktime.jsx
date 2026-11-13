@@ -8,10 +8,12 @@ import {
   entryMinutes,
   formatMinutes,
   validateEntry,
+  validateBalanceSettings,
 } from './engine.js';
 import { RULES } from './rules.js';
 import { freshForm, formFrom, entryFrom } from './forms.js';
 import './Worktime.css';
+import { BalanceOverview } from './BalanceOverview.jsx';
 
 function LawLinks({ sections }) {
   return (
@@ -91,8 +93,8 @@ export function WorktimeView({ store }) {
   const entries = Object.values(state.entries || {});
   const visible = entries.filter((e) => !e.deleted);
   const result = useMemo(
-    () => calculate(Object.values(state.entries || {}), now, state.active),
-    [state.entries, state.active, Math.floor(now / 60000)],
+    () => calculate(Object.values(state.entries || {}), now, state.active, state.settings || {}),
+    [state.entries, state.active, state.settings, Math.floor(now / 60000)],
   );
   const active = state.active;
   const activeBreaks = active
@@ -274,6 +276,22 @@ export function WorktimeView({ store }) {
           {error || formError}
         </p>
       )}
+      <BalanceOverview
+        balance={result.balance}
+        disabled={unavailable}
+        saveSettings={
+          canWrite
+            ? async (settings) => {
+                validateBalanceSettings(settings);
+                return perform({
+                  type: 'settings',
+                  settings,
+                  expectedRevision: state.revision || 0,
+                });
+              }
+            : undefined
+        }
+      />
       {canWrite ? (
         <section className="wt-panel" ref={editorRef}>
           <div className="wt-tabs" role="group" aria-label="Kirjaustapa">

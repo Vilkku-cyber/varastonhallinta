@@ -39,11 +39,19 @@ export const RULES_V2 = Object.freeze({
     'Päivä ilman työmerkintää tulkitaan vapaapäiväksi. Käynnissä oleva vuoro ei ole vapaa-aikaa.',
 });
 
-export const RULES = Object.freeze({
+export const RULES_V3 = Object.freeze({
   ...RULES_V2,
   id: 'fi-general-2026-11-04-v3',
   breakPolicy: 'assumed-taken',
   assumedBreakDeductionMinutes: 0,
   breakDescription:
     'Tauot oletetaan pidetyiksi. Uusista kirjauksista ei vähennetä automaattisesti taukoa. Aiemmin kirjatut tauot säilyvät.',
+});
+
+export const RULES = Object.freeze({
+  ...RULES_V3,
+  id: 'fi-general-2026-11-13-v4',
+  balancePolicy: 'actual-minus-scheduled-plus-overtime-premiums-v1',
+  defaultWeeklyMinutes: 2400,
+  defaultWorkDays: [1, 2, 3, 4, 5],
 });

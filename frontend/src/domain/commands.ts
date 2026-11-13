@@ -113,7 +113,11 @@ export function applyCommand(
     s.worktime.people[c.uid] = { name: c.name.trim().slice(0, 120) };
     text = `Työaikakäyttäjä: ${c.name}`;
   } else if (c.type === 'worktime') {
-    if (!c.actor || !c.subject || !['save', 'start', 'stop'].includes(String(c.operation.type)))
+    if (
+      !c.actor ||
+      !c.subject ||
+      !['save', 'start', 'stop', 'settings'].includes(String(c.operation.type))
+    )
       fail('Työaikatoiminto ei ole kelvollinen.');
     s.worktime ??= { people: {}, records: {} };
     s.worktime.records ??= {};
