@@ -117,7 +117,7 @@ export function applyCommand(
     if (
       !c.actor ||
       !c.subject ||
-      !['save', 'start', 'stop', 'settings'].includes(String(c.operation.type))
+      !['save', 'start', 'stop', 'settings', 'rest'].includes(String(c.operation.type))
     )
       fail('Työaikatoiminto ei ole kelvollinen.');
     s.worktime ??= { people: {}, records: {} };

@@ -48,10 +48,25 @@ export const RULES_V3 = Object.freeze({
     'Tauot oletetaan pidetyiksi. Uusista kirjauksista ei vähennetä automaattisesti taukoa. Aiemmin kirjatut tauot säilyvät.',
 });
 
-export const RULES = Object.freeze({
+export const RULES_V4 = Object.freeze({
   ...RULES_V3,
   id: 'fi-general-2026-11-13-v4',
   balancePolicy: 'actual-minus-scheduled-plus-overtime-premiums-v1',
   defaultWeeklyMinutes: 2400,
   defaultWorkDays: [1, 2, 3, 4, 5],
+});
+
+export const RULES = Object.freeze({
+  ...RULES_V4,
+  id: 'fi-general-2026-11-19-v5',
+  checkedAt: '2026-11-19',
+  breakPolicy: 'explicit-meal-choice',
+  breakDescription:
+    'Ruokailu työn ohessa on työaikaa. Varsinainen vapaa ruokatauko vähennetään vain kirjatun keston mukaan. Aiemmat taukotiedot säilyvät.',
+  balancePolicy: 'actual-minus-scheduled-plus-overtime-and-holiday-premiums-v2',
+  compensation: 'time-off',
+  weeklyRest: '35h-average-14-days-minimum-24h-each-7-days',
+  dailyRestReplacement: 'confirmed-exception-and-actual-continuous-rest-within-14-days',
+  sourceNotice:
+    'Yleistyöaika ilman TES-lisiä. Lepopoikkeuksen peruste ja korvaavan levon toteutuminen vahvistetaan erikseen.',
 });

@@ -1,5 +1,6 @@
 import { calculate, validateEntry, validateBalanceSettings } from './engine.js';
 import { RULES } from './rules.js';
+import { calculateRest, validateRestOperation } from './rest.js';
 
 export const EMPTY_STATE = { entries: {}, history: {}, active: null, revision: 0 };
 
@@ -13,8 +14,36 @@ export function applyOperation(previous, operation) {
   const before = structuredClone(state.entries);
   const activeBefore = state.active || null;
   const settingsBefore = state.settings || null;
+  const restBefore = structuredClone(state.rest || null);
   const { at, id, actor } = operation;
-  if (operation.type === 'settings') {
+  if (operation.type === 'rest') {
+    if (operation.expectedRevision !== state.revision)
+      throw new Error('Työaikatiedot muuttuivat. Tarkista lepojen uusin tilanne.');
+    validateRestOperation(state, operation);
+    state.rest ||= { reviews: {}, allocations: {} };
+    state.rest.reviews ||= {};
+    state.rest.allocations ||= {};
+    if (operation.review)
+      state.rest.reviews[operation.debtId] = {
+        confirmed: operation.review.confirmed === true,
+        basis: String(operation.review.basis || ''),
+        reason: String(operation.review.reason || '').slice(0, 2000),
+        deferralReason: String(operation.review.deferralReason || '').slice(0, 2000),
+        minutes: Number(operation.review.minutes || 0),
+        at,
+        actor,
+      };
+    if (operation.allocation)
+      state.rest.allocations[id] = {
+        debtId: operation.debtId,
+        start: operation.allocation.start,
+        end: operation.allocation.end,
+        minutes: Number(operation.allocation.minutes),
+        at,
+        actor,
+      };
+    if (operation.removeAllocation) delete state.rest.allocations[operation.removeAllocation];
+  } else if (operation.type === 'settings') {
     if ((operation.expectedRevision ?? -1) !== state.revision)
       throw new Error('Työaikatiedot ovat muuttuneet. Tarkista asetukset ja tallenna uudelleen.');
     validateBalanceSettings(operation.settings);
@@ -71,7 +100,15 @@ export function applyOperation(previous, operation) {
           createdAt: at,
           updatedAt: at,
           ruleVersion: RULES.id,
+          meal: operation.meal === 'duty-free' ? 'duty-free' : 'with-work',
+          mealMinutes: operation.meal === 'duty-free' ? Number(operation.mealMinutes) : 0,
         };
+        if (entry.meal === 'duty-free')
+          entry.breaks = [
+            ...entry.breaks,
+            { minutes: entry.mealMinutes, paid: false, source: 'meal' },
+          ];
+        if (entry.breaks.length) entry.breakPolicy = entry.breakStatus = 'recorded';
         validateEntry(entry);
         state.entries[entry.id] = entry;
         state.active = null;
@@ -94,6 +131,15 @@ export function applyOperation(previous, operation) {
     activeAfter: state.active || null,
     settingsBefore,
     settingsAfter: state.settings || null,
+    restBefore,
+    restAfter: state.rest || null,
+    restCalculation: calculateRest(
+      Object.values(state.entries),
+      Date.parse(at),
+      state.active,
+      state.rest,
+      state.settings,
+    ),
     calculation: calculate(
       Object.values(state.entries),
       Date.parse(at),

@@ -14,6 +14,43 @@ import { RULES } from './rules.js';
 import { freshForm, formFrom, entryFrom } from './forms.js';
 import './Worktime.css';
 import { BalanceOverview } from './BalanceOverview.jsx';
+import { calculateRest } from './rest.js';
+import { RestOverview } from './RestOverview.jsx';
+
+function MealChoice({ meal, minutes, onChange, disabled }) {
+  return (
+    <div className="wt-fields">
+      <label>
+        Ruokailu
+        <select
+          value={meal || 'legacy'}
+          disabled={disabled}
+          onChange={(e) => onChange('meal', e.target.value)}
+        >
+          {(!meal || meal === 'legacy') && (
+            <option value="legacy">Säilytä aiemmat taukotiedot</option>
+          )}
+          <option value="with-work">Ruokailu työn ohessa – ei vähennystä</option>
+          <option value="duty-free">Varsinainen ruokatauko – vähennetään työajasta</option>
+          <option value="none">Ei ruokailua – ei vähennystä</option>
+        </select>
+      </label>
+      {meal === 'duty-free' && (
+        <label>
+          Ruokatauko (min)
+          <input
+            type="number"
+            min="1"
+            required
+            value={minutes}
+            disabled={disabled}
+            onChange={(e) => onChange('mealMinutes', Number(e.target.value))}
+          />
+        </label>
+      )}
+    </div>
+  );
+}
 
 function LawLinks({ sections }) {
   return (
@@ -85,6 +122,7 @@ export function WorktimeView({ store }) {
   const [copyDates, setCopyDates] = useState([]);
   const [copyDate, setCopyDate] = useState(dateKey());
   const [selectedWeek, setSelectedWeek] = useState('all');
+  const [timerMeal, setTimerMeal] = useState({ meal: 'with-work', mealMinutes: 30 });
   const editorRef = useRef(null);
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -97,6 +135,13 @@ export function WorktimeView({ store }) {
     [state.entries, state.active, state.settings, Math.floor(now / 60000)],
   );
   const active = state.active;
+  useEffect(() => {
+    setTimerMeal({ meal: 'with-work', mealMinutes: 30 });
+  }, [active?.id]);
+  const restReport = useMemo(
+    () => calculateRest(entries, now, state.active, state.rest, state.settings),
+    [state.entries, state.active, state.rest, state.settings, Math.floor(now / 60000)],
+  );
   const activeBreaks = active
     ? [
         ...(active.breaks || []),
@@ -147,7 +192,9 @@ export function WorktimeView({ store }) {
   };
   async function action(type) {
     setMessage('');
-    if (await perform({ type, activeId: active?.id, activeRevision: active?.revision })) {
+    if (
+      await perform({ type, activeId: active?.id, activeRevision: active?.revision, ...timerMeal })
+    ) {
       setMessage(
         type === 'stop'
           ? 'Työpäivä tallennettu. Tarkista tauot ja mahdolliset ylityöt merkinnän Muokkaa-painikkeesta.'
@@ -292,6 +339,13 @@ export function WorktimeView({ store }) {
             : undefined
         }
       />
+      <details className="wt-panel">
+        <summary>
+          Lepoaikojen seuranta · korvaamatta {formatMinutes(restReport.remaining)} · tarkistamatta{' '}
+          {formatMinutes(restReport.observed)}
+        </summary>
+        <RestOverview report={restReport} state={state} perform={perform} disabled={unavailable} />
+      </details>
       {canWrite ? (
         <section className="wt-panel" ref={editorRef}>
           <div className="wt-tabs" role="group" aria-label="Kirjaustapa">
@@ -313,6 +367,14 @@ export function WorktimeView({ store }) {
                 {active ? formatMinutes(Math.floor(activeMinutes)) : '0 h 00 min'}
               </strong>
               {active && <p>Alkoi {localTime(active.start).replace('T', ' klo ')}</p>}
+              {active && (
+                <MealChoice
+                  meal={timerMeal.meal}
+                  minutes={timerMeal.mealMinutes}
+                  disabled={unavailable}
+                  onChange={(key, value) => setTimerMeal((m) => ({ ...m, [key]: value }))}
+                />
+              )}
               <div className="wt-actions">
                 {!active ? (
                   <button
@@ -335,7 +397,7 @@ export function WorktimeView({ store }) {
                 )}
               </div>
               <p className="wt-muted">
-                Ajastin säilyy sivun sulkemisen yli. Tauot oletetaan pidetyiksi.
+                Ajastin säilyy sivun sulkemisen yli. Tarkista ruokailu ennen työpäivän lopettamista.
               </p>
             </div>
           ) : (
@@ -423,6 +485,54 @@ export function WorktimeView({ store }) {
                     </div>
                   )}
                 </>
+              )}
+              {form.kind !== 'off' && (
+                <MealChoice
+                  meal={form.meal}
+                  minutes={form.mealMinutes}
+                  onChange={change}
+                  disabled={unavailable}
+                />
+              )}
+              {form.breaks.length > 0 && (
+                <fieldset>
+                  <legend>Aiemmin kirjatut muut tauot</legend>
+                  {form.breaks.map((b, i) => (
+                    <div className="wt-actions" key={i}>
+                      <span>
+                        {b.start
+                          ? `${b.start.replace('T', ' ')} – ${b.end.replace('T', ' ')}`
+                          : `${b.minutes} min`}
+                      </span>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={b.paid}
+                          onChange={(e) =>
+                            change(
+                              'breaks',
+                              form.breaks.map((item, j) =>
+                                j === i ? { ...item, paid: e.target.checked } : item,
+                              ),
+                            )
+                          }
+                        />{' '}
+                        Työaikaa
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          change(
+                            'breaks',
+                            form.breaks.filter((_, j) => j !== i),
+                          )
+                        }
+                      >
+                        Poista tauko
+                      </button>
+                    </div>
+                  ))}
+                </fieldset>
               )}
               <label>
                 Muistiinpano
@@ -519,9 +629,8 @@ export function WorktimeView({ store }) {
         </div>
         <div className="wt-stats">
           <Stat title="Tehty työaika" value={summary.minutes} sections={[3, 24]}>
-            Uusissa kirjauksissa työaika on aloitus- ja lopetusajan erotus. Tauot oletetaan
-            pidetyiksi eikä niistä tehdä automaattista vähennystä. Aiemmin tallennettujen
-            merkintöjen laskenta huomioi niiden alkuperäiset taukotiedot.
+            Ruokailu työn ohessa on työaikaa. Varsinainen työvelvoitteista vapaa ruokatauko
+            vähennetään valitun keston mukaan. Aiemmat taukotiedot säilyvät.
           </Stat>
           <Stat title="Normaali työaika" value={summary.regular} sections={[5, 16]}>
             Enintään 8 h päivässä ja 40 h viikossa. Päivittäinen ja viikoittainen ylityö on
@@ -547,9 +656,14 @@ export function WorktimeView({ store }) {
             50 % tunnit × 1,5 + 100 % tunnit × 2. Vapaasta on sovittava työnantajan kanssa. Tämä on
             laskelma, ei vahvistettu vapaasaldo.
           </Stat>
-          <Stat title="Sunnuntaityön korotusosa +100 %" value={summary.sunday} sections={[20, 21]}>
-            Sunnuntaille kohdistuva työ × 1. Korotusosa on ylityökorvauksen lisäksi; se ei sisälly
-            yllä olevaan ylityökorvausvapaaseen. Kansalliset juhlapäivät tarkistetaan erikseen.
+          <Stat
+            title="Sunnuntai- ja juhlapäiväkorotus +100 %"
+            value={summary.sunday}
+            sections={[20, 21]}
+          >
+            Sunnuntain tai kansallisen juhlapäivän työ × 1 lisätään vapaasaldoon ylityön
+            korotusosien lisäksi. Samalle päivälle osuva sunnuntai ja juhlapäivä lasketaan kerran.
+            TES-lisiä ei käytetä. Korotukset käsitellään vapaana, ei rahana.
           </Stat>
         </div>
       </section>
@@ -622,7 +736,13 @@ export function WorktimeView({ store }) {
                       </pre>
                       <details>
                         <summary>Tallennushetken laskelma ja lähteet</summary>
-                        <pre>{JSON.stringify(h.calculation, null, 2)}</pre>
+                        <pre>
+                          {JSON.stringify(
+                            { ...h.calculation, lepoajat: h.restCalculation },
+                            null,
+                            2,
+                          )}
+                        </pre>
                       </details>
                     </details>
                   ))}
@@ -632,27 +752,19 @@ export function WorktimeView({ store }) {
         )}
       </section>
       <section className="wt-panel">
-        <h2>Huomautukset ja lepoajat</h2>
+        <h2>Huomautukset</h2>
         <p>
           Huomautukset eivät estä todellisten aikojen tallennusta. Päivät ilman työmerkintää
           tulkitaan vapaapäiviksi. Vuorokausilepoa tarkastellaan vuoron alusta seuraavan 24 tunnin
-          sisältä, viikkolepoa päättyneen ma–su-viikon sisältä. Poikkeusjärjestelyt ja rajojen yli
-          jatkuvat levot tarkistetaan erikseen.
+          sisältä. Lepovajeiden perusteet ja korvaukset löytyvät lepoaikojen seurannasta.
         </p>
-        {Object.values(result.weeks)
-          .filter((w) => selectedWeek === 'all' || w.date === selectedWeek)
-          .map((w) => (
-            <p key={w.date}>
-              Viikko {w.date}:{' '}
-              {w.longestRest === null
-                ? 'Viikkolepoa ei vielä arvioida: viikko tai sille osuva työvuoro on kesken.'
-                : `Pisin kirjauksista löytyvä yhtenäinen lepo ${formatMinutes(w.longestRest)}.`}
-            </p>
-          ))}
         {result.warnings
           .filter(
             (w) =>
-              selectedWeek === 'all' || !w.entryId || shownEntries.some((e) => e.id === w.entryId),
+              !['daily-rest', 'weekly-rest'].includes(w.code) &&
+              (selectedWeek === 'all' ||
+                !w.entryId ||
+                shownEntries.some((e) => e.id === w.entryId)),
           )
           .map((w, i) => (
             <details className="wt-warning" key={`${w.code}-${i}`}>

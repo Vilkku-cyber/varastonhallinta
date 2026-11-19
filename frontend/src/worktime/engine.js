@@ -1,4 +1,5 @@
 import { RULES } from './rules.js';
+import { premiumDay } from './holidays.js';
 
 const MINUTE = 60000;
 const partsFormatter = new Intl.DateTimeFormat('sv-SE', {
@@ -58,6 +59,8 @@ export function validateEntry(entry) {
     return;
   }
   const total = duration(entry.start, entry.end);
+  if (entry.meal === 'duty-free' && (!Number.isFinite(entry.mealMinutes) || entry.mealMinutes <= 0))
+    throw new Error('Anna varsinaisen ruokatauon kesto minuutteina.');
   if (!Number.isFinite(total) || total <= 0)
     throw new Error('Lopetusajan pitää olla aloitusajan jälkeen.');
   if (total > 60 * 24 * 31) throw new Error('Jaa yli 31 vuorokauden merkintä osiin.');
@@ -214,7 +217,7 @@ export function calculate(entries, now = Date.now(), active = null, settings = {
       days: [],
     });
     Object.assign(day, overtimeParts(day.minutes, week.regular));
-    day.sunday = new Date(`${day.date}T12:00:00Z`).getUTCDay() === 0 ? day.minutes : 0;
+    day.sunday = premiumDay(day.date) ? day.minutes : 0;
     day.leave = (day.daily50 + day.weekly50) * 1.5 + day.daily100 * 2;
     for (const key of ['minutes', 'regular', 'daily50', 'daily100', 'weekly50', 'sunday'])
       week[key] += day[key];
@@ -415,7 +418,7 @@ function classifyCompleted(entries) {
     const key = weekKey(date),
       before = weekly[key] || 0;
     const parts = overtimeParts(day.minutes, before);
-    day.premium = parts.premium;
+    day.premium = parts.premium + (premiumDay(date) ? day.minutes : 0);
     weekly[key] = before + parts.regular;
   }
   return days;

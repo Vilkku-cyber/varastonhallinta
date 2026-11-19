@@ -3,6 +3,8 @@ import { WorktimeView } from './Worktime.jsx';
 import { EMPTY_STATE } from './state.js';
 import { BalanceOverview } from './BalanceOverview.jsx';
 import { settleBalance } from './engine.js';
+import { calculateRest } from './rest.js';
+import { RestOverview } from './RestOverview.jsx';
 
 // Uses AV Arsenal's existing repository: IndexedDB locally and its authenticated
 // RTDB transaction in the shared workspace. No second Firebase app or database.
@@ -101,6 +103,17 @@ export function WorktimePage({ state, repo, compact = false, onOpen = () => {} }
     return (
       <div className="wt-page">
         <BalanceOverview compact balance={balance} onOpen={onOpen} />
+        <RestOverview
+          compact
+          state={record}
+          report={calculateRest(
+            Object.values(record.entries || {}),
+            now,
+            record.active,
+            record.rest,
+            record.settings,
+          )}
+        />
       </div>
     );
   }

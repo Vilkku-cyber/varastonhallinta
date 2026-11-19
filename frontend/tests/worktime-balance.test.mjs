@@ -180,3 +180,95 @@ test('future-ended saved overnight shifts are not mistaken for unworked past day
   assert.equal(b.through, '2026-11-04');
   assert.equal(b.actual, 480);
 });
+
+// Regression fixture transcribed from the user's screenshots. November 3 has
+// two separate entries: they must form a single 8 h 12 min working day.
+const screenshotEntries = [
+  ['2026-11-02', '08:48', '17:08'],
+  ['2026-11-03', '13:46', '20:58'],
+  ['2026-11-03', '10:00', '11:00'],
+  ['2026-11-04', '08:48', '17:08'],
+  ['2026-11-06', '07:00', '19:09'],
+  ['2026-11-09', '09:03', '17:03'],
+  ['2026-11-10', '09:00', '16:30'],
+  ['2026-11-11', '08:50', '18:53'],
+].map(([date, start, end], index) => ({
+  id: `screenshot-${index}`,
+  kind: 'work',
+  start: toInstant(`${date}T${start}`),
+  end: toInstant(`${date}T${end}`),
+  breaks: [],
+}));
+const screenshotNow = Date.parse(toInstant('2026-11-13T12:00'));
+
+test('screenshot regression: both weekday leaves debit 8 hours and every displayed total matches', () => {
+  const b = settleBalance(screenshotEntries, screenshotNow, null, settings);
+  assert.equal(b.actual, 62 * 60 + 34);
+  assert.equal(b.target, 72 * 60);
+  assert.equal(b.extra, 7 * 60 + 4);
+  assert.equal(b.premium, 4 * 60 + 38);
+  assert.equal(b.used, 16 * 60 + 30);
+  assert.equal(b.balance, -(4 * 60 + 48));
+  assert.equal(b.rawBalance, -(9 * 60 + 26));
+  assert.equal(b.freeDays, 4);
+  assert.equal(b.weekdayFreeDays, 2);
+  assert.equal(b.restDays, 2);
+  assert.deepEqual(
+    b.rows.filter((r) => r.used > 0).map((r) => [r.date, r.used]),
+    [
+      ['2026-11-05', 480],
+      ['2026-11-10', 30],
+      ['2026-11-12', 480],
+    ],
+  );
+  assert.deepEqual(
+    b.rows.filter((r) => r.free && !r.scheduled).map((r) => [r.date, r.used]),
+    [
+      ['2026-11-07', 0],
+      ['2026-11-08', 0],
+    ],
+  );
+  assert.equal(b.rows.find((r) => r.date === '2026-11-03').actual, 492);
+  assert.equal(b.rows.find((r) => r.date === '2026-11-03').premium, 6);
+  assert.equal(b.through, '2026-11-12');
+});
+
+test('screenshot regression: each weekday leave really lowers the final balance by 8 hours', () => {
+  const original = settleBalance(screenshotEntries, screenshotNow, null, settings);
+  for (const date of ['2026-11-05', '2026-11-12']) {
+    const withoutLeave = settleBalance(
+      [...screenshotEntries, work(date)],
+      screenshotNow,
+      null,
+      settings,
+    );
+    assert.equal(withoutLeave.balance - original.balance, 480);
+    assert.equal(original.weekdayFreeDays - withoutLeave.weekdayFreeDays, 1);
+  }
+});
+
+test('screenshot regression: record order and zero-hour explicit leave do not change the ledger', () => {
+  const original = settleBalance(screenshotEntries, screenshotNow, null, settings);
+  const reordered = settleBalance([...screenshotEntries].reverse(), screenshotNow, null, settings);
+  assert.deepEqual(reordered, original);
+  const explicit = settleBalance(
+    [...screenshotEntries, { id: 'off', kind: 'off', date: '2026-11-05' }],
+    screenshotNow,
+    null,
+    settings,
+  );
+  assert.deepEqual(explicit, original);
+});
+
+test('screenshot regression: accrual, debits and weekly closing balances reconcile exactly', () => {
+  const b = settleBalance(screenshotEntries, screenshotNow, null, settings);
+  assert.equal(b.balance, b.settings.openingMinutes + b.actual - b.target + b.premium);
+  assert.equal(b.balance, b.settings.openingMinutes + b.earned - b.used);
+  assert.equal(b.rows.at(-1).balance, b.balance);
+  assert.equal(b.weeks.at(-1).balance, b.balance);
+  for (const key of ['actual', 'target', 'extra', 'used', 'premium', 'freeDays'])
+    assert.equal(
+      b.weeks.reduce((sum, week) => sum + week[key], 0),
+      b[key],
+    );
+});

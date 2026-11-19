@@ -50,13 +50,14 @@ export function BalanceOverview({
           </summary>
           <p>
             Alkusaldo {formatSignedMinutes(balance.settings.openingMinutes)} + lisäaika{' '}
-            {formatMinutes(balance.extra)} + ylityön korotusosat {formatMinutes(balance.premium)} −
-            tasaukseen käytetty aika {formatMinutes(balance.used)} ={' '}
-            {formatSignedMinutes(balance.balance)}.
+            {formatMinutes(balance.extra)} + ylityö-, sunnuntai- ja juhlapäiväkorotukset{' '}
+            {formatMinutes(balance.premium)} − tasaukseen käytetty aika{' '}
+            {formatMinutes(balance.used)} = {formatSignedMinutes(balance.balance)}.
           </p>
           <p>
             Tehdyt tunnit lasketaan kerran. Korotuksista lisätään vain 50 % / 100 % lisäosa.
-            Sunnuntaikorotuksen osuutta ei siirretä tähän saldoon. Vapaaksi vaihtaminen perustuu
+            Sunnuntai- ja juhlapäiväkorotus lisätään kerran ylityökorotusten lisäksi. Kaikki
+            korotukset kertyvät vapaana. TES-lisiä ei käytetä. Vapaaksi vaihtaminen perustuu
             sopimukseen.
           </p>
           <a
