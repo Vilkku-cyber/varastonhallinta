@@ -4,6 +4,8 @@ import { type State, type Trip, type Status, statusLabels } from '../domain/mode
 import { formatDay } from '../domain/calendar';
 import { type Command } from '../domain/commands';
 import { Scanner } from './Scanner';
+import { TripLedPlans } from './TripLedPlans';
+import type { LedSelection } from './LedProjectControls';
 import { bundleForTrip } from '../domain/bundles';
 export function TripDetail({
   state,
@@ -11,12 +13,14 @@ export function TripDetail({
   back,
   edit,
   run,
+  openLedPlan,
 }: {
   state: State;
   trip: Trip;
   back: () => void;
   edit: () => void;
   run: (c: Command) => Promise<void>;
+  openLedPlan: (selection: LedSelection) => void;
 }) {
   const [serial, setSerial] = useState('');
   const [scan, setScan] = useState(false);
@@ -110,6 +114,7 @@ export function TripDetail({
         </div>
         <span className={`badge ${t.status}`}>{statusLabels[t.status]}</span>
       </div>
+      <TripLedPlans trip={t} open={openLedPlan} />
       <div className="print-only">
         <h2>Lähetyslista</h2>
         <p>

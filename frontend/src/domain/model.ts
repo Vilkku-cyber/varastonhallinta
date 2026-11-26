@@ -1,3 +1,4 @@
+import type { LedProject } from './ledProjects.ts';
 export type Status = 'draft' | 'planned' | 'packed' | 'out' | 'returning' | 'closed' | 'cancelled';
 export type Unit = {
   id: string;
@@ -21,6 +22,7 @@ export type Product = {
   version: number;
 };
 export type Item = {
+  ledPlanId?: string;
   id: string;
   type: 'inventory' | 'custom' | 'legacy';
   productId: string;
@@ -34,6 +36,7 @@ export type Item = {
   serialSnapshots: string[];
 };
 export type Trip = {
+  ledPlans?: Record<string, LedProject>;
   manualClosure?: {
     at: string;
     previousStatus: Status;

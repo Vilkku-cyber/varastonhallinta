@@ -38,7 +38,104 @@
 .led-plan-result > button {
   margin-top: 18px;
 }
+.kaari-subtool {
+  border: 1px solid #dce1d6;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 18px 0;
+}
+.kaari-subtool summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.kaari-editor iframe {
+  width: 100%;
+  height: 70vh;
+  border: 0;
+  background: #f2f3f8;
+}
+dialog:has(.kaari-editor) {
+  width: min(1500px, 96vw);
+  max-width: 96vw;
+  padding: 0;
+}
+dialog:has(.kaari-editor) > header {
+  padding: 16px 20px;
+  margin: 0;
+}
+.kaari-editor footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 14px 20px;
+  gap: 12px;
+}
+.kaari-editor footer .hint {
+  flex: 1;
+  min-width: 230px;
+}
+.kaari-preview {
+  color: #416a65;
+  width: 100%;
+}
+.kaari-preview svg {
+  display: block;
+  width: 100%;
+  height: 240px;
+  background: #f5f8f3;
+  border-radius: 10px;
+}
+.kaari-preview p {
+  color: #293c36;
+  font-size: 14px;
+}
+.kaari-preview .hint {
+  font-size: 13px;
+  color: #58695e;
+}
+.kaari-preview details {
+  background: white;
+  color: #18352c;
+  padding: 12px;
+  border-radius: 8px;
+}
+.led-project-controls {
+  border-top: 1px solid #dce1d6;
+  margin-top: 24px;
+  padding-top: 20px;
+}
+.led-update-preview {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #c7d4be;
+  background: #f6f8f3;
+  border-radius: 12px;
+}
+.trip-led-plans article + article {
+  border-top: 1px solid #dce1d6;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+.trip-led-plans .actions h3 {
+  flex: 1;
+  margin: 0;
+}
+.trip-led-plans .kaari-preview svg {
+  max-height: 220px;
+}
 @media print {
+  .kaari-preview {
+    break-inside: avoid;
+  }
+  .kaari-preview svg {
+    print-color-adjust: exact;
+  }
+  .kaari-preview details > .table-scroll {
+    display: block;
+  }
+  .led-project-controls {
+    display: none;
+  }
   .led-drawing {
     break-inside: avoid;
     print-color-adjust: exact;

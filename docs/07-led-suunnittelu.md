@@ -1,5 +1,19 @@
 # LED-suunnittelu, päivitys 9.9.2026
 
+## Kaari ja keikalle tallennettavat suunnitelmat, 26.11.2026
+
+- Kaari on LED-suunnittelun suljettu, valinnainen alatyökalu. Sen muotoiluikkuna ladataan vasta avattaessa. Tavallinen paneelimitoitus on edelleen oletus.
+- Työkalussa ovat vapaa muoto, ympyrä, soikio ja aalto, palojen maalaus ja laatikkovalinta, monivalinnan kulmat, lukittavat pisteet sekä reaaliaikainen aallon syvyys. Malli on 500 mm tasainen kaari, −30…+30° 2,5° askelin. Pintaledin erikokoiset palat mitoitetaan tavallisella työkalulla.
+- ”Käytä muotoa” palauttaa pintapituuden ja lopulliset palakulmat pääsuunnitteluun. Paneelitarve on fyysiset sarakkeet × korkeuden rivit, ei ylhäältä piirretyn muodon kokonaisleveys.
+- ”Tallenna suunnitelma keikalle” tallentaa asetukset ja muodon `trip.ledPlans`-tietoihin. Tallennus ei muuta kalustorivejä, pakkausta, keikan tilaa eikä varaustarvetta. Suunnitelman voi tallentaa myös keskeneräisillä kalustovalinnoilla.
+- ”Päivitä keikan kalustolista” näyttää suunnitelman rivien ennen/jälkeen-määrät, koko keikan määrät ja ajankohdan saatavuuden. Erillinen vahvistus päivittää vain tämän suunnitelman omistamat `ledPlanId`-rivit. Muita samankaan tuotteen rivejä ei yhdistetä niihin. Toistuva päivitys ei lisää kaksoisrivejä.
+- Päivitys käyttää yhteistä kalustomitoitusta ja saatavuustarkistusta. Pakatut määrät, palautukset, yksilöt ja rivitunnisteet säilyvät. Tavallisella keikalla tarvetta ei voi alentaa alle pakatun määrän; nipussa ylimääräinen jää pakatuksi ja nipun kysyntä päivittyy.
+- Suunnitelmalla on oma versio ja kalustoon viimeksi viety versio. Tallennus ja päivitys tarkistavat myös keikan version; toisella laitteella tehtyä muutosta ei ylikirjoiteta.
+- Keikan tiedoista avataan tallennettu suunnitelma takaisin LED-suunnitteluun. Kuva ja palakulmat ovat näkyvissä keikalla. Suunnitelmat kulkevat varmuuskopion mukana, ja RTDB:n poistamat tyhjät listat sekä null-arvot palautetaan lukurajalla.
+- Kaari on eristetty samaan toimitukseen kuuluvaan kehykseen; se saa vain muotoiludokumentin eikä pääsyä kirjautumiseen tai Arsenalin tallennukseen. Parent–frame-viestit tarkistetaan lähdeikkunan, istuntotunnisteen ja dokumenttirakenteen perusteella.
+
+Varmistettu: 137 automaattista testiä, mukaan lukien 25 suunnitelma-/integraatiotestiä. Selaimessa tarkistettu alatyökalun avaus, aallon muotoilu, tallennus keikalle alkuperäiset kalustorivit säilyttäen, muokkaus, erillinen muutosesikatselu ja kalustopäivitys sekä sivun uudelleenavaus. Verkkokannan todellista kirjautunutta tallennusta ei testattu tässä muutoksessa.
+
 Jatkopäivitys: erillinen paneelityyppivalinta poistettu. LED-tuote määrää paneelityypin; Pintaledin toinen palakoko valitaan automaattisesti, jos vaihtoehtoja on yksi. Prosessorilistassa näytetään vain kokonaispikselimäärälle riittävät, tunnetun kapasiteetin mallit kapasiteettijärjestyksessä. Liian pieneksi muuttuva valinta tyhjennetään. Tuntematon seinän pikselimäärä tai prosessorikapasiteetti ei tuota perusteetonta sopivuussuositusta.
 
 Vertailulähde: vanhan varasto-projektin frontend/src/LedPlanner.jsx. Tuotetunnisteet, asennusmäärät ja prosessorien kapasiteettien varatiedot on luettu siitä; tuotetietojen MaxPixels-arvoa käytetään ensisijaisesti. Käyttäjän uudet rajaukset ohittavat vanhan koodin oletukset.

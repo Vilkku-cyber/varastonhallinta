@@ -1,0 +1,2941 @@
+<!doctype html>
+<html lang="fi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>LED-studio — Kaari</title>
+    <style>
+      :root {
+        font:
+          16px 'Segoe UI',
+          Arial,
+          sans-serif;
+        color: #20253d;
+        background: #f2f3f8;
+        --accent: #6554d9;
+        --muted: #687087;
+        --line: #e3e6ef;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        border: 1px solid #dce0ec;
+        border-radius: 9px;
+        background: #fff;
+        color: #38405b;
+        padding: 9px 12px;
+        font-size: 14px;
+        font-weight: 600;
+        transition:
+          background 0.15s,
+          box-shadow 0.15s;
+      }
+      button:hover {
+        background: #f0eefb;
+        border-color: #c7bff5;
+      }
+      button:disabled {
+        opacity: 0.42;
+        cursor: default;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid #eba73a;
+        outline-offset: 3px;
+      }
+      .primary {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+      .primary:hover {
+        background: #5140c1;
+        color: white;
+      }
+      .wide {
+        width: 100%;
+      }
+      .topbar {
+        min-height: 78px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 28px;
+        gap: 20px;
+        background: #181d32;
+        color: white;
+      }
+      .brand {
+        display: flex;
+        gap: 13px;
+        align-items: center;
+      }
+      .brand-icon {
+        width: 37px;
+        height: 37px;
+        display: grid;
+        place-items: center;
+        background: #7060df;
+        border-radius: 11px;
+        font-size: 25px;
+      }
+      .brand h1 {
+        font-size: 21px;
+        font-weight: 650;
+        letter-spacing: -0.4px;
+        margin: 0;
+      }
+      .brand p {
+        font-size: 13px;
+        color: #b4bbd2;
+        margin: 4px 0 0;
+      }
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .top-actions button {
+        background: #2b314c;
+        color: #e4e7f4;
+        border-color: #424963;
+      }
+      .top-actions .primary {
+        background: #7562ea;
+        border-color: #7562ea;
+      }
+      .offline {
+        font-size: 13px;
+        color: #c1c7dc;
+        padding: 0 12px;
+      }
+      .shell {
+        max-width: 1900px;
+        padding: 22px 26px;
+        margin: auto;
+        display: grid;
+        grid-template-columns: 310px minmax(0, 1fr);
+        gap: 22px;
+      }
+      .sidebar {
+        max-height: calc(100vh - 120px);
+        overflow: auto;
+        scrollbar-width: thin;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: white;
+        align-self: start;
+        position: sticky;
+        top: 18px;
+      }
+      .section {
+        padding: 20px;
+        border-bottom: 1px solid var(--line);
+      }
+      .section:last-child {
+        border-bottom: 0;
+      }
+      .section h2 {
+        font-size: 15px;
+        margin: 0 0 14px;
+      }
+      .eyebrow {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+        letter-spacing: 0.9px;
+        text-transform: uppercase;
+        margin: 0 0 8px;
+      }
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 3px;
+        background: #f1f2f8;
+        border-radius: 10px;
+        padding: 4px;
+      }
+      .tabs button {
+        border: 0;
+        background: transparent;
+        padding: 10px 5px;
+        font-size: 14px;
+      }
+      .tabs button.active {
+        background: white;
+        box-shadow: 0 2px 6px #25285013;
+        color: var(--accent);
+      }
+      .shape-icon {
+        display: block;
+        height: 26px;
+        margin-bottom: 6px;
+        color: inherit;
+        font-size: 25px;
+        font-weight: 400;
+        line-height: 26px;
+      }
+      .field {
+        margin-top: 16px;
+      }
+      label {
+        font-size: 14px;
+        display: block;
+        font-weight: 600;
+        margin: 0 0 7px;
+      }
+      input[type='number'],
+      select {
+        width: 100%;
+        min-width: 0;
+        border: 1px solid #d5dbea;
+        border-radius: 8px;
+        padding: 10px 11px;
+        background: #fff;
+        color: #252e48;
+      }
+      select {
+        appearance: none;
+        background-image:
+          linear-gradient(45deg, transparent 50%, #687087 50%),
+          linear-gradient(135deg, #687087 50%, transparent 50%);
+        background-position:
+          calc(100% - 16px) 50%,
+          calc(100% - 11px) 50%;
+        background-size: 5px 5px;
+        background-repeat: no-repeat;
+        padding-right: 30px;
+      }
+      input[type='range'] {
+        width: 100%;
+        margin: 15px 0;
+        accent-color: var(--accent);
+      }
+      input[type='checkbox'] {
+        accent-color: var(--accent);
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+        margin-right: 6px;
+      }
+      .row {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+      }
+      .row > * {
+        flex: 1;
+        min-width: 0;
+      }
+      .hint,
+      .note {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.55;
+        margin: 10px 0 0;
+      }
+      .tiny {
+        font-size: 13px;
+      }
+      .angle {
+        font-size: 30px;
+        letter-spacing: -0.8px;
+        font-weight: 650;
+        margin: 15px 0 4px;
+        color: #3d355f;
+        font-variant-numeric: tabular-nums;
+      }
+      .limits {
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .group-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .group-head h2 {
+        margin: 0;
+      }
+      .pill {
+        font-size: 12px;
+        border-radius: 30px;
+        padding: 5px 9px;
+        background: #f0eefb;
+        color: #6554d9;
+        font-weight: 600;
+      }
+      .quiet {
+        border: 0;
+        background: #f3f4f9;
+      }
+      .workspace {
+        min-width: 0;
+      }
+      .workspace-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 3px 0 17px;
+      }
+      .workspace-head h2 {
+        font-size: 25px;
+        margin: 0;
+        letter-spacing: -0.7px;
+      }
+      .workspace-head p {
+        font-size: 14px;
+        color: var(--muted);
+        margin: 6px 0 0;
+      }
+      .history {
+        display: flex;
+        gap: 6px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .stat {
+        padding: 17px 18px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: white;
+      }
+      .stat span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 7px;
+      }
+      .stat strong {
+        font-size: 24px;
+        letter-spacing: -0.5px;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat small {
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .canvas-card {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 5px 25px #24284b04;
+      }
+      .canvas-toolbar {
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        flex-wrap: wrap;
+      }
+      .tools {
+        display: flex;
+        gap: 5px;
+      }
+      .tools button {
+        background: #f6f6fa;
+        border-color: transparent;
+      }
+      .tools button.active {
+        background: #eeeafc;
+        color: var(--accent);
+        border-color: #cfc6fb;
+      }
+      .zoom {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+      }
+      .zoom button {
+        padding: 8px 10px;
+      }
+      .zoom span {
+        font-size: 13px;
+        color: var(--muted);
+        min-width: 40px;
+        text-align: center;
+      }
+      svg#plan {
+        display: block;
+        width: 100%;
+        height: clamp(380px, 52vh, 640px);
+        background: #fcfcff;
+        touch-action: none;
+        user-select: none;
+      }
+      .canvas-footer {
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .dotline:before {
+        content: '';
+        display: inline-block;
+        width: 17px;
+        height: 4px;
+        background: #6b61cf;
+        margin-right: 7px;
+        vertical-align: middle;
+      }
+      .dotline.orange:before {
+        background: #e89526;
+      }
+      .dotline.blue:before {
+        background: #2468b2;
+      }
+      .fit-result {
+        background: #f6f5fe;
+        border: 1px solid #e4dffb;
+        border-radius: 10px;
+        padding: 13px;
+        margin-top: 14px;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .fit-result strong {
+        display: block;
+        color: #504293;
+      }
+      .fit-result.warning {
+        background: #fff7e9;
+        border-color: #f5d9a7;
+      }
+      .fit-result p {
+        margin: 6px 0 0;
+        font-size: 13px;
+      }
+      .message {
+        margin-top: 12px;
+        border-radius: 10px;
+        background: #fff;
+        padding: 12px 16px;
+        border: 1px solid var(--line);
+        font-size: 14px;
+        color: #554a8a;
+        line-height: 1.5;
+        min-height: 46px;
+      }
+      .endpoints {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 14px;
+      }
+      .endpoint {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px 17px;
+      }
+      .endpoint h3 {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0 0 7px;
+      }
+      .endpoint p {
+        font-size: 14px;
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+      }
+      .details-card {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        margin-top: 14px;
+        overflow: hidden;
+      }
+      summary {
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 16px 20px;
+        list-style-position: inside;
+      }
+      details.section {
+        padding: 0;
+      }
+      details.section > div {
+        padding: 0 20px 20px;
+      }
+      details.section summary {
+        padding: 18px 20px;
+      }
+      .table-wrap {
+        overflow: auto;
+        max-height: 430px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+      th,
+      td {
+        text-align: right;
+        padding: 12px;
+        white-space: nowrap;
+        border-bottom: 1px solid #edf0f6;
+      }
+      th {
+        background: #f7f8fc;
+        position: sticky;
+        top: 0;
+      }
+      th:first-child,
+      td:first-child {
+        text-align: center;
+      }
+      td button {
+        border: 0;
+        background: transparent;
+        padding: 3px 6px;
+      }
+      tr.active {
+        background: #fff2df;
+      }
+      tbody tr:hover {
+        background: #f2f0fd;
+      }
+      .footnote {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin: 14px 0;
+      }
+      #status:empty {
+        display: none;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .subtle {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .hidden-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      .mobile-jump {
+        display: none;
+      }
+      @media (max-width: 1050px) {
+        .mobile-jump {
+          display: block;
+          margin-top: 12px;
+        }
+        .sidebar > .mobile-jump {
+          margin: 14px;
+          width: calc(100% - 28px);
+        }
+      }
+      @media (max-width: 1150px) {
+        .shell {
+          padding: 16px;
+          grid-template-columns: 285px minmax(0, 1fr);
+          gap: 16px;
+        }
+        .stat {
+          padding: 14px 12px;
+        }
+        .stat strong {
+          font-size: 20px;
+        }
+        .offline {
+          display: none;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 1050px) {
+        .shell {
+          display: flex;
+          flex-direction: column;
+          padding: 12px;
+        }
+        .sidebar {
+          position: static;
+          max-height: none;
+          width: 100%;
+          order: 1;
+        }
+        .workspace {
+          order: 0;
+        }
+        .topbar {
+          padding: 14px;
+          flex-wrap: wrap;
+        }
+        .brand p {
+          display: none;
+        }
+        .top-actions {
+          flex-wrap: wrap;
+        }
+        .top-actions button {
+          padding: 8px;
+        }
+        .workspace-head h2 {
+          font-size: 22px;
+        }
+        .stats {
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+        .stat strong {
+          font-size: 21px;
+        }
+        svg#plan {
+          height: 370px;
+        }
+        .endpoints {
+          grid-template-columns: 1fr;
+        }
+        .section {
+          padding: 17px;
+        }
+        .tools button {
+          padding: 9px;
+        }
+        .canvas-toolbar {
+          padding: 10px;
+        }
+        .top-actions label {
+          margin: 0;
+        }
+        .sidebar {
+          scroll-margin-top: 15px;
+        }
+      }
+      @media (max-width: 600px) {
+        .workspace-head {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .history {
+          justify-content: flex-end;
+        }
+        svg#plan {
+          height: 270px;
+        }
+        .workspace-head h2 {
+          font-size: 23px;
+        }
+      }
+      @media print {
+        .topbar,
+        .sidebar,
+        .canvas-toolbar,
+        .history,
+        #status,
+        .footnote {
+          display: none;
+        }
+        .shell {
+          display: block;
+          padding: 0;
+        }
+        .canvas-card,
+        .stats {
+          break-inside: avoid;
+        }
+        svg#plan {
+          height: 450px;
+        }
+        .table-wrap {
+          max-height: none;
+          overflow: visible;
+        }
+        .details-card {
+          display: block;
+        }
+        body {
+          background: white;
+        }
+        .workspace-head p {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">∿</span>
+        <div>
+          <h1>LED-studio <span style="font-weight: 350; color: #babfda">/ Kaari</span></h1>
+          <p>500 mm palat · ±30° · 2,5° askel</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="offline">Toimii täysin offline</span
+        ><button id="loadProject">Avaa suunnitelma</button><button id="saveProject">Tallenna</button
+        ><button id="csv" class="primary">Vie CSV</button
+        ><input id="projectFile" type="file" accept=".json,application/json" hidden />
+      </div>
+    </header>
+    <main class="shell">
+      <aside class="sidebar" id="settingsPanel" aria-label="Suunnittelun säädöt">
+        <button id="showDrawing" class="mobile-jump">Näytä piirros</button>
+        <section class="section">
+          <p class="eyebrow">Aloita muodosta</p>
+          <div class="tabs" role="group" aria-label="Seinän lähtömuoto">
+            <button data-preset="free" class="active" aria-pressed="true">
+              <span class="shape-icon">∿</span>Vapaa</button
+            ><button data-preset="circle" aria-pressed="false">
+              <span class="shape-icon">◯</span>Ympyrä</button
+            ><button data-preset="oval" aria-pressed="false">
+              <span class="shape-icon">⬭</span>Soikio</button
+            ><button data-preset="wave" aria-pressed="false">
+              <span class="shape-icon">∿</span>Aalto
+            </button>
+          </div>
+          <div id="freeFields" class="field">
+            <label for="count">Palojen määrä</label
+            ><input id="count" type="number" min="1" max="200" step="1" value="8" />
+            <p class="hint tiny">500 mm pintapituus / pala. Enintään 200 palaa.</p>
+          </div>
+          <div id="circleFields" class="field" hidden>
+            <label for="diameter">Tavoitehalkaisija, m</label
+            ><input id="diameter" type="number" min="0.1" max="100" step="0.1" value="6" />
+            <p class="hint tiny">Etsitään lähin tarkka ympyrä sallituilla palakulmilla.</p>
+          </div>
+          <div id="ovalFields" hidden>
+            <div class="field">
+              <label for="ovalKind">Soikion muoto</label
+              ><select id="ovalKind">
+                <option value="stadium">Suorat sivut, pyöreät päädyt</option>
+                <option value="ellipse">Ellipsi</option>
+              </select>
+            </div>
+            <div class="row field">
+              <div>
+                <label for="ovalWidth">Leveys X, m</label
+                ><input id="ovalWidth" type="number" min="0.1" max="100" step="0.1" value="6" />
+              </div>
+              <div>
+                <label for="ovalDepth">Syvyys Y, m</label
+                ><input id="ovalDepth" type="number" min="0.1" max="100" step="0.1" value="2" />
+              </div>
+            </div>
+            <p class="hint tiny">
+              Syötä pintalinjan ulkomitat, esimerkiksi 6 × 2 m. Palamäärä ja kulmat sovitetaan
+              automaattisesti.
+            </p>
+          </div>
+          <div id="waveFields" hidden>
+            <div class="row field">
+              <div>
+                <label for="waveCycles">Aaltoja</label
+                ><input id="waveCycles" type="number" min="1" max="12" step="1" value="2" />
+              </div>
+              <div>
+                <label for="waveDepth">Syvyys, m</label
+                ><input id="waveDepth" type="number" min="0" max="20" step="0.05" value="1" />
+              </div>
+            </div>
+            <div class="field">
+              <div class="group-head">
+                <label for="waveDepthRange">Säädä syvyyttä</label
+                ><output id="waveDepthValue" for="waveDepthRange">1,00 m</output>
+              </div>
+              <input
+                id="waveDepthRange"
+                type="range"
+                min="0"
+                max="3"
+                step="0.05"
+                value="1"
+                aria-label="Aallon syvyys metreinä"
+              />
+              <div class="limits"><span>0 m</span><span id="waveDepthMax">3 m</span></div>
+              <p class="hint tiny">
+                Muoto päivittyy säädettäessä sallittujen 2,5° kulma-askelten mukaan. Yli 3 m syvyys
+                laajentaa liukusäätimen aluetta, kun annat arvon numerokenttään.
+              </p>
+            </div>
+            <div class="field">
+              <label for="waveWidth">Kokonaisleveys X, m</label
+              ><input id="waveWidth" type="number" min="0.5" max="100" step="0.5" value="12" />
+            </div>
+            <label class="hint"
+              ><input id="waveFlip" type="checkbox" /> Käännä aalto peilikuvaksi</label
+            >
+            <p class="hint tiny">
+              Yksi aalto = harja ja notko. Syvyys on etummaisen ja takimmaisen kohdan välinen
+              kokonaismitta, ei puolikas amplitudi. Palamäärä sovitetaan automaattisesti.
+            </p>
+          </div>
+          <button id="generate" class="primary wide field" hidden>Laske ja luo muoto</button>
+          <div id="fitResult" class="fit-result" hidden></div>
+        </section>
+        <section class="section">
+          <div class="group-head">
+            <h2>Valitut palat</h2>
+            <span class="pill" id="selectionInfo">1 pala valittuna</span>
+          </div>
+          <label class="hidden-label" for="selected">Aktiivinen pala</label
+          ><select id="selected"></select>
+          <div class="row field">
+            <button id="selectAll" class="quiet">Kaikki</button
+            ><button id="selectOne" class="quiet">Vain aktiivinen</button
+            ><button id="clearSelection" class="quiet">Tyhjennä</button>
+          </div>
+          <div class="angle" id="angleValue">0°</div>
+          <label for="angle">Aseta sama kulma valituille</label
+          ><input id="angle" type="range" min="-30" max="30" step="2.5" value="0" />
+          <div class="limits"><span>−30°</span><span>0°</span><span>+30°</span></div>
+          <div class="row field">
+            <button id="minus">− 2,5°</button><button id="plus">+ 2,5°</button>
+          </div>
+          <p class="hint tiny">
+            Painikkeet muuttavat kunkin palan omaa kulmaa. Liukusäädin asettaa kaikille saman.
+          </p>
+          <label class="hint"
+            ><input id="addSelection" type="checkbox" /> Lisää seuraava maalaus valintaan</label
+          >
+        </section>
+        <details class="section">
+          <summary>Pisteiden siirto ja lukitukset</summary>
+          <div>
+            <p class="hint">
+              Valitse piirroksen työkaluksi Muotoile. Siirretty kohta lukittuu; muita paloja
+              sovitetaan sen ympärille.
+            </p>
+            <div class="field">
+              <label for="mode">Raahauksen toiminta</label
+              ><select id="mode">
+                <option value="shape">Sovita muiden palojen kulmat</option>
+                <option value="angle">Säädä valittujen palojen kulmaa</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="pointKind">Palan siirrettävä kohta</label
+              ><select id="pointKind">
+                <option value="mid">Keskipiste</option>
+                <option value="end">Loppupiste</option>
+              </select>
+            </div>
+            <div class="row field">
+              <div>
+                <label for="targetX">X, mm</label><input id="targetX" type="number" step="1" />
+              </div>
+              <div>
+                <label for="targetY">Y, mm</label><input id="targetY" type="number" step="1" />
+              </div>
+            </div>
+            <button id="movePoint" class="primary wide field">Siirrä ja lukitse</button>
+            <div class="row field">
+              <button id="pinPoint">Lukitse tähän</button><button id="unpinPoint">Vapauta</button>
+            </div>
+            <button id="clearPins" class="wide field">Vapauta kaikki lukitukset</button>
+            <div id="pinList" class="hint"></div>
+            <p id="solveInfo" class="hint" role="status"></p>
+            <p class="hint tiny">
+              Lukitus koskee sijaintia, ei suuntaa. Sallittu sijaintipoikkeama on 5 mm. Ellei
+              sallittua muotoa löydy, aiempi muoto säilyy. Suljetun kehän vapaa muokkaus voi avata
+              sauman.
+            </p>
+          </div>
+        </details>
+        <details class="section">
+          <summary>Seinän suunta</summary>
+          <div>
+            <label><input id="horizontal" type="checkbox" checked /> Pidä LED vaakasuorassa</label>
+            <p class="hint tiny">
+              A–B-päätylinja oikenee automaattisesti. Suljetulla kehällä käytetään keskipisteen
+              tangenttia.
+            </p>
+            <div class="field">
+              <label for="rotation">Kääntö keskipisteen C ympäri</label
+              ><input id="rotation" type="range" min="-180" max="180" step="0.5" value="0" /><input
+                id="rotationNumber"
+                aria-label="Kääntö asteina"
+                type="number"
+                min="-180"
+                max="180"
+                step="0.5"
+                value="0"
+              />
+            </div>
+            <div class="row field">
+              <button id="centerHeading">Keskisuunta vaakaan</button
+              ><button id="zeroRotation">Kääntö 0°</button>
+            </div>
+            <p id="centerInfo" class="hint"></p>
+            <p class="hint tiny">Käsin kääntö siirtää myös lukituspisteet mukana.</p>
+          </div>
+        </details>
+        <details class="section">
+          <summary>Laskennan oletukset</summary>
+          <div>
+            <p class="note">
+              Pala on tasainen ympyränkaari, jonka pintapituus on 500 mm. Palat liittyvät
+              tangentiaalisesti. Kaarevuus on −30…+30° 2,5° välein.
+            </p>
+            <p class="note">
+              Ulkomitat mitataan LED-pintalinjasta. Rungon paksuus, jalat ja asennusvarat eivät
+              sisälly mittoihin. Törmäyksiä tai rakenteen kantavuutta ei tarkisteta.
+            </p>
+            <p class="note">
+              Soikion sovitus etsii symmetristä, sulkeutuvaa muotoa. Tulos on lähin haussa löytynyt
+              sovitus, ei takuu matemaattisesta optimista.
+            </p>
+          </div>
+        </details>
+        <section class="section">
+          <button id="reset" class="wide">Nollaa muoto ja lukitukset</button>
+        </section>
+      </aside>
+      <section class="workspace" id="drawingPanel" aria-label="LED-seinän suunnitelma">
+        <div class="workspace-head">
+          <div>
+            <p class="eyebrow">Ylhäältä katsottuna</p>
+            <h2 id="designTitle">Muotoile LED-seinäsi</h2>
+            <p id="designSubtitle">Maalaa palat, säädä kaarta ja näe tilantarve.</p>
+            <button id="showSettings" class="mobile-jump">Muoto ja palojen säädöt</button>
+          </div>
+          <div class="history">
+            <button id="undo" aria-label="Kumoa viimeisin muutos">Kumoa</button
+            ><button id="redo" aria-label="Tee muutos uudelleen">Tee uudelleen</button>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><span>Kokonaisleveys X</span><strong id="width"></strong></div>
+          <div class="stat"><span>Kokonaissyvyys Y</span><strong id="depth"></strong></div>
+          <div class="stat"><span>Paloja / pintapituus</span><strong id="length"></strong></div>
+          <div class="stat"><span>Päätyjen väli / sauma</span><strong id="seam"></strong></div>
+        </div>
+        <span id="turn" hidden></span>
+        <div class="canvas-card">
+          <div class="canvas-toolbar">
+            <div class="tools" role="group" aria-label="Piirroksen työkalu">
+              <button id="toolPaint" data-tool="paint" class="active" aria-pressed="true">
+                Maalaa</button
+              ><button id="toolBox" data-tool="box" aria-pressed="false">Laatikko</button
+              ><button id="toolShape" data-tool="shape" aria-pressed="false">Muotoile</button>
+            </div>
+            <div class="zoom">
+              <button id="zoomOut" aria-label="Loitonna">−</button><span id="zoomValue">100 %</span
+              ><button id="zoomIn" aria-label="Lähennä">+</button><button id="fit">Sovita</button
+              ><button id="saveSvg" aria-label="Tallenna mittakuva SVG-tiedostona">
+                Mittakuva
+              </button>
+            </div>
+          </div>
+          <svg
+            id="plan"
+            viewBox="0 0 1000 470"
+            role="group"
+            aria-label="LED-suunnitelma ja palojen valinta"
+          ></svg>
+          <div class="canvas-footer">
+            <span id="toolHint">Vedä palojen yli valitaksesi ne. Vaihto lisää, Alt poistaa.</span>
+            <div>
+              <span class="dotline">LED </span> <span class="dotline orange">Valittu </span>
+              <span class="dotline blue">Lukittu</span>
+            </div>
+          </div>
+        </div>
+        <div id="status" class="message" role="status" aria-live="polite"></div>
+        <div class="endpoints">
+          <div class="endpoint">
+            <h3>Alkupiste A</h3>
+            <p id="startPoint"></p>
+          </div>
+          <div class="endpoint">
+            <h3>Päätepiste B</h3>
+            <p id="endPoint"></p>
+          </div>
+        </div>
+        <details class="details-card">
+          <summary>Palakohtaiset kulmat ja koordinaatit</summary>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Valitse</th>
+                  <th>Pala</th>
+                  <th>Kaarevuus °</th>
+                  <th>Alku X mm</th>
+                  <th>Alku Y mm</th>
+                  <th>Loppu X mm</th>
+                  <th>Loppu Y mm</th>
+                  <th>Alkusuunta °</th>
+                  <th>Loppusuunta °</th>
+                  <th>Kaari mm</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </details>
+        <p class="footnote">
+          Tavoitemuoto näkyy katkoviivalla. Kaikki mitat perustuvat toteutuvaan muotoon. Tallenna
+          suunnitelma jatkokäyttöä varten; sivu toimii ilman verkkoyhteyttä.
+        </p>
+      </section>
+    </main>
+    <script>
+      let activeTool = 'paint',
+        preset = 'free',
+        shapeInfo = null,
+        paintGesture = null,
+        zoomLevel = 1,
+        manualView = false,
+        undoStack = [],
+        redoStack = [],
+        restoring = false,
+        lastAutosave = '';
+      let waveFrame = null,
+        wavePending = null,
+        waveScrubActive = false;
+      function snapshot() {
+        return JSON.stringify({
+          version: 2,
+          angles,
+          rotation,
+          horizontal,
+          pins,
+          selected,
+          selection: [...selection],
+          pointKind,
+          shapeInfo,
+        });
+      }
+      function checkpoint() {
+        if (restoring) return;
+        const state = snapshot();
+        if (undoStack.at(-1) !== state) undoStack.push(state);
+        if (undoStack.length > 60) undoStack.shift();
+        redoStack = [];
+      }
+      function applyState(state) {
+        angles = state.angles.slice();
+        rotation = state.rotation;
+        horizontal = state.horizontal;
+        pins = state.pins.map((p) => ({ ...p }));
+        selected = Math.min(state.selected ?? 0, angles.length - 1);
+        selection = new Set(
+          (state.selection ?? [selected]).filter(
+            (i) => Number.isInteger(i) && i >= 0 && i < angles.length,
+          ),
+        );
+        selectionAnchor = selected;
+        pointKind = state.pointKind ?? 'mid';
+        $('pointKind').value = pointKind;
+        shapeInfo = state.shapeInfo ?? null;
+        if (shapeInfo) {
+          choosePreset(
+            shapeInfo.kind === 'wave' ? 'wave' : shapeInfo.kind === 'circle' ? 'circle' : 'oval',
+          );
+          if (shapeInfo.kind === 'wave') {
+            $('waveWidth').value = shapeInfo.width / 1000;
+            syncWaveDepth(shapeInfo.depth / 1000);
+            $('waveCycles').value = shapeInfo.cycles;
+            $('waveFlip').checked = shapeInfo.flip;
+          } else if (shapeInfo.kind === 'circle') $('diameter').value = shapeInfo.width / 1000;
+          else {
+            $('ovalWidth').value = shapeInfo.width / 1000;
+            $('ovalDepth').value = shapeInfo.depth / 1000;
+            $('ovalKind').value = shapeInfo.kind;
+          }
+        } else choosePreset('free');
+        pendingTarget = null;
+        lastSolve = '';
+        drag = null;
+        render();
+        fit();
+        draw();
+      }
+      function historyMove(from, to) {
+        if (!from.length) return;
+        to.push(snapshot());
+        restoring = true;
+        try {
+          applyState(JSON.parse(from.pop()));
+        } finally {
+          restoring = false;
+        }
+        renderStudio();
+      }
+
+      ('use strict');
+      const L = 500,
+        rad = Math.PI / 180,
+        $ = (id) => document.getElementById(id);
+      let angles = Array(8).fill(0),
+        selected = 0,
+        model,
+        view,
+        drag = null,
+        pins = [],
+        pointKind = 'mid',
+        mode = 'shape',
+        lastSolve = '',
+        pendingTarget = null,
+        selection = new Set([0]),
+        selectionAnchor = 0,
+        rotation = 0,
+        horizontal = true;
+      const fmt = (v, d = 1) =>
+        new Intl.NumberFormat('fi-FI', {
+          minimumFractionDigits: d,
+          maximumFractionDigits: d,
+        }).format(Math.abs(v) < 0.0000001 ? 0 : v);
+      const snap = (v) => Math.max(-30, Math.min(30, Math.round(v / 2.5) * 2.5));
+      function at(x, y, t, a, u = 1) {
+        const q = a * rad;
+        if (Math.abs(q) < 1e-12) return { x: x + L * u * Math.cos(t), y: y + L * u * Math.sin(t) };
+        const k = L / q;
+        return {
+          x: x + k * (Math.sin(t + q * u) - Math.sin(t)),
+          y: y + k * (Math.cos(t) - Math.cos(t + q * u)),
+        };
+      }
+      function calculateRaw(values, start = { x: 0, y: 0, t: 0 }) {
+        let { x, y, t } = start;
+        const pieces = [],
+          bounds = { minX: x, maxX: x, minY: y, maxY: y };
+        const include = (p) => {
+          bounds.minX = Math.min(bounds.minX, p.x);
+          bounds.maxX = Math.max(bounds.maxX, p.x);
+          bounds.minY = Math.min(bounds.minY, p.y);
+          bounds.maxY = Math.max(bounds.maxY, p.y);
+        };
+        values.forEach((a, i) => {
+          const end = at(x, y, t, a),
+            q = a * rad;
+          include(end);
+          if (q !== 0) {
+            const lo = Math.min(t, t + q),
+              hi = Math.max(t, t + q);
+            for (let k = Math.ceil(lo / (Math.PI / 2)); k <= Math.floor(hi / (Math.PI / 2)); k++) {
+              const u = ((k * Math.PI) / 2 - t) / q;
+              if (u >= 0 && u <= 1) include(at(x, y, t, a, u));
+            }
+          }
+          pieces.push({ i, a, x, y, t, end, endT: t + q });
+          x = end.x;
+          y = end.y;
+          t += q;
+        });
+        return {
+          pieces,
+          bounds,
+          end: { x, y, t },
+          width: bounds.maxX - bounds.minX,
+          depth: bounds.maxY - bounds.minY,
+          length: values.length * L,
+        };
+      }
+      function rawCenter(values) {
+        let x = 0,
+          y = 0,
+          t = 0;
+        const mid = values.length / 2;
+        for (let i = 0; i < values.length; i++) {
+          if (i + 1 >= mid) {
+            const p = at(x, y, t, values[i], mid - i);
+            return { ...p, t: t + values[i] * rad * (mid - i) };
+          }
+          const p = at(x, y, t, values[i]);
+          x = p.x;
+          y = p.y;
+          t += values[i] * rad;
+        }
+      }
+      function rotatePoint(p, c, degrees) {
+        const a = degrees * rad,
+          dx = p.x - c.x,
+          dy = p.y - c.y;
+        return {
+          x: c.x + dx * Math.cos(a) - dy * Math.sin(a),
+          y: c.y + dx * Math.sin(a) + dy * Math.cos(a),
+        };
+      }
+      function effectiveRotation(values) {
+        if (!horizontal) return rotation;
+        let x = 0,
+          y = 0,
+          t = 0;
+        for (const a of values) {
+          const p = at(x, y, t, a);
+          x = p.x;
+          y = p.y;
+          t += a * rad;
+        }
+        return Math.hypot(x, y) < 0.001 ? -rawCenter(values).t / rad : -Math.atan2(y, x) / rad;
+      }
+      function calculate(values) {
+        const center = rawCenter(values),
+          r = effectiveRotation(values),
+          start = rotatePoint({ x: 0, y: 0 }, center, r),
+          result = calculateRaw(values, { ...start, t: r * rad });
+        result.center = { ...center, t: center.t + r * rad };
+        result.rotation = r;
+        return result;
+      }
+      function setHorizontal(enabled) {
+        checkpoint();
+        const old = effectiveRotation(angles),
+          c = rawCenter(angles);
+        if (!enabled) rotation = old;
+        horizontal = enabled;
+        const delta = effectiveRotation(angles) - old;
+        pins = pins.map((p) => ({ ...p, ...rotatePoint(p, c, delta) }));
+        if (pendingTarget)
+          pendingTarget = { ...pendingTarget, ...rotatePoint(pendingTarget, c, delta) };
+        lastSolve = '';
+        render();
+        fit();
+        draw();
+      }
+      function setRotation(value) {
+        if (horizontal) return;
+        checkpoint();
+        if (!Number.isFinite(value)) {
+          render();
+          return;
+        }
+        const next = Math.max(-180, Math.min(180, Math.round(value * 2) / 2)),
+          delta = next - rotation,
+          c = rawCenter(angles);
+        pins = pins.map((p) => ({ ...p, ...rotatePoint(p, c, delta) }));
+        if (pendingTarget)
+          pendingTarget = { ...pendingTarget, ...rotatePoint(pendingTarget, c, delta) };
+        rotation = next;
+        lastSolve = '';
+        render();
+        fit();
+        draw();
+      }
+      function selectedIndices() {
+        return [...selection];
+      }
+      function applyAngles(makeValue) {
+        if (!selection.size) return;
+        checkpoint();
+        const next = angles.slice();
+        for (const i of selectedIndices()) next[i] = snap(makeValue(angles[i]));
+        if (pins.length && lockError(next, pins) > 5.0001) {
+          $('status').textContent =
+            'Kulmamuutos siirtäisi lukittua kohtaa yli 5 mm. Vapauta lukitus tai muotoile pisteistä.';
+          return;
+        }
+        angles = next;
+        pendingTarget = null;
+        lastSolve = '';
+        $('status').textContent = '';
+        render();
+      }
+      function setAngle(v) {
+        applyAngles(() => v);
+      }
+      function pick(i, event = {}) {
+        const additive = event.ctrlKey || event.metaKey || $('addSelection').checked;
+        if (event.shiftKey) {
+          const range = Array.from(
+            { length: Math.abs(i - selectionAnchor) + 1 },
+            (_, k) => Math.min(i, selectionAnchor) + k,
+          );
+          selection = new Set(additive ? [...selection, ...range] : range);
+        } else if (additive) {
+          if (selection.has(i) && selection.size > 1) selection.delete(i);
+          else selection.add(i);
+          selectionAnchor = i;
+        } else {
+          selection = new Set([i]);
+          selectionAnchor = i;
+        }
+        selected = selection.has(i) ? i : [...selection].at(-1);
+        render();
+      }
+      function pointKey(p) {
+        return p.i + ':' + p.kind;
+      }
+      function chainPoints(values, targets) {
+        const out = [];
+        let x = 0,
+          y = 0,
+          t = 0;
+        const last = Math.max(...targets.map((p) => p.i));
+        for (let i = 0; i <= last; i++) {
+          for (let j = 0; j < targets.length; j++)
+            if (targets[j].i === i)
+              out[j] = at(x, y, t, values[i], targets[j].kind === 'mid' ? 0.5 : 1);
+          const e = at(x, y, t, values[i]);
+          x = e.x;
+          y = e.y;
+          t += values[i] * rad;
+        }
+        const r = effectiveRotation(values);
+        if (r !== 0) {
+          const c = rawCenter(values);
+          return out.map((p) => rotatePoint(p, c, r));
+        }
+        return out;
+      }
+      function currentPoint(i = selected, kind = pointKind) {
+        return chainPoints(angles, [{ i, kind }])[0];
+      }
+      function lockError(values, locks) {
+        if (!locks.length) return 0;
+        const pts = chainPoints(values, locks);
+        return Math.max(...locks.map((p, j) => Math.hypot(p.x - pts[j].x, p.y - pts[j].y)));
+      }
+      function pinCurrent() {
+        checkpoint();
+        const p = { i: selected, kind: pointKind, ...currentPoint() };
+        pins = pins.filter((q) => pointKey(q) !== pointKey(p));
+        pins.push(p);
+        render();
+      }
+      function linearSolve(a, b) {
+        a = a.map((r, i) => [...r, b[i]]);
+        for (let k = 0; k < b.length; k++) {
+          let pivot = k;
+          for (let j = k + 1; j < b.length; j++)
+            if (Math.abs(a[j][k]) > Math.abs(a[pivot][k])) pivot = j;
+          if (Math.abs(a[pivot][k]) < 1e-12) return b.map(() => 0);
+          [a[k], a[pivot]] = [a[pivot], a[k]];
+          const v = a[k][k];
+          for (let j = k; j <= b.length; j++) a[k][j] /= v;
+          for (let i = 0; i < b.length; i++)
+            if (i !== k) {
+              const f = a[i][k];
+              for (let j = k; j <= b.length; j++) a[i][j] -= f * a[k][j];
+            }
+        }
+        return a.map((r) => r[b.length]);
+      }
+      function solveShape(seed, target, locks) {
+        const targets = [...locks, target],
+          weights = targets.map((_, i) => (i < locks.length ? 20 : 1)),
+          n =
+            !horizontal && rotation === 0 ? Math.max(...targets.map((p) => p.i)) + 1 : seed.length;
+        const residual = (v) => {
+          const pts = chainPoints(v, targets);
+          return targets.flatMap((p, j) => [
+            (p.x - pts[j].x) * weights[j],
+            (p.y - pts[j].y) * weights[j],
+          ]);
+        };
+        const cost = (v) => residual(v).reduce((s, e) => s + e * e, 0);
+        let best = seed.slice(),
+          bestCost = cost(best);
+        // Continuous damped least-squares gives a starting shape; all delivered angles are discrete.
+        for (let attempt = 0; attempt < 3; attempt++) {
+          let v = seed.slice();
+          if (attempt)
+            for (let j = 0; j < n; j++)
+              v[j] = Math.max(
+                -30,
+                Math.min(30, v[j] + (attempt === 1 ? 6 : -6) * Math.cos(j * 1.7)),
+              );
+          let score = cost(v);
+          for (let iter = 0; iter < 38; iter++) {
+            const r = residual(v),
+              m = r.length,
+              jac = Array.from({ length: m }, () => Array(n));
+            for (let k = 0; k < n; k++) {
+              const w = v.slice();
+              w[k] += 0.025;
+              const rr = residual(w);
+              for (let j = 0; j < m; j++) jac[j][k] = (r[j] - rr[j]) / 0.025;
+            }
+            const matrix = Array.from({ length: m }, (_, i) =>
+              Array.from(
+                { length: m },
+                (_, j) => jac[i].reduce((s, a, k) => s + a * jac[j][k], 0) + (i === j ? 2 : 0),
+              ),
+            );
+            const z = linearSolve(matrix, r),
+              delta = Array.from({ length: n }, (_, k) =>
+                jac.reduce((s, row, j) => s + row[k] * z[j], 0),
+              );
+            let improved = false;
+            for (const rate of [1, 0.4, 0.12]) {
+              const w = v.map((a, k) =>
+                  k < n
+                    ? Math.max(-30, Math.min(30, a + Math.max(-12, Math.min(12, delta[k])) * rate))
+                    : a,
+                ),
+                c = cost(w);
+              if (c < score - 1e-7) {
+                v = w;
+                score = c;
+                improved = true;
+                break;
+              }
+            }
+            if (!improved) break;
+          }
+          v = v.map(snap);
+          score = cost(v);
+          // Search legal single and paired steps to improve the quantized result.
+          for (let sweep = 0; sweep < 14; sweep++) {
+            let change = false;
+            for (let k = 0; k < n; k++) {
+              let winner = v[k],
+                cBest = score;
+              for (const step of [-5, -2.5, 2.5, 5]) {
+                const w = v.slice();
+                w[k] = snap(v[k] + step);
+                const c = cost(w);
+                if (c < cBest - 1e-6) {
+                  winner = w[k];
+                  cBest = c;
+                }
+              }
+              if (winner !== v[k]) {
+                v[k] = winner;
+                score = cBest;
+                change = true;
+              }
+            }
+            if (!change) break;
+          }
+          const indices =
+            n <= 28
+              ? Array.from({ length: n }, (_, k) => k)
+              : Array.from({ length: 28 }, (_, k) => Math.round((k * (n - 1)) / 27));
+          for (let sweep = 0; sweep < 3; sweep++) {
+            let winner = null,
+              cBest = score;
+            for (let a = 0; a < indices.length; a++)
+              for (let b = a + 1; b < indices.length; b++)
+                for (const da of [-2.5, 2.5])
+                  for (const db of [-2.5, 2.5]) {
+                    const w = v.slice();
+                    w[indices[a]] = snap(w[indices[a]] + da);
+                    w[indices[b]] = snap(w[indices[b]] + db);
+                    const c = cost(w);
+                    if (c < cBest - 1e-6) {
+                      winner = w;
+                      cBest = c;
+                    }
+                  }
+            if (!winner) break;
+            v = winner;
+            score = cBest;
+          }
+          if (lockError(v, locks) <= 5.0001 && score < bestCost) {
+            best = v;
+            bestCost = score;
+          }
+        }
+        const p = chainPoints(best, [target])[0];
+        return {
+          values: best,
+          error: Math.hypot(p.x - target.x, p.y - target.y),
+          lockError: lockError(best, locks),
+        };
+      }
+      function moveTo(target, commit = false) {
+        if (commit) checkpoint();
+        const locks = pins.filter((p) => pointKey(p) !== pointKey(target)),
+          result = solveShape(angles, target, locks);
+        angles = result.values;
+        pendingTarget = target;
+        lastSolve = `Siirron poikkeama ${fmt(result.error)} mm · aiempien lukitusten suurin poikkeama ${fmt(result.lockError)} mm.`;
+        if (result.error > 5)
+          lastSolve +=
+            ' Tarkka sijainti ei löytynyt sallituilla kulmilla; näytetään lähin löydetty muoto.';
+        if (commit) {
+          const p = { i: target.i, kind: target.kind, ...chainPoints(angles, [target])[0] };
+          pins = [...locks, p];
+        }
+        render();
+      }
+      function fit() {
+        const b = { ...model.bounds };
+        for (const p of [...pins, ...(pendingTarget ? [pendingTarget] : [])]) {
+          b.minX = Math.min(b.minX, p.x);
+          b.maxX = Math.max(b.maxX, p.x);
+          b.minY = Math.min(b.minY, p.y);
+          b.maxY = Math.max(b.maxY, p.y);
+        }
+        view = {
+          cx: (b.minX + b.maxX) / 2,
+          cy: (b.minY + b.maxY) / 2,
+          s: Math.min(800 / Math.max(b.maxX - b.minX, 500), 275 / Math.max(b.maxY - b.minY, 500)),
+        };
+      }
+      function px(p) {
+        return { x: 500 + (p.x - view.cx) * view.s, y: 220 + (p.y - view.cy) * view.s };
+      }
+      function line(x1, y1, x2, y2, extra = '') {
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${extra}/>`;
+      }
+      function draw() {
+        const svg = $('plan'),
+          b = model.bounds,
+          tl = px({ x: b.minX, y: b.minY }),
+          br = px({ x: b.maxX, y: b.maxY });
+        let s =
+          '<defs><pattern id="grid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M 25 0 L 0 0 0 25" fill="none" stroke="#e6eef2" stroke-width="1"/></pattern></defs><rect width="1000" height="470" fill="url(#grid)"/>';
+        s += `<rect x="${tl.x}" y="${tl.y}" width="${br.x - tl.x}" height="${br.y - tl.y}" fill="#7061e908" stroke="#9eb2bf" stroke-dasharray="5 5"/>`;
+        const dim = 'stroke="#667e8d" stroke-width="1.2"';
+        s +=
+          line(tl.x, 405, br.x, 405, dim) +
+          line(tl.x, tl.y, tl.x, 413, dim + ' stroke-dasharray="3 5"') +
+          line(br.x, br.y, br.x, 413, dim + ' stroke-dasharray="3 5"');
+        s += `<text x="${(tl.x + br.x) / 2}" y="437" text-anchor="middle" fill="#314d5f" font-size="17">Leveys X: ${fmt(model.width)} mm</text>`;
+        s +=
+          line(945, tl.y, 945, br.y, dim) +
+          line(br.x, tl.y, 953, tl.y, dim + ' stroke-dasharray="3 5"') +
+          line(br.x, br.y, 953, br.y, dim + ' stroke-dasharray="3 5"');
+        s += `<text x="972" y="${(tl.y + br.y) / 2}" text-anchor="middle" transform="rotate(-90 972 ${(tl.y + br.y) / 2})" fill="#314d5f" font-size="17">Syvyys Y: ${fmt(model.depth)} mm</text>`;
+        model.pieces.forEach((p) => {
+          const start = px(p),
+            end = px(p.end),
+            mid = px(at(p.x, p.y, p.t, p.a, 0.5));
+          let d = `M ${start.x} ${start.y}`;
+          if (p.a === 0) d += ` L ${end.x} ${end.y}`;
+          else {
+            const r = Math.abs(L / (p.a * rad)) * view.s;
+            d += ` A ${r} ${r} 0 0 ${p.a > 0 ? 1 : 0} ${end.x} ${end.y}`;
+          }
+          const c = selection.has(p.i) ? '#e89526' : '#6b61cf';
+          s += `<g data-piece="${p.i}"><path d="${d}" fill="none" stroke="transparent" stroke-width="24" style="cursor:pointer"/><path d="${d}" fill="none" stroke="${c}" stroke-width="7" stroke-linecap="round" style="pointer-events:none"/><circle cx="${start.x}" cy="${start.y}" r="3.5" fill="white" stroke="${c}" style="pointer-events:none"/><text style="${(L * view.s * (svg.clientWidth || 1000)) / 1000 < 18 ? 'display:none' : ''}" x="${mid.x}" y="${mid.y - 14}" font-size="15" font-weight="600" text-anchor="middle" fill="#234456" style="pointer-events:none">${p.i + 1}</text></g>`;
+        });
+        const a = px(model.pieces[0]),
+          e = px(model.end),
+          p = model.pieces[selected],
+          h = px(mode === 'shape' ? currentPoint() : p.end);
+        s += `<text x="${a.x - 12}" y="${a.y + 25}" font-size="16" fill="#314d5f">A</text><text x="${e.x + 12}" y="${e.y + 25}" font-size="16" fill="#314d5f">B</text><circle style="${activeTool === 'shape' ? '' : 'display:none;'}cursor:grab" id="handle" cx="${h.x}" cy="${h.y}" r="10" fill="#ed9c26" stroke="white" stroke-width="3"><title>Raahaa palan ${selected + 1} valittua kohtaa</title></circle><text x="24" y="30" font-size="14" fill="#4e6675">X oikealle · Y alas · C = kääntöpiste</text>`;
+        if (mode === 'shape' && activeTool === 'shape') {
+          for (const p of model.pieces) {
+            const c = px(at(p.x, p.y, p.t, p.a, pointKind === 'mid' ? 0.5 : 1));
+            s += `<circle data-control="${p.i}" cx="${c.x}" cy="${c.y}" r="7" fill="white" stroke="#e89526" stroke-width="2" style="cursor:grab"><title>Siirrä palan ${p.i + 1} ${pointKind === 'mid' ? 'keskipistettä' : 'loppupistettä'}</title></circle>`;
+          }
+        }
+        for (const p of pins) {
+          const c = px(p);
+          s += `<circle cx="${c.x}" cy="${c.y}" r="13" fill="none" stroke="#2468b2" stroke-width="2" style="pointer-events:none"/><text x="${c.x + 16}" y="${c.y - 12}" font-size="14" fill="#2468b2" style="pointer-events:none">L${p.i + 1}</text>`;
+        }
+        if (pendingTarget) {
+          const c = px(pendingTarget);
+          s +=
+            line(
+              c.x - 7,
+              c.y,
+              c.x + 7,
+              c.y,
+              'stroke="#b34a29" stroke-width="2" style="pointer-events:none"',
+            ) +
+            line(
+              c.x,
+              c.y - 7,
+              c.x,
+              c.y + 7,
+              'stroke="#b34a29" stroke-width="2" style="pointer-events:none"',
+            );
+        }
+        const center = px(model.center);
+        s += `<circle cx="${center.x}" cy="${center.y}" r="6" fill="#7f3db6" stroke="white" stroke-width="2" style="pointer-events:none"/><text x="${center.x + 9}" y="${center.y + 23}" fill="#7f3db6" font-size="15" style="pointer-events:none">C</text>`;
+        svg.innerHTML = readableSvgText(s + extraDrawing());
+      }
+      function render() {
+        model = calculate(angles);
+        if (!drag && (!view || (!pins.length && !manualView))) fit();
+        $('count').value = angles.length;
+        $('selected').innerHTML = angles
+          .map((_, i) => `<option value="${i}">Pala ${i + 1}</option>`)
+          .join('');
+        $('selected').value = selected;
+        const ids = selectedIndices(),
+          vals = ids.map((i) => angles[i]),
+          same = vals.every((a) => a === vals[0]);
+        $('angle').value = angles[selected];
+        $('angleValue').textContent = !vals.length
+          ? 'Ei valintaa'
+          : same
+            ? fmt(vals[0], 1) + '°'
+            : fmt(Math.min(...vals)) + '…' + fmt(Math.max(...vals)) + '°';
+        $('angle').setAttribute(
+          'aria-valuetext',
+          !vals.length
+            ? 'Ei valittuja paloja'
+            : same
+              ? fmt(vals[0]) + ' astetta'
+              : 'Valituilla eri kulmat. Liukusäädin asettaa kaikille saman kulman.',
+        );
+        $('minus').disabled = vals.every((a) => a === -30);
+        $('plus').disabled = vals.every((a) => a === 30);
+        $('selectionInfo').textContent = ids.length + ' palaa valittuna';
+        $('angle').disabled = !ids.length;
+        $('horizontal').checked = horizontal;
+        for (const id of ['rotation', 'rotationNumber', 'centerHeading', 'zeroRotation'])
+          $(id).disabled = horizontal;
+        $('rotation').value = Math.max(-180, Math.min(180, model.rotation));
+        $('rotationNumber').value = Number(model.rotation.toFixed(2));
+        $('centerInfo').textContent =
+          'C: X ' +
+          fmt(model.center.x) +
+          ' mm · Y ' +
+          fmt(model.center.y) +
+          ' mm · keskisuunta ' +
+          fmt(model.center.t / rad) +
+          '°';
+        for (const [id, value] of [
+          ['width', model.width],
+          ['depth', model.depth],
+          ['length', model.length],
+        ])
+          $(id).innerHTML = fmt(value) + ' <small>mm</small>';
+        $('turn').textContent = fmt(angles.reduce((a, b) => a + b, 0)) + '°';
+        $('startPoint').textContent =
+          `X ${fmt(model.pieces[0].x)} mm · Y ${fmt(model.pieces[0].y)} mm · suunta ${fmt(model.rotation)}°`;
+        $('endPoint').textContent =
+          `X ${fmt(model.end.x)} mm · Y ${fmt(model.end.y)} mm · suunta ${fmt(model.end.t / rad)}°`;
+        $('rows').innerHTML = model.pieces
+          .map(
+            (p) =>
+              `<tr data-piece="${p.i}" class="${selection.has(p.i) ? 'active' : ''}"><td><input type="checkbox" data-select="${p.i}" aria-label="Lisää pala ${p.i + 1} valintaan" ${selection.has(p.i) ? 'checked' : ''}></td><td><button aria-label="Valitse pala ${p.i + 1}" aria-pressed="${selection.has(p.i)}">${p.i + 1}</button></td><td>${fmt(p.a)}</td><td>${fmt(p.x)}</td><td>${fmt(p.y)}</td><td>${fmt(p.end.x)}</td><td>${fmt(p.end.y)}</td><td>${fmt(p.t / rad)}</td><td>${fmt(p.endT / rad)}</td><td>500,0</td></tr>`,
+          )
+          .join('');
+        const cp = currentPoint();
+        if (!drag) {
+          $('targetX').value = cp.x.toFixed(1);
+          $('targetY').value = cp.y.toFixed(1);
+        }
+        $('pinList').textContent = pins.length
+          ? 'Lukitut kohdat: ' +
+            pins
+              .map(
+                (p) =>
+                  'pala ' +
+                  (p.i + 1) +
+                  (p.kind === 'mid' ? ' / keski' : ' / loppu') +
+                  ' (poikkeama ' +
+                  fmt(lockError(angles, [p])) +
+                  ' mm)',
+              )
+              .join('; ')
+          : 'Ei lukittuja kohtia.';
+        $('solveInfo').textContent = lastSolve;
+        draw();
+        renderStudio();
+      }
+      $('count').addEventListener('change', () => {
+        checkpoint();
+        const n = Number($('count').value);
+        if (!Number.isInteger(n) || n < 1 || n > 200) {
+          $('count').value = angles.length;
+          $('status').textContent = 'Anna kokonaisluku väliltä 1–200.';
+          return;
+        }
+        angles = Array.from({ length: n }, (_, i) => angles[i] ?? 0);
+        selected = Math.min(selected, n - 1);
+        selection = new Set([...selection].filter((i) => i < n));
+        if (!selection.size) selection.add(selected);
+        if (!selection.has(selected)) selected = [...selection][0];
+        selectionAnchor = Math.min(selectionAnchor, n - 1);
+        pins = pins.filter((p) => p.i < n);
+        pendingTarget = null;
+        lastSolve = '';
+        $('status').textContent = '';
+        render();
+      });
+      $('selected').addEventListener('change', (e) => pick(Number(e.target.value)));
+      $('angle').addEventListener('input', (e) => setAngle(Number(e.target.value)));
+      $('minus').onclick = () => applyAngles((a) => a - 2.5);
+      $('plus').onclick = () => applyAngles((a) => a + 2.5);
+      $('reset').onclick = () => {
+        checkpoint();
+        shapeInfo = null;
+        angles.fill(0);
+        rotation = 0;
+        horizontal = true;
+        pins = [];
+        pendingTarget = null;
+        lastSolve = '';
+        render();
+        $('status').textContent = 'Kaikkien palojen kulmat nollattu.';
+      };
+      $('fit').onclick = () => {
+        fit();
+        draw();
+      };
+      $('rows').onclick = (e) => {
+        if (e.target.dataset.select !== undefined) {
+          const i = Number(e.target.dataset.select);
+          if (e.target.checked) {
+            selection.add(i);
+            selected = i;
+          } else if (selection.size > 1) {
+            selection.delete(i);
+            if (selected === i) selected = [...selection][0];
+          }
+          selectionAnchor = i;
+          render();
+          return;
+        }
+        const tr = e.target.closest('[data-piece]');
+        if (tr) pick(Number(tr.dataset.piece), e);
+      };
+      $('selectAll').onclick = () => {
+        selection = new Set(angles.map((_, i) => i));
+        render();
+      };
+      $('selectOne').onclick = () => {
+        selection = new Set([selected]);
+        render();
+      };
+      $('horizontal').onchange = (e) => setHorizontal(e.target.checked);
+      $('rotation').oninput = (e) => setRotation(Number(e.target.value));
+      $('rotationNumber').onchange = (e) => setRotation(Number(e.target.value));
+      $('zeroRotation').onclick = () => setRotation(0);
+      $('centerHeading').onclick = () =>
+        setRotation(((((-rawCenter(angles).t / rad + 180) % 360) + 360) % 360) - 180);
+      $('mode').onchange = (e) => {
+        mode = e.target.value;
+        pendingTarget = null;
+        render();
+      };
+      $('pointKind').onchange = (e) => {
+        pointKind = e.target.value;
+        render();
+      };
+      $('pinPoint').onclick = () => {
+        pinCurrent();
+        $('status').textContent = 'Kohta lukittu nykyiseen sijaintiin.';
+      };
+      $('unpinPoint').onclick = () => {
+        checkpoint();
+        pins = pins.filter((p) => p.i !== selected || p.kind !== pointKind);
+        lastSolve = '';
+        pendingTarget = null;
+        render();
+      };
+      $('clearPins').onclick = () => {
+        checkpoint();
+        pins = [];
+        lastSolve = '';
+        pendingTarget = null;
+        render();
+      };
+      $('movePoint').onclick = () => {
+        const x = Number($('targetX').value),
+          y = Number($('targetY').value);
+        if (
+          !$('targetX').value.trim() ||
+          !$('targetY').value.trim() ||
+          !Number.isFinite(x) ||
+          !Number.isFinite(y)
+        ) {
+          $('status').textContent = 'Anna molempiin kenttiin kelvollinen millimetrilukema.';
+          return;
+        }
+        moveTo({ i: selected, kind: pointKind, x, y }, true);
+      };
+      const svg = $('plan');
+      svg.addEventListener('pointerdown', (e) => {
+        const c = e.target.dataset && e.target.dataset.control;
+        if (e.target.id === 'handle' || c !== undefined) {
+          e.preventDefault();
+          if (c !== undefined) {
+            selected = Number(c);
+            if (!selection.has(selected)) selection = new Set([selected]);
+          }
+          checkpoint();
+          drag = {
+            id: e.pointerId,
+            p: model.pieces[selected],
+            shape: mode === 'shape',
+            target: null,
+          };
+          svg.setPointerCapture(e.pointerId);
+          render();
+        } else {
+          const el = e.target.closest('[data-piece]');
+          if (el) pick(Number(el.dataset.piece), e);
+        }
+      });
+      svg.addEventListener('pointermove', (e) => {
+        if (!drag || e.pointerId !== drag.id) return;
+        const point = new DOMPoint(e.clientX, e.clientY).matrixTransform(
+          svg.getScreenCTM().inverse(),
+        );
+        const target = {
+          i: selected,
+          kind: pointKind,
+          x: (point.x - 500) / view.s + view.cx,
+          y: (point.y - 220) / view.s + view.cy,
+        };
+        if (drag.shape) {
+          drag.target = target;
+          moveTo(target);
+          return;
+        }
+        const p = drag.p;
+        let best = angles[selected],
+          dist = Infinity;
+        for (let a = -30; a <= 30; a += 2.5) {
+          const candidate = angles.slice();
+          for (const i of selectedIndices()) candidate[i] = a;
+          const end = chainPoints(candidate, [{ i: selected, kind: 'end' }])[0],
+            d = (end.x - target.x) ** 2 + (end.y - target.y) ** 2;
+          if (d < dist) {
+            dist = d;
+            best = a;
+          }
+        }
+        if (best !== angles[selected]) setAngle(best);
+      });
+      function release(e) {
+        if (drag && e.pointerId === drag.id) {
+          const target = drag.target;
+          drag = null;
+          if (target) {
+            const p = { i: target.i, kind: target.kind, ...chainPoints(angles, [target])[0] };
+            pins = [...pins.filter((q) => pointKey(q) !== pointKey(p)), p];
+          }
+          render();
+        }
+      }
+      svg.addEventListener('pointerup', release);
+      svg.addEventListener('pointercancel', release);
+      svg.addEventListener('lostpointercapture', release);
+      function csvText() {
+        const n = (v) => {
+          if (typeof v !== 'number') return v;
+          return (Math.abs(v) < 1e-8 ? 0 : v).toFixed(3).replace('.', ',');
+        };
+        const rows = [
+          ['Kaari — LED-seinän suunnittelija'],
+          [
+            'Oletus',
+            'Tasainen ympyränkaari; tangentiaaliset liitokset; pintalinja ilman paksuutta',
+          ],
+          [
+            'Koordinaatisto',
+            'X oikealle; Y alas; positiivinen kulma myötäpäivään; C on kaaripituuden keskipiste',
+          ],
+          ['Kokonaisleveys X mm', model.width],
+          ['Kokonaissyvyys Y mm', model.depth],
+          ['Min X mm', model.bounds.minX],
+          ['Max X mm', model.bounds.maxX],
+          ['Min Y mm', model.bounds.minY],
+          ['Max Y mm', model.bounds.maxY],
+          ['Kaaripituus yhteensä mm', model.length],
+          ['Suunnan muutos yhteensä astetta', angles.reduce((a, b) => a + b, 0)],
+          ['Vaakasuora päätylinja', horizontal ? 'Kyllä' : 'Ei'],
+          ['Koko seinän kääntö astetta', model.rotation],
+          ['Kääntöpiste C X mm', model.center.x],
+          ['Kääntöpiste C Y mm', model.center.y],
+          ['Keskisuunta astetta', model.center.t / rad],
+          [],
+          [
+            'Lukittu pala',
+            'Kohta',
+            'Tavoite X mm',
+            'Tavoite Y mm',
+            'Toteutunut X mm',
+            'Toteutunut Y mm',
+            'Poikkeama mm',
+          ],
+          ...pins.map((p) => {
+            const q = chainPoints(angles, [p])[0];
+            return [
+              p.i + 1,
+              p.kind === 'mid' ? 'Keskipiste' : 'Loppupiste',
+              p.x,
+              p.y,
+              q.x,
+              q.y,
+              Math.hypot(q.x - p.x, q.y - p.y),
+            ];
+          }),
+          [],
+          [
+            'Pala',
+            'Kaarevuus astetta',
+            'Alku X mm',
+            'Alku Y mm',
+            'Loppu X mm',
+            'Loppu Y mm',
+            'Alkusuunta astetta',
+            'Loppusuunta astetta',
+            'Kaaripituus mm',
+          ],
+          ...model.pieces.map((p) => [
+            p.i + 1,
+            p.a,
+            p.x,
+            p.y,
+            p.end.x,
+            p.end.y,
+            p.t / rad,
+            p.endT / rad,
+            L,
+          ]),
+        ];
+        return (
+          '\uFEFF' +
+          rows
+            .map((r) => r.map((v) => '"' + String(n(v)).replaceAll('"', '""') + '"').join(';'))
+            .join('\r\n')
+        );
+      }
+      $('csv').onclick = () => {
+        const url = URL.createObjectURL(new Blob([csvText()], { type: 'text/csv;charset=utf-8' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'led-seina-mitat.csv';
+        document.body.append(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        $('status').textContent = 'CSV-vienti käynnistetty. Tiedostossa on kulmat ja mitat.';
+      };
+
+      // All generated angles are legal. Mirrored half-rings close by construction.
+      function ringFromQuarter(q, c = null) {
+        const half =
+          c === null ? [...q, ...q.slice().reverse()] : [...q, c, ...q.slice().reverse()];
+        return [...half, ...half];
+      }
+      function circleFit(diameter) {
+        if (!Number.isFinite(diameter) || diameter <= 0)
+          throw Error('Anna positiivinen halkaisija.');
+        const options = [12, 16, 18, 24, 36, 48, 72, 144];
+        const n = options.reduce(
+          (best, n) =>
+            Math.abs((n * L) / Math.PI - diameter) < Math.abs((best * L) / Math.PI - diameter)
+              ? n
+              : best,
+          12,
+        );
+        return {
+          values: Array(n).fill(360 / n),
+          kind: 'circle',
+          width: diameter,
+          depth: diameter,
+          title: 'Ympyrä',
+          method: 'Lähin tasakulmainen, tarkasti sulkeutuva ympyrä',
+          minimum: (12 * L) / Math.PI,
+        };
+      }
+      function idealQuarter(width, depth, kind) {
+        const a = width / 2,
+          b = depth / 2,
+          table = [{ s: 0, t: 0 }];
+        if (kind === 'stadium') {
+          const radius = Math.min(a, b),
+            straight = Math.max(0, a - b),
+            total = straight + (Math.PI * radius) / 2;
+          return (f) => Math.max(0, Math.min(90, (f * total - straight) / radius / rad));
+        }
+        let s = 0,
+          last = { x: 0, y: -b };
+        for (let i = 1; i <= 800; i++) {
+          const u = ((i / 800) * Math.PI) / 2,
+            p = { x: a * Math.sin(u), y: -b * Math.cos(u) };
+          s += Math.hypot(p.x - last.x, p.y - last.y);
+          table.push({ s, t: Math.atan2(b * Math.sin(u), a * Math.cos(u)) / rad });
+          last = p;
+        }
+        return (f) => {
+          const target = f * s;
+          let lo = 0,
+            hi = table.length - 1;
+          while (hi - lo > 1) {
+            const mid = (lo + hi) >> 1;
+            if (table[mid].s < target) lo = mid;
+            else hi = mid;
+          }
+          const x = table[lo],
+            y = table[hi];
+          return x.t + ((y.t - x.t) * (target - x.s)) / (y.s - x.s || 1);
+        };
+      }
+      function ovalFit(width, depth, kind = 'stadium') {
+        if (!Number.isFinite(width) || !Number.isFinite(depth) || width <= 0 || depth <= 0)
+          throw Error('Anna molempiin ulkomittoihin positiivinen luku.');
+        const swap = depth > width,
+          W = Math.max(width, depth),
+          H = Math.min(width, depth),
+          a = W / 2,
+          b = H / 2;
+        const perimeter =
+            kind === 'stadium'
+              ? 2 * (W - H) + Math.PI * H
+              : Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b))),
+          ideal = idealQuarter(W, H, kind),
+          estimate = perimeter / L;
+        let best = null;
+        for (let n = 12; n <= 200; n += 2) {
+          if (Math.abs(n - estimate) > 12 && n !== 12 && n !== 200) continue;
+          const half = n / 2,
+            m = Math.floor(half / 2),
+            odd = half % 2 === 1;
+          for (const cUnits of odd ? [0, 2, 4, 6, 8, 10, 12] : [null]) {
+            const sum = cUnits === null ? 36 : (72 - cUnits) / 2;
+            if (m * 12 < sum) continue;
+            const desired = Array.from(
+              { length: m },
+              (_, j) => (ideal((j + 1) / (n / 4)) - ideal(j / (n / 4))) / 2.5,
+            );
+            let q = desired.map((v) => Math.max(0, Math.min(12, Math.round(v))));
+            let total = q.reduce((s, v) => s + v, 0);
+            while (total !== sum) {
+              let index = -1,
+                delta = total < sum ? 1 : -1,
+                score = Infinity;
+              for (let j = 0; j < m; j++) {
+                const v = q[j] + delta;
+                if (v < 0 || v > 12) continue;
+                const change = (v - desired[j]) ** 2 - (q[j] - desired[j]) ** 2;
+                if (change < score) {
+                  score = change;
+                  index = j;
+                }
+              }
+              if (index < 0) break;
+              q[index] += delta;
+              total += delta;
+            }
+            q.sort((a, b) => a - b);
+            const evaluate = (q) => {
+              let values = ringFromQuarter(
+                q.map((v) => v * 2.5),
+                cUnits === null ? null : cUnits * 2.5,
+              );
+              if (swap) {
+                const shift = Math.round(values.length / 4);
+                values = [...values.slice(shift), ...values.slice(0, shift)];
+              }
+              const model = calculateRaw(values),
+                error = (model.width - width) ** 2 + (model.depth - depth) ** 2;
+              const smooth = q.reduce((s, v, i) => s + (v - desired[i]) ** 2, 0);
+              return { score: error + smooth * 0.02, values, model, error };
+            };
+            let result = evaluate(q);
+            for (let sweep = 0; sweep < 5; sweep++) {
+              let next = null,
+                nextQ = null;
+              for (let i = 0; i < m; i++) {
+                if (q[i] === 0) continue;
+                for (let j = 0; j < m; j++) {
+                  if (i === j || q[j] === 12) continue;
+                  const trial = q.slice();
+                  trial[i]--;
+                  trial[j]++;
+                  trial.sort((a, b) => a - b);
+                  const r = evaluate(trial);
+                  if (r.score < result.score - 1e-7 && (!next || r.score < next.score)) {
+                    next = r;
+                    nextQ = trial;
+                  }
+                }
+              }
+              if (!next) break;
+              result = next;
+              q = nextQ;
+            }
+            if (!best || result.score < best.score) best = result;
+          }
+        }
+        if (!best) throw Error('Sovitus ei löytynyt 12–200 palalla.');
+        if (kind === 'ellipse' && ((a / (b * b)) * L) / rad > 30) {
+          const rounded = ovalFit(width, depth, 'stadium');
+          if (rounded.error < best.error) best = rounded;
+        }
+        return {
+          ...best,
+          kind,
+          width,
+          depth,
+          title: kind === 'stadium' ? 'Suorakylkinen soikio' : 'Ellipsi',
+          method: 'Lähin löydetty symmetrinen sovitus · 12–200 palaa',
+          curvatureLimited: kind === 'ellipse' && ((a / (b * b)) * L) / rad > 30,
+          rangeLimited: estimate > 200 || estimate < 12,
+        };
+      }
+      // A full wave is a crest and a trough. Identical mirrored quarters keep every
+      // period tangent-continuous and put both ends on the same horizontal baseline.
+      const waveGeometryCache = new Map();
+      function waveFit(width, depth, cycles, flip = false) {
+        if (
+          !Number.isFinite(width) ||
+          width <= 0 ||
+          !Number.isFinite(depth) ||
+          depth < 0 ||
+          !Number.isInteger(cycles) ||
+          cycles < 1 ||
+          cycles > 12
+        )
+          throw Error(
+            'Anna positiivinen leveys, syvyys vähintään 0 ja aaltojen määräksi kokonaisluku 1–12.',
+          );
+        if (depth === 0) {
+          const n = Math.max(1, Math.min(200, Math.round(width / L)));
+          return {
+            values: Array(n).fill(0),
+            kind: 'wave',
+            width,
+            depth,
+            cycles,
+            flip,
+            title: 'Aalto',
+            method: 'Syvyys 0 m: suora LED-linja',
+            rangeLimited: width > 200 * L,
+          };
+        }
+        const wavelength = width / cycles,
+          A = depth / 2,
+          k = (2 * Math.PI) / wavelength,
+          table = [{ s: 0, t: Math.atan(A * k) / rad }];
+        let length = 0,
+          previous = { x: 0, y: 0 };
+        for (let i = 1; i <= 600; i++) {
+          const x = ((wavelength / 4) * i) / 600,
+            p = { x, y: A * Math.sin(k * x) };
+          length += Math.hypot(p.x - previous.x, p.y - previous.y);
+          table.push({ s: length, t: Math.atan(A * k * Math.cos(k * x)) / rad });
+          previous = p;
+        }
+        const tangent = (f) => {
+          const s = f * length;
+          let lo = 0,
+            hi = table.length - 1;
+          while (hi - lo > 1) {
+            const mid = (hi + lo) >> 1;
+            if (table[mid].s < s) lo = mid;
+            else hi = mid;
+          }
+          const a = table[lo],
+            b = table[hi];
+          return a.t + ((b.t - a.t) * (s - a.s)) / (b.s - a.s || 1);
+        };
+        const make = (q) => {
+          const negative = q.map((a) => -a * 2.5),
+            positive = q.map((a) => a * 2.5);
+          return [
+            ...negative,
+            ...negative.slice().reverse(),
+            ...positive,
+            ...positive.slice().reverse(),
+          ];
+        };
+        let best = null;
+        const limit = Math.floor(200 / (4 * cycles));
+        for (let m = 1; m <= limit; m++) {
+          if (Math.abs(m - length / L) > 4 && m !== 1 && m !== limit) continue;
+          const ideal = Array.from(
+            { length: m },
+            (_, i) => (tangent(i / m) - tangent((i + 1) / m)) / 2.5,
+          );
+          for (let attempt = 0; attempt < 2; attempt++) {
+            let q = ideal.map((v) =>
+              Math.max(0, Math.min(12, Math.round(attempt === 0 ? v : table[0].t / (m * 2.5)))),
+            );
+            if (!q.some(Boolean)) q[m - 1] = 1;
+            while (q.reduce((s, v) => s + v, 0) > 35) {
+              const index = q.indexOf(Math.max(...q));
+              q[index]--;
+            }
+            q.sort((a, b) => a - b);
+            const evaluate = (q) => {
+              const key = q.join(',');
+              let geometry = waveGeometryCache.get(key);
+              if (!geometry) {
+                const cycle = make(q),
+                  heading = q.reduce((s, v) => s + v, 0) * 2.5 * rad,
+                  model = calculateRaw(cycle, { x: 0, y: 0, t: heading });
+                geometry = { cycle, w: model.width, d: model.depth };
+                waveGeometryCache.set(key, geometry);
+                if (waveGeometryCache.size > 4000)
+                  waveGeometryCache.delete(waveGeometryCache.keys().next().value);
+              }
+              const { cycle, d } = geometry,
+                w = geometry.w * cycles,
+                error = ((w - width) / cycles) ** 2 + 4 * (d - depth) ** 2,
+                profile = q.reduce((s, v, i) => s + (v - ideal[i]) ** 2, 0);
+              return { score: error + profile * 0.02, error, cycle, w, d };
+            };
+            let result = evaluate(q);
+            for (let sweep = 0; sweep < 25; sweep++) {
+              let next = null,
+                nextQ = null;
+              for (let i = 0; i < m; i++)
+                for (const delta of [-2, -1, 1, 2]) {
+                  const trial = q.slice();
+                  trial[i] += delta;
+                  const sum = trial.reduce((s, v) => s + v, 0);
+                  if (trial[i] < 0 || trial[i] > 12 || sum < 1 || sum > 35) continue;
+                  trial.sort((a, b) => a - b);
+                  const r = evaluate(trial);
+                  if (r.score < result.score - 1e-6 && (!next || r.score < next.score)) {
+                    next = r;
+                    nextQ = trial;
+                  }
+                }
+              if (!next) break;
+              result = next;
+              q = nextQ;
+            }
+            if (!best || result.score < best.score) best = result;
+          }
+        }
+        const sign = flip ? -1 : 1,
+          values = Array.from({ length: cycles }, () => best.cycle)
+            .flat()
+            .map((a) => a * sign);
+        return {
+          values,
+          kind: 'wave',
+          width,
+          depth,
+          cycles,
+          flip,
+          title: 'Aalto',
+          method: 'Lähin löydetty toistuva aaltosovitus · 500 mm palat',
+          curvatureLimited: (A * k * k * L) / rad > 30,
+          rangeLimited: length * 4 * cycles > 200 * L,
+        };
+      }
+
+      function download(name, data, type) {
+        const url = URL.createObjectURL(new Blob([data], { type })),
+          a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        document.body.append(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+      }
+      function choosePreset(kind) {
+        cancelWaveUpdate();
+        preset = kind;
+        for (const el of document.querySelectorAll('[data-preset]')) {
+          const on = el.dataset.preset === kind;
+          el.classList.toggle('active', on);
+          el.setAttribute('aria-pressed', String(on));
+        }
+        $('freeFields').hidden = kind !== 'free';
+        $('circleFields').hidden = kind !== 'circle';
+        $('ovalFields').hidden = kind !== 'oval';
+        $('waveFields').hidden = kind !== 'wave';
+        $('generate').hidden = kind === 'free' || kind === 'wave';
+      }
+      function chooseTool(tool) {
+        activeTool = tool;
+        for (const el of document.querySelectorAll('[data-tool]')) {
+          const on = el.dataset.tool === tool;
+          el.classList.toggle('active', on);
+          el.setAttribute('aria-pressed', String(on));
+        }
+        $('toolHint').textContent =
+          tool === 'paint'
+            ? 'Vedä palojen yli valitaksesi ne. Vaihto lisää, Alt poistaa.'
+            : tool === 'box'
+              ? 'Rajaa valittavat palat laatikolla. Vaihto lisää, Alt poistaa.'
+              : 'Raahaa oranssia pistettä. Siirretty kohta lukittuu automaattisesti.';
+        $('plan').style.cursor = tool === 'shape' ? 'default' : 'crosshair';
+        draw();
+      }
+      function installShape(info, options = {}) {
+        if (options.recordHistory !== false) checkpoint();
+        const priorAll = selection.size === angles.length,
+          priorSelection = [...selection],
+          priorSelected = selected,
+          priorRotation = rotation,
+          priorHorizontal = horizontal;
+        angles = info.values.slice();
+        rotation = options.preserveEditing ? priorRotation : 0;
+        horizontal = options.preserveEditing ? priorHorizontal : true;
+        pins = [];
+        selected = options.preserveEditing ? Math.min(priorSelected, angles.length - 1) : 0;
+        selection =
+          options.preserveEditing && !priorAll
+            ? new Set(priorSelection.filter((i) => i < angles.length))
+            : new Set(angles.map((_, i) => i));
+        shapeInfo = {
+          kind: info.kind,
+          width: info.width,
+          depth: info.depth,
+          cycles: info.cycles,
+          flip: !!info.flip,
+          title: info.title,
+          method: info.method,
+          curvatureLimited: !!info.curvatureLimited,
+          rangeLimited: !!info.rangeLimited,
+          signature: angles.join(','),
+        };
+        pendingTarget = null;
+        lastSolve = '';
+        view = null;
+        zoomLevel = 1;
+        if (info.kind === 'wave')
+          syncWaveDepth(info.depth / 1000, document.activeElement !== $('waveDepth'));
+        render();
+        $('status').textContent =
+          'Muoto luotu. Voit maalata palat ja jatkaa kulmien säätämistä. Aiemmat lukitukset vapautettiin.';
+      }
+      function syncWaveDepth(depth, updateNumber = true) {
+        const slider = $('waveDepthRange');
+        slider.max = String(Math.min(20, Math.max(3, Math.ceil(depth), Number(slider.max) || 3)));
+        slider.value = String(depth);
+        if (updateNumber) $('waveDepth').value = String(depth);
+        $('waveDepthValue').textContent = fmt(depth, 2) + ' m';
+        $('waveDepthMax').textContent = fmt(Number(slider.max), 0) + ' m';
+      }
+      function cancelWaveUpdate() {
+        if (waveFrame !== null) cancelAnimationFrame(waveFrame);
+        waveFrame = null;
+        wavePending = null;
+        waveScrubActive = false;
+      }
+      function waveInput() {
+        const width = Number($('waveWidth').value) * 1000,
+          depth = Number($('waveDepth').value) * 1000,
+          cycles = Number($('waveCycles').value);
+        if (
+          !$('waveWidth').value.trim() ||
+          !$('waveDepth').value.trim() ||
+          !$('waveCycles').value.trim() ||
+          !Number.isFinite(width) ||
+          width <= 0 ||
+          !Number.isFinite(depth) ||
+          depth < 0 ||
+          depth > 20000 ||
+          !Number.isInteger(cycles) ||
+          cycles < 1 ||
+          cycles > 12
+        )
+          return null;
+        return { width, depth, cycles, flip: !!$('waveFlip').checked };
+      }
+      function applyPendingWave() {
+        waveFrame = null;
+        const request = wavePending;
+        wavePending = null;
+        if (!request || preset !== 'wave') return;
+        try {
+          const info = waveFit(request.width, request.depth, request.cycles, request.flip),
+            hadPins = pins.length > 0;
+          installShape(info, { recordHistory: false, preserveEditing: shapeInfo?.kind === 'wave' });
+          $('status').textContent =
+            'Aalto päivittyi. Tavoitesyvyys ' +
+            fmt(request.depth / 1000, 2) +
+            ' m · toteutuu ' +
+            fmt(model.depth / 1000, 3) +
+            ' m.' +
+            (hadPins ? ' Muodon lukitukset vapautettiin.' : '');
+        } catch (error) {
+          $('status').textContent = error.message;
+        }
+      }
+      function queueWaveUpdate() {
+        if (preset !== 'wave') return;
+        const request = waveInput();
+        if (!request) return;
+        if (!waveScrubActive) {
+          checkpoint();
+          waveScrubActive = true;
+        }
+        wavePending = request;
+        if (waveFrame === null) waveFrame = requestAnimationFrame(applyPendingWave);
+      }
+      function finishWaveUpdate() {
+        if (waveFrame !== null) {
+          cancelAnimationFrame(waveFrame);
+          applyPendingWave();
+        }
+        waveScrubActive = false;
+      }
+      function renderStudio() {
+        $('undo').disabled = !undoStack.length;
+        $('redo').disabled = !redoStack.length;
+        $('zoomValue').textContent = Math.round(zoomLevel * 100) + ' %';
+        const gap = Math.hypot(model.end.x - model.pieces[0].x, model.end.y - model.pieces[0].y);
+        $('seam').innerHTML = fmt(gap) + ' <small>mm</small>';
+        $('length').innerHTML =
+          angles.length + ' <small>palaa / ' + fmt(angles.length * 0.5, 1) + ' m</small>';
+        const result = $('fitResult');
+        result.hidden = !shapeInfo;
+        if (shapeInfo) {
+          const changed = shapeInfo.signature !== angles.join(','),
+            dx = model.width - shapeInfo.width,
+            dy = model.depth - shapeInfo.depth;
+          result.classList.toggle(
+            'warning',
+            Math.abs(dx) > 50 ||
+              Math.abs(dy) > 50 ||
+              (shapeInfo.kind !== 'wave' && gap > 5) ||
+              shapeInfo.curvatureLimited ||
+              shapeInfo.rangeLimited,
+          );
+          result.innerHTML =
+            '<strong>' +
+            shapeInfo.title +
+            (changed ? ' · muokattu' : '') +
+            '</strong><div>Tavoite ' +
+            fmt(shapeInfo.width / 1000, 2) +
+            ' × ' +
+            fmt(shapeInfo.depth / 1000, 2) +
+            ' m</div><div>Toteutuu ' +
+            fmt(model.width / 1000, 3) +
+            ' × ' +
+            fmt(model.depth / 1000, 3) +
+            ' m</div><div>Erotus X ' +
+            (dx > 0 ? '+' : '') +
+            fmt(dx) +
+            ' mm · Y ' +
+            (dy > 0 ? '+' : '') +
+            fmt(dy) +
+            ' mm</div><div>' +
+            angles.length +
+            ' palaa' +
+            (shapeInfo.kind === 'wave'
+              ? ' · ' + shapeInfo.cycles + ' aaltoa'
+              : ' · saumarako ' + fmt(gap) + ' mm') +
+            '</div><p>' +
+            shapeInfo.method +
+            '</p>' +
+            (shapeInfo.curvatureLimited
+              ? shapeInfo.kind === 'wave'
+                ? '<p>Tavoiteaalto on liian tiukka palan vähimmäissäteelle. Näytetään sallituilla kulmilla löytynyt sovitus.</p>'
+                : '<p>Ellipsin tavoitepäädyt ovat liian tiukat ±30° kaarevuudelle. Tulos on sallituista paloista sovitettu soikio.</p>'
+              : '') +
+            (shapeInfo.rangeLimited
+              ? '<p>Tavoitteen pintapituus ylittää muodon haussa käytettävän palamäärän rajat.</p>'
+              : '') +
+            (shapeInfo.kind === 'circle'
+              ? '<p>Tarkan ympyrän pienin halkaisija on ' +
+                fmt((12 * L) / Math.PI / 1000, 3) +
+                ' m. Halkaisijat ovat portaittaisia, koska kaikilla paloilla on sama sallittu kulma.</p>'
+              : '') +
+            (changed
+              ? shapeInfo.kind === 'wave'
+                ? '<p>Vapaa muokkaus on muuttanut alkuperäistä aaltosovitusta.</p>'
+                : '<p>Vapaa muokkaus on muuttanut alkuperäistä sovitusta. Tarkista sauman sulkeutuminen.</p>'
+              : '');
+          $('designTitle').textContent = shapeInfo.title + (changed ? ' · oma muoto' : '');
+          $('designSubtitle').textContent =
+            shapeInfo.kind === 'wave'
+              ? shapeInfo.cycles + ' aaltoa · syvyys harjasta notkoon · tavoite katkoviivalla.'
+              : shapeInfo.kind === 'circle'
+                ? 'Tasakulmainen rengas. Katkoviiva näyttää tavoitehalkaisijan.'
+                : 'Tavoite ja toteutuva koko rinnakkain. Muokkaa tarvittaessa paloja.';
+        } else {
+          $('designTitle').textContent = 'Muotoile LED-seinäsi';
+          $('designSubtitle').textContent = 'Maalaa palat, säädä kaarta ja näe tilantarve.';
+        }
+        try {
+          const state = snapshot();
+          if (state !== lastAutosave) {
+            localStorage.setItem('kaari-led-studio-v2', state);
+            lastAutosave = state;
+          }
+        } catch {}
+      }
+      function extraDrawing() {
+        let s = '';
+        if (shapeInfo) {
+          const b = model.bounds,
+            c = px({ x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 }),
+            w = shapeInfo.width * view.s,
+            h = shapeInfo.depth * view.s;
+          const attrs =
+            'fill="none" stroke="#a79bdf" stroke-width="1.5" stroke-dasharray="8 6" style="pointer-events:none"';
+          if (shapeInfo.kind === 'wave') {
+            const points = Array.from(
+              { length: Math.max(120, shapeInfo.cycles * 80) + 1 },
+              (_, i) => {
+                const u = i / Math.max(120, shapeInfo.cycles * 80);
+                return (
+                  c.x -
+                  w / 2 +
+                  w * u +
+                  ',' +
+                  (c.y +
+                    (((shapeInfo.flip ? -1 : 1) * h) / 2) *
+                      Math.sin(u * 2 * Math.PI * shapeInfo.cycles))
+                );
+              },
+            );
+            s += '<polyline points="' + points.join(' ') + '" ' + attrs + '/>';
+          } else
+            s +=
+              shapeInfo.kind === 'stadium'
+                ? `<rect x="${c.x - w / 2}" y="${c.y - h / 2}" width="${w}" height="${h}" rx="${Math.min(w, h) / 2}" ${attrs}/>`
+                : `<ellipse cx="${c.x}" cy="${c.y}" rx="${w / 2}" ry="${h / 2}" ${attrs}/>`;
+        }
+        if (paintGesture && paintGesture.tool === 'box') {
+          const a = paintGesture.start,
+            b = paintGesture.last;
+          s += `<rect x="${Math.min(a.x, b.x)}" y="${Math.min(a.y, b.y)}" width="${Math.abs(a.x - b.x)}" height="${Math.abs(a.y - b.y)}" fill="#7061e920" stroke="#7966df" stroke-width="1.5" stroke-dasharray="5 4" style="pointer-events:none"/>`;
+        }
+        return s;
+      }
+      function readableSvgText(markup) {
+        const factor = Math.max(1, 1000 / Math.max(300, svg.clientWidth || 1000));
+        return markup.replace(
+          /font-size="([\d.]+)"/g,
+          (_, size) => 'font-size="' + (Number(size) * factor).toFixed(2) + '"',
+        );
+      }
+      function pointDistance(p, a, b) {
+        const dx = b.x - a.x,
+          dy = b.y - a.y,
+          t = Math.max(
+            0,
+            Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy || 1)),
+          );
+        return Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy);
+      }
+      function segmentsCross(a, b, c, d) {
+        const cross = (p, q, r) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+        const x = cross(a, b, c),
+          y = cross(a, b, d),
+          z = cross(c, d, a),
+          w = cross(c, d, b);
+        return (
+          x * y <= 0 &&
+          z * w <= 0 &&
+          Math.max(a.x, b.x) >= Math.min(c.x, d.x) &&
+          Math.max(c.x, d.x) >= Math.min(a.x, b.x) &&
+          Math.max(a.y, b.y) >= Math.min(c.y, d.y) &&
+          Math.max(c.y, d.y) >= Math.min(a.y, b.y)
+        );
+      }
+      function segmentNear(a, b, c, d, r) {
+        return (
+          segmentsCross(a, b, c, d) ||
+          Math.min(
+            pointDistance(a, c, d),
+            pointDistance(b, c, d),
+            pointDistance(c, a, b),
+            pointDistance(d, a, b),
+          ) <= r
+        );
+      }
+      function segmentInBox(a, b, box) {
+        const inside = (p) => p.x >= box.x0 && p.x <= box.x1 && p.y >= box.y0 && p.y <= box.y1;
+        if (inside(a) || inside(b)) return true;
+        const p = [
+          { x: box.x0, y: box.y0 },
+          { x: box.x1, y: box.y0 },
+          { x: box.x1, y: box.y1 },
+          { x: box.x0, y: box.y1 },
+        ];
+        return p.some((c, i) => segmentsCross(a, b, c, p[(i + 1) % 4]));
+      }
+      function paintedPieces(a, b, tool) {
+        const result = new Set(),
+          box = {
+            x0: Math.min(a.x, b.x),
+            x1: Math.max(a.x, b.x),
+            y0: Math.min(a.y, b.y),
+            y1: Math.max(a.y, b.y),
+          };
+        for (const p of model.pieces) {
+          let previous = px(p);
+          for (let k = 1; k <= 16; k++) {
+            const next = px(at(p.x, p.y, p.t, p.a, k / 16));
+            if (
+              tool === 'box'
+                ? segmentInBox(previous, next, box)
+                : segmentNear(previous, next, a, b, 14)
+            ) {
+              result.add(p.i);
+              break;
+            }
+            previous = next;
+          }
+        }
+        return result;
+      }
+      function paintAt(point) {
+        const g = paintGesture,
+          found = paintedPieces(g.tool === 'box' ? g.start : g.last, point, g.tool);
+        if (g.tool === 'paint') for (const i of found) g.hit.add(i);
+        const hit = g.tool === 'box' ? found : g.hit;
+        selection = new Set(g.base);
+        for (const i of hit) {
+          if (g.subtract) selection.delete(i);
+          else selection.add(i);
+        }
+        if (selection.size) selected = [...selection].at(-1);
+        g.last = point;
+        render();
+      }
+      function eventPoint(e) {
+        return new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+      }
+      svg.addEventListener(
+        'pointerdown',
+        (e) => {
+          if (activeTool === 'shape') return;
+          if (e.button !== undefined && e.button !== 0) return;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          const start = eventPoint(e),
+            add = e.shiftKey || e.ctrlKey || e.metaKey || $('addSelection').checked;
+          paintGesture = {
+            id: e.pointerId,
+            start,
+            last: start,
+            hit: new Set(),
+            base: new Set(add || e.altKey ? selection : []),
+            subtract: !!e.altKey,
+            tool: activeTool,
+          };
+          drag = { id: e.pointerId, kind: 'paint' };
+          svg.setPointerCapture(e.pointerId);
+          paintAt(start);
+        },
+        true,
+      );
+      svg.addEventListener(
+        'pointermove',
+        (e) => {
+          if (!paintGesture || paintGesture.id !== e.pointerId) return;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          paintAt(eventPoint(e));
+        },
+        true,
+      );
+      function finishPainting(e) {
+        if (!paintGesture || paintGesture.id !== e.pointerId) return;
+        e.stopImmediatePropagation();
+        if (e.type !== 'pointercancel') paintAt(eventPoint(e));
+        paintGesture = null;
+        drag = null;
+        render();
+      }
+      svg.addEventListener('pointerup', finishPainting, true);
+      svg.addEventListener('pointercancel', finishPainting, true);
+      svg.addEventListener(
+        'lostpointercapture',
+        (e) => {
+          if (paintGesture && paintGesture.id === e.pointerId) {
+            paintGesture = null;
+            drag = null;
+            render();
+          }
+        },
+        true,
+      );
+      for (const el of document.querySelectorAll('[data-preset]'))
+        el.onclick = () => {
+          choosePreset(el.dataset.preset);
+          if (preset === 'wave') {
+            syncWaveDepth(Number($('waveDepth').value) || 0);
+            queueWaveUpdate();
+            finishWaveUpdate();
+          }
+        };
+      for (const el of document.querySelectorAll('[data-tool]'))
+        el.onclick = () => chooseTool(el.dataset.tool);
+      $('waveDepthRange').addEventListener('input', (e) => {
+        syncWaveDepth(Number(e.target.value));
+        queueWaveUpdate();
+      });
+      $('waveDepthRange').addEventListener('change', finishWaveUpdate);
+      $('waveDepthRange').addEventListener('blur', finishWaveUpdate);
+      $('waveDepth').addEventListener('input', () => {
+        const value = Number($('waveDepth').value);
+        if ($('waveDepth').value.trim() && Number.isFinite(value) && value >= 0 && value <= 20) {
+          syncWaveDepth(value, false);
+          queueWaveUpdate();
+        }
+      });
+      $('waveDepth').addEventListener('change', finishWaveUpdate);
+      $('waveDepth').addEventListener('blur', finishWaveUpdate);
+      for (const id of ['waveWidth', 'waveCycles', 'waveFlip'])
+        $(id).addEventListener('change', () => {
+          queueWaveUpdate();
+          finishWaveUpdate();
+        });
+      $('generate').onclick = async () => {
+        const button = $('generate');
+        button.disabled = true;
+        button.textContent = 'Sovitetaan muotoa…';
+        $('status').textContent =
+          preset === 'wave'
+            ? 'Sovitetaan aaltoja sallittuihin palakulmiin.'
+            : 'Etsitään sallituilla kulmilla sulkeutuvaa muotoa.';
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        try {
+          const info =
+            preset === 'wave'
+              ? waveFit(
+                  Number($('waveWidth').value) * 1000,
+                  Number($('waveDepth').value) * 1000,
+                  Number($('waveCycles').value),
+                  $('waveFlip').checked,
+                )
+              : preset === 'circle'
+                ? circleFit(Number($('diameter').value) * 1000)
+                : ovalFit(
+                    Number($('ovalWidth').value) * 1000,
+                    Number($('ovalDepth').value) * 1000,
+                    $('ovalKind').value,
+                  );
+          installShape(info);
+        } catch (error) {
+          $('status').textContent = error.message;
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Laske ja luo muoto';
+        }
+      };
+      $('clearSelection').onclick = () => {
+        selection.clear();
+        render();
+      };
+      $('undo').onclick = () => historyMove(undoStack, redoStack);
+      $('redo').onclick = () => historyMove(redoStack, undoStack);
+      function zoom(factor) {
+        view.s = Math.max(0.002, Math.min(10, view.s * factor));
+        zoomLevel *= factor;
+        manualView = true;
+        draw();
+        renderStudio();
+      }
+      $('zoomIn').onclick = () => zoom(1.25);
+      $('zoomOut').onclick = () => zoom(0.8);
+      $('fit').onclick = () => {
+        zoomLevel = 1;
+        manualView = false;
+        fit();
+        draw();
+        renderStudio();
+      };
+      $('showSettings').onclick = () =>
+        $('settingsPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('showDrawing').onclick = () =>
+        $('drawingPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('saveSvg').onclick = () => {
+        const previous = { ...view };
+        fit();
+        draw();
+        download(
+          'led-seina-mittakuva.svg',
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 470" width="1400" height="658">' +
+            svg.innerHTML +
+            '</svg>',
+          'image/svg+xml',
+        );
+        view = previous;
+        draw();
+      };
+      const basicCsv = csvText;
+      csvText = function () {
+        let text = basicCsv();
+        if (shapeInfo) {
+          const num = (v) => v.toFixed(3).replace('.', ',');
+          text +=
+            '\r\n\r\n"Muotosovitus";"' +
+            shapeInfo.title +
+            '"\r\n"Tavoiteleveys mm";"' +
+            num(shapeInfo.width) +
+            '"\r\n"Tavoitesyvyys mm";"' +
+            num(shapeInfo.depth) +
+            '"\r\n"Leveysero mm";"' +
+            num(model.width - shapeInfo.width) +
+            '"\r\n"Syvyysero mm";"' +
+            num(model.depth - shapeInfo.depth) +
+            '"\r\n"Saumarako mm";"' +
+            num(Math.hypot(model.end.x - model.pieces[0].x, model.end.y - model.pieces[0].y)) +
+            '"';
+        }
+        if (shapeInfo && shapeInfo.kind === 'wave')
+          text +=
+            '\r\n"Aaltoja";"' +
+            shapeInfo.cycles +
+            '"\r\n"Aallon suunta";"' +
+            (shapeInfo.flip ? 'Peilikuva' : 'Normaali') +
+            '"';
+        return shapeInfo && shapeInfo.kind === 'wave'
+          ? text.replace('"Saumarako mm"', '"Päätyjen väli mm"')
+          : text;
+      };
+      function validProject(input) {
+        if (
+          !input ||
+          input.version !== 2 ||
+          !Array.isArray(input.angles) ||
+          input.angles.length < 1 ||
+          input.angles.length > 200 ||
+          !input.angles.every(
+            (a) =>
+              typeof a === 'number' &&
+              Number.isFinite(a) &&
+              a >= -30 &&
+              a <= 30 &&
+              Math.abs(a / 2.5 - Math.round(a / 2.5)) < 1e-9,
+          )
+        )
+          throw Error('Suunnitelmassa on virheellisiä palakulmia.');
+        if (
+          typeof input.rotation !== 'number' ||
+          !Number.isFinite(input.rotation) ||
+          Math.abs(input.rotation) > 100000 ||
+          typeof input.horizontal !== 'boolean'
+        )
+          throw Error('Suunnitelman suuntatiedot ovat virheelliset.');
+        const pins = input.pins ?? [];
+        if (
+          !Array.isArray(pins) ||
+          pins.length > 400 ||
+          !pins.every(
+            (p) =>
+              Number.isInteger(p.i) &&
+              p.i >= 0 &&
+              p.i < input.angles.length &&
+              ['mid', 'end'].includes(p.kind) &&
+              Number.isFinite(p.x) &&
+              Number.isFinite(p.y) &&
+              Math.abs(p.x) < 1e8 &&
+              Math.abs(p.y) < 1e8,
+          )
+        )
+          throw Error('Suunnitelman lukitukset ovat virheelliset.');
+        const safe = {
+          version: 2,
+          angles: input.angles,
+          rotation: input.rotation,
+          horizontal: input.horizontal,
+          pins: pins.map((p) => ({ i: p.i, kind: p.kind, x: p.x, y: p.y })),
+          selected:
+            Number.isInteger(input.selected) &&
+            input.selected >= 0 &&
+            input.selected < input.angles.length
+              ? input.selected
+              : 0,
+          selection: Array.isArray(input.selection)
+            ? input.selection.filter(
+                (i) => Number.isInteger(i) && i >= 0 && i < input.angles.length,
+              )
+            : [0],
+          pointKind: input.pointKind === 'end' ? 'end' : 'mid',
+          shapeInfo: null,
+        };
+        const sh = input.shapeInfo;
+        if (
+          sh &&
+          ['circle', 'ellipse', 'stadium', 'wave'].includes(sh.kind) &&
+          Number.isFinite(sh.width) &&
+          Number.isFinite(sh.depth) &&
+          sh.width > 0 &&
+          (sh.depth > 0 || (sh.kind === 'wave' && sh.depth === 0)) &&
+          sh.width < 1e7 &&
+          sh.depth < 1e7
+        ) {
+          if (
+            sh.kind === 'wave' &&
+            (!Number.isInteger(sh.cycles) || sh.cycles < 1 || sh.cycles > 12)
+          )
+            throw Error('Aaltojen määrä on virheellinen.');
+          safe.shapeInfo = {
+            kind: sh.kind,
+            width: sh.width,
+            depth: sh.depth,
+            cycles: sh.kind === 'wave' ? sh.cycles : undefined,
+            flip: !!sh.flip,
+            title:
+              sh.kind === 'wave'
+                ? 'Aalto'
+                : sh.kind === 'circle'
+                  ? 'Ympyrä'
+                  : sh.kind === 'stadium'
+                    ? 'Suorakylkinen soikio'
+                    : 'Ellipsi',
+            method: 'Tallennettu muotosovitus',
+            curvatureLimited: !!sh.curvatureLimited,
+            rangeLimited: !!sh.rangeLimited,
+            signature: typeof sh.signature === 'string' ? sh.signature : '',
+          };
+        }
+        return safe;
+      }
+      $('saveProject').onclick = () => {
+        download(
+          'led-suunnitelma.json',
+          JSON.stringify(JSON.parse(snapshot()), null, 2),
+          'application/json',
+        );
+        $('status').textContent =
+          'Suunnitelma tallennettu. Avaa JSON-tiedosto jatkaaksesi myöhemmin.';
+      };
+      $('loadProject').onclick = () => $('projectFile').click();
+      $('projectFile').onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          if (file.size > 2000000) throw Error('Suunnitelmatiedosto on liian suuri.');
+          const state = validProject(JSON.parse(await file.text()));
+          checkpoint();
+          applyState(state);
+          $('status').textContent = 'Suunnitelma avattu.';
+        } catch (error) {
+          $('status').textContent = 'Avaaminen ei onnistunut: ' + error.message;
+        }
+        e.target.value = '';
+      };
+      document.addEventListener('keydown', (e) => {
+        if (e.target.matches && e.target.matches('input,select,textarea')) return;
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+          e.preventDefault();
+          if (e.shiftKey) historyMove(redoStack, undoStack);
+          else historyMove(undoStack, redoStack);
+        }
+      });
+      // Automatic recovery is optional; file:// storage support varies between browsers.
+      try {
+        const saved = localStorage.getItem('kaari-led-studio-v2');
+        if (saved) {
+          const state = validProject(JSON.parse(saved));
+          applyState(state);
+          $('status').textContent = 'Edellinen suunnitelma palautettu tältä selaimelta.';
+        }
+      } catch {}
+
+      render();
+    </script>
+  </body>
+</html>

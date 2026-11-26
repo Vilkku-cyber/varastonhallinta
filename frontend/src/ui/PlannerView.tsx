@@ -1,5 +1,9 @@
-import { useEffect, useState } from 'react';
-import type { State, Trip, Item, Product } from '../domain/model';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import type { Command } from '../domain/commands';
+import type { CurveDocument, LedConfiguration, LedProjectDraft } from '../domain/ledProjects';
+import { LedProjectControls, type LedSelection } from './LedProjectControls';
+import { KaariPreview } from './KaariPreview';
+import type { State, Item, Product } from '../domain/model';
 import {
   panelPlan,
   panelKind,
@@ -13,6 +17,8 @@ import {
 } from '../domain/led';
 import { Field } from './shared';
 import './planner.css';
+
+const KaariEditor = lazy(() => import('./KaariEditor'));
 
 function Drawing({ plan, mode }: { plan: PanelPlan; mode: string }) {
   if (plan.panels > 3000)
@@ -108,12 +114,16 @@ function Drawing({ plan, mode }: { plan: PanelPlan; mode: string }) {
 export function PlannerView({
   state,
   create,
-  append,
+  run,
+  initialSelection,
 }: {
   state: State;
+  run: (command: Command) => Promise<void>;
+  initialSelection?: LedSelection;
   create: (items: Item[]) => void;
-  append: (trip: Trip, items: Item[]) => Promise<void>;
 }) {
+  const [curve, setCurve] = useState<CurveDocument | null>(null);
+  const [kaariOpen, setKaariOpen] = useState(false);
   const [selectedPanel, setSelectedPanel] = useState(''),
     [width, setWidth] = useState(2500),
     [height, setHeight] = useState(500);
@@ -124,9 +134,7 @@ export function PlannerView({
     [mount, setMount] = useState('none'),
     [start, setStart] = useState(0);
   const [mode, setMode] = useState('panels'),
-    [trip, setTrip] = useState(''),
-    [error, setError] = useState(''),
-    [busy, setBusy] = useState(false);
+    [error, setError] = useState('');
   const [bindings, setBindings] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       Object.entries(legacyLedIds).map(([key, id]) => [
@@ -147,8 +155,9 @@ export function PlannerView({
     mountPlan: ReturnType<typeof mounting> | undefined,
     invalid = '';
   try {
+    if (curve && surface) throw Error('Kaari käyttää 500 × 500 mm LED-paneeleja.');
     plan = panelPlan(
-      width,
+      curve ? curve.angles.length * 500 : width,
       height,
       500,
       500,
@@ -255,6 +264,44 @@ export function PlannerView({
       `LED ${plan.widthMm} × ${plan.heightMm} mm; ${surface ? 'pystydata 2 m/ketju' : 'rivijohdotus'}; asennus ${mount}`,
     );
   };
+  const configuration: LedConfiguration = {
+    selectedPanel,
+    long,
+    half,
+    processor,
+    width: curve ? curve.angles.length * 500 : width,
+    height,
+    powerLimit: powerLimit.trim() ? Number(powerLimit) : null,
+    mount: mount as LedConfiguration['mount'],
+    start,
+    bindings,
+  };
+  const loadProject = (project: LedProjectDraft) => {
+    const c = project.configuration;
+    setSelectedPanel(c.selectedPanel);
+    setLong(c.long);
+    setHalf(c.half);
+    setProcessor(c.processor);
+    setWidth(c.width);
+    setHeight(c.height);
+    setPowerLimit(c.powerLimit === null ? '' : String(c.powerLimit));
+    setMount(c.mount);
+    setStart(c.start);
+    setBindings(c.bindings);
+    setCurve(project.curve);
+    setError('');
+  };
+  const initialCurve: CurveDocument = curve ?? {
+    version: 2,
+    angles: Array(Math.min(200, Math.max(1, Math.ceil(width / 500)))).fill(0),
+    rotation: 0,
+    horizontal: true,
+    pins: [],
+    selected: 0,
+    selection: [0],
+    pointKind: 'mid',
+    shapeInfo: null,
+  };
   const selectProduct = (
     label: string,
     value: string,
@@ -284,6 +331,19 @@ export function PlannerView({
           Tulosta suunnitelma
         </button>
       </div>
+      {kaariOpen && (
+        <Suspense fallback={<p role="status">Avataan Kaari-työkalua…</p>}>
+          <KaariEditor
+            initial={initialCurve}
+            close={() => setKaariOpen(false)}
+            useShape={(document) => {
+              setCurve(document);
+              setWidth(document.angles.length * 500);
+              setKaariOpen(false);
+            }}
+          />
+        </Suspense>
+      )}
       <div className="planner-layout">
         <section className="panel">
           <h2>Seinän rakenne</h2>
@@ -292,6 +352,7 @@ export function PlannerView({
             selectedPanel,
             (id) => {
               setSelectedPanel(id);
+              if (panelKind(state.products[id]) !== 'standard') setCurve(null);
               setProcessor('');
               const kind = panelKind(state.products[id]);
               const longs = candidates('long'),
@@ -317,12 +378,13 @@ export function PlannerView({
             </p>
           )}
           <div className="form-grid">
-            <Field label="Leveys mm">
+            <Field label={curve ? 'Pintapituus mm (Kaari)' : 'Leveys mm'}>
               <input
                 type="number"
                 min="1"
                 max="100000"
-                value={width}
+                value={curve ? curve.angles.length * 500 : width}
+                disabled={!!curve}
                 onChange={(e) => setWidth(Number(e.target.value))}
               />
             </Field>
@@ -336,6 +398,36 @@ export function PlannerView({
               />
             </Field>
           </div>
+          <details className="kaari-subtool no-print">
+            <summary>Kaari – kaareva LED-seinä (valinnainen)</summary>
+            <p className="hint">
+              Avaa tarvittaessa ympyrä, soikio, aalto tai vapaa muoto. Työkalu käyttää 500 mm paloja
+              ja −30…+30° kaarevuutta 2,5° askelin.
+            </p>
+            {selectedKind !== 'standard' && (
+              <p className="hint">Valitse ensin tavallinen 500 × 500 mm LED-tuote.</p>
+            )}
+            <div className="actions">
+              <button
+                className="secondary"
+                disabled={selectedKind !== 'standard'}
+                onClick={() => setKaariOpen(true)}
+              >
+                {curve ? 'Muokkaa Kaari-muotoa' : 'Avaa Kaari'}
+              </button>
+              {curve && (
+                <button className="secondary" onClick={() => setCurve(null)}>
+                  Käytä suoraa seinää
+                </button>
+              )}
+            </div>
+            {curve && (
+              <p className="hint">
+                Kaari käytössä: {curve.angles.length} palaa rivissä. Kalustomäärä perustuu
+                pintapituuteen ja rivien määrään.
+              </p>
+            )}
+          </details>
           {selectedKind === 'half' &&
             (!plan || plan.long > 0) &&
             selectProduct(
@@ -452,10 +544,15 @@ export function PlannerView({
                 ))}
               </div>
               <div className="led-drawing">
-                <Drawing plan={plan} mode={mode} />
+                {curve && mode === 'panels' ? (
+                  <KaariPreview document={curve} details />
+                ) : (
+                  <Drawing plan={plan} mode={mode} />
+                )}
               </div>
               <h2>
-                {plan.widthMm} × {plan.heightMm} mm · {plan.panels} palaa
+                {plan.widthMm} × {plan.heightMm} mm {curve ? '(pintapituus × korkeus)' : ''} ·{' '}
+                {plan.panels} palaa
               </h2>
               <p>
                 {plan.rows} riviä · {plan.columns} fyysistä saraketta
@@ -528,49 +625,28 @@ export function PlannerView({
                 prosessori. Saatavuus tarkistetaan keikan päivämäärille tallennettaessa.
               </p>
               <button
-                disabled={busy || plan.powerFeeds === null}
+                disabled={plan.powerFeeds === null}
                 onClick={() => {
                   try {
-                    create(material());
+                    create(curve ? [] : material());
                     setError('');
                   } catch (e) {
                     setError((e as Error).message);
                   }
                 }}
               >
-                Luo keikka koko kalustolistasta
-              </button>
-              <Field label="Tai lisää olemassa olevalle keikalle">
-                <select value={trip} onChange={(e) => setTrip(e.target.value)}>
-                  <option value="">Valitse keikka</option>
-                  {Object.values(state.trips)
-                    .filter((t) => ['draft', 'planned', 'packed'].includes(t.status))
-                    .map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
-                      </option>
-                    ))}
-                </select>
-              </Field>
-              <button
-                className="secondary"
-                disabled={busy || !trip || plan.powerFeeds === null}
-                onClick={async () => {
-                  setBusy(true);
-                  try {
-                    await append(state.trips[trip], material());
-                    setError('Kalustolista lisätty keikalle.');
-                  } catch (e) {
-                    setError((e as Error).message);
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                Lisää koko kalustolista
+                {curve ? 'Luo uusi keikka suunnitelmaa varten' : 'Luo keikka koko kalustolistasta'}
               </button>
             </>
           )}
+          <LedProjectControls
+            state={state}
+            configuration={configuration}
+            curve={curve}
+            load={loadProject}
+            run={run}
+            initialSelection={initialSelection}
+          />
           {error && <p role="status">{error}</p>}
         </section>
       </div>
