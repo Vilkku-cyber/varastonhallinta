@@ -34,6 +34,16 @@ export function hydrate(raw: Partial<State> | null): State {
   for (const p of Object.values(s.products)) p.units ??= {};
   for (const t of Object.values(s.trips)) {
     t.items ??= [];
+    for (const plan of Object.values(t.ledPlans ?? {})) {
+      plan.configuration.bindings ??= {};
+      plan.configuration.powerLimit ??= null;
+      plan.curve ??= null;
+      if (plan.curve) {
+        plan.curve.pins ??= [];
+        plan.curve.selection ??= [];
+        plan.curve.shapeInfo ??= null;
+      }
+    }
     for (const i of t.items) {
       i.unitIds ??= [];
       i.returnedUnitIds ??= [];

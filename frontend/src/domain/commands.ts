@@ -9,6 +9,7 @@ import {
   open,
 } from './model.ts';
 import { availability, capacity, days, today } from './calendar.ts';
+import { parseLedProject, updateProjectItems, type LedProjectDraft } from './ledProjects.ts';
 import { applyOperation } from '../worktime/state.js';
 import {
   type BundleCommand,
@@ -21,6 +22,14 @@ import {
 } from './bundles.ts';
 export type Command =
   | BundleCommand
+  | {
+      type: 'ledPlanSave';
+      tripId: string;
+      plan: LedProjectDraft;
+      planVersion: number;
+      expected: number;
+    }
+  | { type: 'ledPlanApply'; tripId: string; planId: string; planVersion: number; expected: number }
   | { type: 'worktime'; subject: string; actor: string; operation: Record<string, unknown> }
   | { type: 'worktimeProfile'; uid: string; name: string }
   | {
@@ -132,6 +141,48 @@ export function applyCommand(
       subject: c.subject,
     });
     text = `Työaika: ${s.worktime.people[c.subject].name}`;
+  } else if (c.type === 'ledPlanSave' || c.type === 'ledPlanApply') {
+    const t = s.trips[c.tripId];
+    if (!t) fail('Keikkaa ei löydy.');
+    checkVersion(t.version, c.expected);
+    if (!open(t)) fail('Arkistoitua tai peruttua keikkaa ei voi muokata.');
+    t.ledPlans ??= {};
+    if (c.type === 'ledPlanSave') {
+      const draft = parseLedProject(c.plan),
+        old = t.ledPlans[draft.id];
+      checkVersion(old?.version ?? 0, c.planVersion);
+      t.ledPlans[draft.id] = {
+        ...draft,
+        version: (old?.version ?? 0) + 1,
+        updatedAt: at,
+        appliedVersion: old?.appliedVersion ?? 0,
+      };
+      // Saving a drawing is metadata-only: no availability check, demand, packing or status change.
+      text = `LED-suunnitelma tallennettu: ${draft.name} / ${t.name}`;
+    } else {
+      const project = t.ledPlans[c.planId],
+        bundle = bundleForTrip(s, t.id);
+      if (!project) fail('Tallenna LED-suunnitelma keikalle ensin.');
+      checkVersion(project.version, c.planVersion);
+      if (t.status === 'returning' || (t.status === 'out' && !bundle))
+        fail('Keikalla olevan kaluston tarvetta ei voi vaihtaa palautuksen aikana.');
+      const demandFingerprint = () =>
+        JSON.stringify(
+          t.items
+            .map((i) => [i.id, i.type, i.productId, i.quantity])
+            .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+        );
+      const before = demandFingerprint();
+      t.items = updateProjectItems(t, project, s.products, id, !!bundle);
+      checkTrip(s, t, now);
+      if (before !== demandFingerprint()) {
+        if (bundle) bundle.version++;
+        if (t.status === 'packed') t.status = 'planned';
+      }
+      project.appliedVersion = project.version;
+      text = `LED-suunnitelman kalusto päivitetty: ${project.name} / ${t.name}`;
+    }
+    t.version++;
   } else if (c.type === 'trip') {
     const bundle = bundleForTrip(s, c.trip.id);
     const old = s.trips[c.trip.id];
@@ -140,6 +191,9 @@ export function applyCommand(
     if (old && (old.status === 'returning' || (old.status === 'out' && !bundle)))
       fail('Keikalla olevan kaluston suunnitelmaa ei voi vaihtaa palautuksen aikana.');
     const t = structuredClone(c.trip);
+    // Dedicated commands own saved plans and their row associations.
+    if (old?.ledPlans) t.ledPlans = structuredClone(old.ledPlans);
+    else delete t.ledPlans;
     // Physical packing data is never writable through the planning form.
     if (old) {
       for (const previous of old.items)
@@ -149,6 +203,8 @@ export function applyCommand(
         }
       for (const i of t.items) {
         const previous = old.items.find((x) => x.id === i.id);
+        if (previous?.ledPlanId) i.ledPlanId = previous.ledPlanId;
+        else delete i.ledPlanId;
         if (previous?.packed && (previous.productId !== i.productId || previous.type !== i.type))
           fail('Pakatun rivin tuotetta ei voi vaihtaa.');
         Object.assign(i, {
@@ -171,6 +227,7 @@ export function applyCommand(
           returnedUnitIds: [],
           serialSnapshots: [],
         });
+      for (const i of t.items) delete i.ledPlanId;
     }
     s.trips[t.id] = t;
     checkTrip(s, t, now);

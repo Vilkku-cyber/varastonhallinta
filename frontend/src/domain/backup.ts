@@ -1,4 +1,5 @@
 import { type State, statusLabels } from './model.ts';
+import { parseLedProject } from './ledProjects.ts';
 export function parseBackup(raw: unknown): { state: State; source: unknown } {
   const r = raw as { format?: string; version?: number; state?: State; legacySource?: unknown };
   if (r?.format !== 'av-arsenal-backup' || r.version !== 2 || r.state?.schemaVersion !== 2)
@@ -45,6 +46,21 @@ export function parseBackup(raw: unknown): { state: State; source: unknown } {
       !integer(t.version)
     )
       throw Error('Keikkatiedot eivät ole kelvollisia.');
+    if (t.ledPlans !== undefined) {
+      if (!object(t.ledPlans)) throw Error('LED-suunnitelmien rakenne ei ole kelvollinen.');
+      for (const [planId, plan] of Object.entries(t.ledPlans)) {
+        parseLedProject(plan);
+        if (
+          plan.id !== planId ||
+          !integer(plan.version) ||
+          plan.version < 1 ||
+          !integer(plan.appliedVersion) ||
+          plan.appliedVersion > plan.version ||
+          typeof plan.updatedAt !== 'string'
+        )
+          throw Error('LED-suunnitelman versio ei ole kelvollinen.');
+      }
+    }
     for (const i of t.items)
       if (
         typeof i.name !== 'string' ||

@@ -29,6 +29,7 @@ import {
 import { TripEditor } from './TripEditor';
 import { ProductEditor } from './ProductEditor';
 import { TripDetail } from './TripDetail';
+import type { LedSelection } from './LedProjectControls';
 import { Empty, Field } from './shared';
 import { WarehouseView } from './WarehouseView';
 import { DeviceView } from './DeviceView';
@@ -76,6 +77,7 @@ export function App() {
   );
   const [menu, sm] = useState(false);
   const [selected, sel] = useState('');
+  const [ledSelection, setLedSelection] = useState<LedSelection | undefined>();
   const [editor, setEditor] = useState<{ trip?: Trip; seed?: Item[] } | null>(null);
   const [product, setProduct] = useState<{ product?: Product } | null>(null);
   const [archive, sa] = useState(false);
@@ -325,6 +327,10 @@ export function App() {
               back={() => sel('')}
               edit={() => setEditor({ trip: detail })}
               run={run}
+              openLedPlan={(selection) => {
+                setLedSelection(selection);
+                go('planner');
+              }}
             />
           ) : (
             <>
@@ -395,16 +401,9 @@ export function App() {
               {page === 'planner' && (
                 <PlannerView
                   state={state}
+                  run={run}
+                  initialSelection={ledSelection}
                   create={(seed) => setEditor({ seed })}
-                  append={async (t, rows) => {
-                    const items = structuredClone(t.items);
-                    for (const row of rows) {
-                      const previous = items.find((i) => i.productId === row.productId);
-                      if (previous) previous.quantity += row.quantity;
-                      else items.push(row);
-                    }
-                    await run({ type: 'trip', trip: { ...t, items }, expected: t.version });
-                  }}
                 />
               )}
             </>
